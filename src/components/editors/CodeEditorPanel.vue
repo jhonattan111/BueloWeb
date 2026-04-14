@@ -22,12 +22,12 @@
 
       <!-- Template editor -->
       <TabsContent value="template" class="flex-1 min-h-0 mt-0">
-        <TemplateEditor v-model="templateCode" class="h-full" />
+        <TemplateEditor v-model="templateCodeModel" class="h-full" />
       </TabsContent>
 
       <!-- JSON editor -->
       <TabsContent value="data" class="flex-1 min-h-0 mt-0">
-        <JsonEditor v-model="jsonData" class="h-full" />
+        <JsonEditor v-model="jsonDataModel" class="h-full" />
       </TabsContent>
     </Tabs>
 
@@ -52,10 +52,11 @@ import JsonEditor from "./JsonEditor.vue";
 const store = useReportStore();
 
 const activeTab = ref<"template" | "data">("template");
-const templateCode = ref<string>("");
-const jsonData = ref<string>("");
+
+const templateCodeModel = defineModel<string>("templateCode", { default: "" });
+const jsonDataModel = defineModel<string>("jsonData", { default: "" });
 
 function onRender() {
-  store.render(templateCode.value, jsonData.value);
+  store.render(templateCodeModel.value, jsonDataModel.value);
 }
 </script>

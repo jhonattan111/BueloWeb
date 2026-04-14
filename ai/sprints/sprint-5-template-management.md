@@ -4,7 +4,7 @@
 Allow users to create, rename, delete, and select templates stored in `localStorage`. Selecting a template loads its content into the Monaco editors.
 
 ## Status
-`[ ] open`
+`[x] done`
 
 ## Dependencies
 - Sprint 2 complete ✅ (editors must accept external values)
