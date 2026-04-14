@@ -14,7 +14,10 @@
           >
         </TabsList>
 
-        <Button size="sm" @click="onRender">Render</Button>
+        <Button size="sm" :disabled="store.isRendering" @click="onRender">
+          <span v-if="store.isRendering">Rendering…</span>
+          <span v-else>Render</span>
+        </Button>
       </div>
 
       <!-- Template editor -->
@@ -30,10 +33,10 @@
 
     <!-- Inline error -->
     <p
-      v-if="renderError"
+      v-if="store.renderError"
       class="px-3 py-1.5 text-xs text-destructive border-t border-border bg-destructive/5 shrink-0"
     >
-      {{ renderError }}
+      {{ store.renderError }}
     </p>
   </div>
 </template>
@@ -42,27 +45,17 @@
 import { ref } from "vue";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useReportStore } from "@/stores/reportStore";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
 
-const emit = defineEmits<{
-  render: [payload: { template: string; data: string }];
-}>();
+const store = useReportStore();
 
 const activeTab = ref<"template" | "data">("template");
 const templateCode = ref<string>("");
 const jsonData = ref<string>("");
-const renderError = ref<string | null>(null);
 
 function onRender() {
-  renderError.value = null;
-  try {
-    JSON.parse(jsonData.value || "{}");
-  } catch {
-    renderError.value = "Invalid JSON in Data tab.";
-    activeTab.value = "data";
-    return;
-  }
-  emit("render", { template: templateCode.value, data: jsonData.value });
+  store.render(templateCode.value, jsonData.value);
 }
 </script>

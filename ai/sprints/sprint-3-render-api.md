@@ -4,7 +4,7 @@
 Call `POST /api/report/render` when the user clicks "Render", receive a PDF blob, and store it in reactive state. No display yet.
 
 ## Status
-`[ ] open`
+`[x] done`
 
 ## Dependencies
 - Sprint 2 complete ✅
