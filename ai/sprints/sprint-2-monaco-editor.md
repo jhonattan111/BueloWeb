@@ -4,7 +4,7 @@
 Integrate Monaco Editor into `CodeEditorPanel` with two editor instances: one for C# templates and one for JSON data, plus a "Render" button (no API call yet).
 
 ## Status
-`[ ] open`
+`[x] done`
 
 ## Dependencies
 - Sprint 1 complete ✅

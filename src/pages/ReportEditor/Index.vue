@@ -5,7 +5,7 @@
     </template>
 
     <template #editor>
-      <CodeEditorPanel />
+      <CodeEditorPanel @render="onRender" />
     </template>
 
     <template #sidebar-right>
@@ -19,4 +19,8 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import SidebarTemplates from "@/components/layout/SidebarTemplates.vue";
 import CodeEditorPanel from "@/components/editors/CodeEditorPanel.vue";
 import PreviewPanel from "@/components/preview/PreviewPanel.vue";
+
+function onRender(payload: { template: string; data: string }) {
+  console.log("render requested", payload);
+}
 </script>
