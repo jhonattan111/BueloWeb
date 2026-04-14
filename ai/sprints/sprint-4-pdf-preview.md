@@ -4,7 +4,7 @@
 Display the PDF blob from `useReportStore` inside `PreviewPanel` using an iframe, with download support and proper object URL lifecycle management.
 
 ## Status
-`[ ] open`
+`[x] done`
 
 ## Dependencies
 - Sprint 3 complete ✅

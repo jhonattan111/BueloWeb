@@ -10,7 +10,7 @@ This file is the source of truth for sprint planning. Each sprint has its own fi
 | 1 | [sprint-1-base-layout.md](sprints/sprint-1-base-layout.md) | 3-column shell, Vue Router, placeholder panels | `[x] done` |
 | 2 | [sprint-2-monaco-editor.md](sprints/sprint-2-monaco-editor.md) | Monaco Editor for C# template + JSON data | `[x] done` |
 | 3 | [sprint-3-render-api.md](sprints/sprint-3-render-api.md) | POST /api/report/render, Pinia store, loading/error | `[x] done` |
-| 4 | [sprint-4-pdf-preview.md](sprints/sprint-4-pdf-preview.md) | iframe PDF preview, download button, blob URL lifecycle | `[ ] open` |
+| 4 | [sprint-4-pdf-preview.md](sprints/sprint-4-pdf-preview.md) | iframe PDF preview, download button, blob URL lifecycle | `[x] done` |
 | 5 | [sprint-5-template-management.md](sprints/sprint-5-template-management.md) | CRUD templates in localStorage, sidebar list | `[ ] open` |
 | 6 | [sprint-6-template-api.md](sprints/sprint-6-template-api.md) | Replace localStorage with backend REST API | `[ ] open` |
 

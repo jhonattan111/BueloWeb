@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  vite-plugin-monaco-editor@1.1.0:
+    hash: 78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6
+    path: patches/vite-plugin-monaco-editor@1.1.0.patch
+
 importers:
 
   .:
@@ -40,7 +45,7 @@ importers:
         version: 1.4.0
       vite-plugin-monaco-editor:
         specifier: ^1.1.0
-        version: 1.1.0(monaco-editor@0.55.1)
+        version: 1.1.0(patch_hash=78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6)(monaco-editor@0.55.1)
       vue:
         specifier: ^3.5.13
         version: 3.5.32(typescript@5.9.3)
@@ -4804,7 +4809,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.55.1):
+  vite-plugin-monaco-editor@1.1.0(patch_hash=78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6)(monaco-editor@0.55.1):
     dependencies:
       monaco-editor: 0.55.1
 
