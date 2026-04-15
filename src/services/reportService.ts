@@ -1,10 +1,36 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
-export async function renderReport(template: string, data: object): Promise<Blob> {
+enum TemplateMode {
+  FullClass = 0,
+  Builder = 1,
+  Sections = 2,
+  Partial = 3,
+}
+
+interface ReportRequest {
+  Template: string
+  FileName: string
+  Data: object
+  Mode: TemplateMode
+  PageSettings?: unknown
+}
+
+export async function renderReport(
+  template: string,
+  data: object,
+  fileName = 'report.pdf',
+): Promise<Blob> {
+  const payload: ReportRequest = {
+    Template: template,
+    FileName: fileName,
+    Data: data,
+    Mode: TemplateMode.Builder,
+  }
+
   const response = await fetch(`${BASE_URL}/api/report/render`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ template, data, mode: 'Builder' }),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
