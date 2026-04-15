@@ -1,24 +1,37 @@
 # TASKS.md — Buelo Frontend
 
 ## Overview
-This file is the source of truth for sprint planning. Each sprint has its own file in `ai/sprints/`.
+Source of truth for **frontend** sprint planning. Each sprint has its own file in `ai/sprints/`.
+
+Backend sprints (7–9) are tracked separately in `Buelo.Api/ai/TASKS.md`.
 
 ## Sprint Index
 
-| Sprint | File | Goal | Status |
-|--------|------|------|--------|
-| 1 | [sprint-1-base-layout.md](sprints/sprint-1-base-layout.md) | 3-column shell, Vue Router, placeholder panels | `[x] done` |
-| 2 | [sprint-2-monaco-editor.md](sprints/sprint-2-monaco-editor.md) | Monaco Editor for C# template + JSON data | `[x] done` |
-| 3 | [sprint-3-render-api.md](sprints/sprint-3-render-api.md) | POST /api/report/render, Pinia store, loading/error | `[x] done` |
-| 4 | [sprint-4-pdf-preview.md](sprints/sprint-4-pdf-preview.md) | iframe PDF preview, download button, blob URL lifecycle | `[x] done` |
-| 5 | [sprint-5-template-management.md](sprints/sprint-5-template-management.md) | CRUD templates in localStorage, sidebar list | `[x] done` |
-| 6 | [sprint-6-template-api.md](sprints/sprint-6-template-api.md) | Replace localStorage with backend REST API | `[x] done` |
+| Sprint | File | Goal | Status | Layer |
+|--------|------|------|--------|-------|
+| 1 | [sprint-1-base-layout.md](sprints/sprint-1-base-layout.md) | 3-column shell, Vue Router, placeholder panels | `[x] done` | Frontend |
+| 2 | [sprint-2-monaco-editor.md](sprints/sprint-2-monaco-editor.md) | Monaco Editor for C# template + JSON data | `[x] done` | Frontend |
+| 3 | [sprint-3-render-api.md](sprints/sprint-3-render-api.md) | POST /api/report/render, Pinia store, loading/error | `[x] done` | Frontend |
+| 4 | [sprint-4-pdf-preview.md](sprints/sprint-4-pdf-preview.md) | iframe PDF preview, download button, blob URL lifecycle | `[x] done` | Frontend |
+| 5 | [sprint-5-template-management.md](sprints/sprint-5-template-management.md) | CRUD templates in localStorage, sidebar list | `[x] done` | Frontend |
+| 6 | [sprint-6-template-api.md](sprints/sprint-6-template-api.md) | Replace localStorage with backend REST API | `[x] done` | Frontend |
+| 10 | [sprint-10-frontend-buelo-language.md](sprints/sprint-10-frontend-buelo-language.md) | Buelo DSL Monaco language: tokenizer, autocomplete, hover docs | `[ ] pending` | Frontend |
+| 11 | [sprint-11-frontend-artefact-manager.md](sprints/sprint-11-frontend-artefact-manager.md) | Artefact tabs UI, AddArtefactDialog, bundle export/import | `[ ] pending` | Frontend |
+| 12 | [sprint-12-frontend-diagnostics-versioning.md](sprints/sprint-12-frontend-diagnostics-versioning.md) | Live diagnostics squiggles, version history panel, restore flow | `[ ] pending` | Frontend |
 
 ## Dependency Chain
 ```
 Sprint 1 → Sprint 2 → Sprint 3 → Sprint 4
                               ↘
              Sprint 5 ─────────→ Sprint 6
+                                      ↓
+                    [Backend sprints 7–9 — see Buelo.Api/ai/TASKS.md]
+                                      ↓
+                              Sprint 10 (Buelo Language)
+                                      ↓
+                              Sprint 11 (Artefact Manager)
+                                      ↓
+                              Sprint 12 (Diagnostics + History)
 ```
 
 ## Final File Structure (after all sprints)
@@ -27,33 +40,46 @@ src/
   router/
     index.ts
   types/
-    template.ts
+    template.ts              ← + TemplateArtefact, ValidateResult, TemplateVersionMeta
   services/
-    reportService.ts
-    templateService.ts
+    reportService.ts         ← + renderById with optional version param
+    templateService.ts       ← + artefact CRUD, validate, versions, export/import
   stores/
-    reportStore.ts
+    reportStore.ts           ← + version param in render action
     templateStore.ts
   composables/
     useMonacoEditor.ts
-    useActiveTemplate.ts
+    useActiveTemplate.ts     ← + artefact state, loadArtefacts, saveArtefact
+    useTemplateDiagnostics.ts ← NEW: live squiggles via /validate
+  lib/
+    utils.ts
+    buelo-language/           ← NEW: Monaco DSL registration
+      index.ts
+      tokenizer.ts
+      completions.ts
+      hover.ts
+      snippets.ts
+      spec.ts
   components/
     layout/
       AppLayout.vue
-      SidebarTemplates.vue
+      SidebarTemplates.vue    ← + export/import bundle actions
     editors/
       CodeEditorPanel.vue
-      TemplateEditor.vue
+      TemplateEditor.vue      ← replaced by ArtefactTabs
+      ArtefactTabs.vue        ← NEW: tabbed template + artefact editors
+      AddArtefactDialog.vue   ← NEW: add new artefact
+      VersionHistoryPanel.vue ← NEW: version history + restore
       JsonEditor.vue
     preview/
       PreviewPanel.vue
-    ui/                      ← shadcn components (auto-generated)
+    ui/                       ← shadcn components (auto-generated)
   pages/
     ReportEditor/
       Index.vue
   assets/
     index.css
-  main.ts
+  main.ts                     ← + registerBueloLanguage() call
   App.vue
 .env
 vite.config.ts
