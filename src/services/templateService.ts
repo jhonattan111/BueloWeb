@@ -1,4 +1,4 @@
-import type { Template } from '@/types/template'
+import type { Template, TemplateArtefact } from '@/types/template'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
@@ -47,4 +47,64 @@ export async function deleteTemplate(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error(await response.text())
   }
+}
+
+// ── Artefact endpoints ────────────────────────────────────────────────────────
+
+export async function listArtefacts(
+  templateId: string,
+): Promise<Pick<TemplateArtefact, 'name' | 'extension'>[]> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/artefacts`)
+  return handleResponse<Pick<TemplateArtefact, 'name' | 'extension'>[]>(response)
+}
+
+export async function getArtefact(templateId: string, name: string): Promise<TemplateArtefact> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/artefacts/${name}`)
+  return handleResponse<TemplateArtefact>(response)
+}
+
+export async function upsertArtefact(
+  templateId: string,
+  artefact: TemplateArtefact,
+): Promise<void> {
+  const response = await fetch(
+    `${BASE_URL}/api/templates/${templateId}/artefacts/${artefact.name}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(artefact),
+    },
+  )
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+}
+
+export async function deleteArtefact(templateId: string, name: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/artefacts/${name}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+}
+
+// ── Bundle export / import ────────────────────────────────────────────────────
+
+export async function exportBundle(templateId: string): Promise<Blob> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/export`)
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+  return response.blob()
+}
+
+export async function importBundle(file: File): Promise<Template> {
+  const form = new FormData()
+  form.append('file', file)
+  const response = await fetch(`${BASE_URL}/api/templates/import`, {
+    method: 'POST',
+    body: form,
+  })
+  return handleResponse<Template>(response)
 }

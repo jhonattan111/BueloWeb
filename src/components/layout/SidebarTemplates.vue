@@ -8,14 +8,34 @@
         class="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
         >Templates</span
       >
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="New template"
-        @click="store.createTemplate()"
-      >
-        <Plus class="size-4" />
-      </Button>
+      <div class="flex items-center gap-0.5">
+        <!-- Import bundle -->
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Import bundle"
+          @click="importFileRef?.click()"
+        >
+          <Upload class="size-4" />
+        </Button>
+        <input
+          ref="importFileRef"
+          type="file"
+          accept=".zip"
+          class="sr-only"
+          @change="onImportFile"
+        />
+
+        <!-- New template -->
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="New template"
+          @click="store.createTemplate()"
+        >
+          <Plus class="size-4" />
+        </Button>
+      </div>
     </div>
 
     <!-- Error -->
@@ -102,6 +122,16 @@
               </DialogContent>
             </Dialog>
 
+            <!-- Export bundle -->
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label="Export bundle"
+              @click.stop="exportBundle(template.id, template.name)"
+            >
+              <Download class="size-3" />
+            </Button>
+
             <!-- Delete AlertDialog -->
             <AlertDialog v-model:open="deleteDialogOpen[template.id]">
               <AlertDialogTrigger as-child>
@@ -139,7 +169,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import { Pencil, Plus, Trash2 } from "lucide-vue-next";
+import { Download, Pencil, Plus, Trash2, Upload } from "lucide-vue-next";
+import * as templateService from "@/services/templateService";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
@@ -185,5 +216,38 @@ function confirmRename(id: string) {
     store.updateTemplate(id, { name });
   }
   renameDialogOpen[id] = false;
+}
+
+// ── Bundle export ─────────────────────────────────────────────────────────────
+async function exportBundle(id: string, templateName: string) {
+  try {
+    const blob = await templateService.exportBundle(id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${templateName}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    store.error = e instanceof Error ? e.message : "Export failed";
+  }
+}
+
+// ── Bundle import ─────────────────────────────────────────────────────────────
+const importFileRef = ref<HTMLInputElement | null>(null);
+
+async function onImportFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const imported = await templateService.importBundle(file);
+    await store.fetchTemplates();
+    store.selectTemplate(imported.id);
+  } catch (e) {
+    store.error = e instanceof Error ? e.message : "Import failed";
+  } finally {
+    input.value = "";
+  }
 }
 </script>

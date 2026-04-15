@@ -33,6 +33,7 @@ export const useTemplateStore = defineStore('template', () => {
         name: 'New Template',
         template: 'Hello, {{ name }}!',
         mockData: { name: 'World' },
+        artefacts: [],
       })
       templates.value.push(t)
       activeTemplateId.value = t.id

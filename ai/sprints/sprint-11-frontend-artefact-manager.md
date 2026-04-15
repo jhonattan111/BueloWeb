@@ -4,7 +4,7 @@
 Expose the multi-artefact model in the UI. Each template can now have associated files (mock data, schema, helpers). The editor panel evolves into a tabbed interface: one tab for the template source, additional tabs for artefacts. Add artefact CRUD interactions and wire the export/import bundle feature.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
 - Sprint 8 backend complete (artefact endpoints available) ✅
