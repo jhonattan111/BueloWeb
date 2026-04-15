@@ -4,7 +4,7 @@
 Replace `localStorage` persistence with backend API calls. The store interface stays the same; only the persistence layer changes.
 
 ## Status
-`[ ] open`
+`[x] done`
 
 ## Dependencies
 - Sprint 5 complete ✅

@@ -7,6 +7,8 @@ export function useMonacoEditor(
   initialValue: string,
 ) {
   let editor: monaco.editor.IStandaloneCodeEditor | null = null
+  const pendingChangeCallbacks: Array<() => void> = []
+  const changeDisposables: monaco.IDisposable[] = []
 
   onMounted(() => {
     if (!containerRef.value) return
@@ -21,9 +23,19 @@ export function useMonacoEditor(
       scrollBeyondLastLine: false,
       tabSize: 2,
     })
+
+    // Register callbacks queued before Monaco editor creation.
+    for (const cb of pendingChangeCallbacks) {
+      changeDisposables.push(editor.onDidChangeModelContent(cb))
+    }
+    pendingChangeCallbacks.length = 0
   })
 
   onUnmounted(() => {
+    for (const disposable of changeDisposables) {
+      disposable.dispose()
+    }
+    changeDisposables.length = 0
     editor?.dispose()
     editor = null
   })
@@ -39,7 +51,12 @@ export function useMonacoEditor(
   }
 
   function onDidChangeContent(cb: () => void): void {
-    editor?.onDidChangeModelContent(cb)
+    if (!editor) {
+      pendingChangeCallbacks.push(cb)
+      return
+    }
+
+    changeDisposables.push(editor.onDidChangeModelContent(cb))
   }
 
   return { getValue, setValue, onDidChangeContent }

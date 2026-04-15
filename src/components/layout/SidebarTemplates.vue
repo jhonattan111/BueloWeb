@@ -18,17 +18,39 @@
       </Button>
     </div>
 
+    <!-- Error -->
+    <div v-if="store.error" class="px-2 pt-2 shrink-0">
+      <Alert variant="destructive">
+        <AlertDescription>{{ store.error }}</AlertDescription>
+        <AlertAction>
+          <Button size="xs" variant="outline" @click="store.fetchTemplates()"
+            >Retry</Button
+          >
+        </AlertAction>
+      </Alert>
+    </div>
+
     <!-- List -->
     <ScrollArea class="flex-1 min-h-0">
       <div class="p-2 flex flex-col gap-0.5">
+        <!-- Loading skeleton -->
+        <template v-if="store.isLoading">
+          <div
+            v-for="n in 3"
+            :key="n"
+            class="h-7 rounded-none bg-muted animate-pulse"
+          />
+        </template>
+
         <p
-          v-if="store.templates.length === 0"
+          v-else-if="store.templates.length === 0 && !store.error"
           class="px-2 py-1.5 text-xs text-muted-foreground"
         >
           No templates yet.
         </p>
 
         <div
+          v-else
           v-for="template in store.templates"
           :key="template.id"
           :class="[
@@ -116,10 +138,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { Pencil, Plus, Trash2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -144,6 +167,8 @@ import { Input } from "@/components/ui/input";
 import { useTemplateStore } from "@/stores/templateStore";
 
 const store = useTemplateStore();
+
+onMounted(() => store.fetchTemplates());
 
 const renameDialogOpen = reactive<Record<string, boolean>>({});
 const deleteDialogOpen = reactive<Record<string, boolean>>({});

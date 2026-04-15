@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useMonacoEditor } from "@/composables/useMonacoEditor";
 
 const DEFAULT_TEMPLATE = `Hello, {{ name }}!
@@ -22,6 +22,12 @@ const { getValue, setValue, onDidChangeContent } = useMonacoEditor(
 
 onDidChangeContent(() => {
   emit("update:modelValue", getValue());
+});
+
+onMounted(() => {
+  if (!props.modelValue) {
+    emit("update:modelValue", getValue());
+  }
 });
 
 watch(
