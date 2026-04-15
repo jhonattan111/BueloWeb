@@ -4,7 +4,7 @@
 Register the `buelo` language in Monaco Editor with syntax highlighting, snippet-based autocompletion for all DSL directives, and hover documentation. Replace all `language: 'csharp'` usages in template editors with `language: 'buelo'`.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
 - Sprint 6 complete ✅
@@ -14,7 +14,6 @@ Register the `buelo` language in Monaco Editor with syntax highlighting, snippet
 ---
 
 ## Compatibility Notes from Backend Changes
-- `TemplateMode` now treats `FullClass` and `Builder` as `[Obsolete]` — the type dropdown in the UI should reflect this (mark as deprecated, but keep for read compatibility of old templates)
 - New `/api/report/validate` endpoint available for live diagnostics
 
 ---
@@ -39,11 +38,11 @@ src/lib/buelo-language/
 
 ```ts
 export const DIRECTIVES = [
-  { name: 'import',    syntax: '@import <alias> from "<ref>"',    doc: 'Imports a Partial template by name or GUID.' },
+  { name: 'import',    syntax: '@import header|footer|content from "<name-or-guid>"',    doc: 'Imports a Partial template into a specific slot (header, footer, or content). Resolved by GUID first, then by name (case-insensitive).' },
   { name: 'data',      syntax: '@data from "<ref>"',              doc: 'Binds a data artefact or JSON file to this template.' },
-  { name: 'settings',  syntax: '@settings { size: A4; margin: 2cm; orientation: Portrait; }', doc: 'Configures page size, margin and orientation.' },
+  { name: 'settings',  syntax: '@settings { size: "A4"; margin: "2cm"; orientation: "Portrait"; }', doc: 'Configures page size, margin and orientation. Values must be quoted strings.' },
   { name: 'schema',    syntax: '@schema record Name(string Prop);', doc: 'Declares an inline typed record for data binding.' },
-  { name: 'helper',    syntax: '@helper Name(params) => expr;',   doc: 'Declares an inline helper function available in the template body.' },
+  { name: 'helper',    syntax: '@helper Name(params) => expr;',   doc: 'Declares an inline helper function. Alternatively, @helper from "artefact-name" loads helpers from a .helpers.cs artefact (takes precedence over inline declarations).' },
 ] as const
 
 export const SECTIONS = [
@@ -113,13 +112,6 @@ Files to update:
 - `src/composables/useMonacoEditor.ts` — accept `language` param, default to `'buelo'` for template editors
 - Any page/component that creates a Monaco instance for template source (not for JSON data editors — those stay `language: 'json'`)
 
-### 10.8 — Deprecation badge in `TemplateMode` selector
-
-In the template mode dropdown UI:
-- Mark `FullClass` and `Builder` options with a `(deprecated)` suffix
-- Still allow selecting them (do not remove) — backend still supports them
-- Show a `Warning` alert when a template with deprecated mode is loaded
-
 ---
 
 ## Acceptance Criteria
@@ -127,5 +119,4 @@ In the template mode dropdown UI:
 - [ ] Typing `@` in a Sections editor opens autocomplete with all directives
 - [ ] `@import ... from "` autocomplete shows only `Partial` templates from the backend
 - [ ] Hovering `data` shows type `dynamic` + description
-- [ ] `FullClass`/`Builder` mode selector shows deprecation label + warning alert
 - [ ] JSON data editors are unaffected (still use `language: 'json'`)

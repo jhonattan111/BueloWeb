@@ -68,7 +68,7 @@ export function useTemplateDiagnostics(
 
 Behavior:
 - `watchEffect` on `templateSource` — debounce 1500ms before calling `validateTemplate`
-- Only activates when `mode` is `Sections` or `Partial` (not deprecated modes)
+- Activates for both `Sections` and `Partial` modes (the only two valid modes)
 - On result: calls `monaco.editor.setModelMarkers(model, 'buelo', markers)`
 - Sets `isValidating` during the request; clears markers on empty error list
 - Cleans up markers on unmount
