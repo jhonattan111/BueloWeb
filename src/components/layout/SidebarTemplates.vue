@@ -81,7 +81,9 @@
           ]"
           @click="store.selectTemplate(template.id)"
         >
-          <span class="truncate flex-1 min-w-0">{{ template.name }}</span>
+          <span class="truncate flex-1 min-w-0">{{
+            getTemplateDisplayName(template.name)
+          }}</span>
 
           <!-- Action buttons (visible on hover) -->
           <div
@@ -117,7 +119,11 @@
                     @click="renameDialogOpen[template.id] = false"
                     >Cancel</Button
                   >
-                  <Button @click="confirmRename(template.id)">Rename</Button>
+                  <Button
+                    :disabled="renameValue.trim().length === 0"
+                    @click="confirmRename(template.id)"
+                    >Rename</Button
+                  >
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -127,7 +133,9 @@
               variant="ghost"
               size="icon-xs"
               aria-label="Export bundle"
-              @click.stop="exportBundle(template.id, template.name)"
+              @click.stop="
+                exportBundle(template.id, getTemplateDisplayName(template.name))
+              "
             >
               <Download class="size-3" />
             </Button>
@@ -148,8 +156,9 @@
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Template</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete "{{ template.name }}"? This
-                    action cannot be undone.
+                    Are you sure you want to delete "{{
+                      getTemplateDisplayName(template.name)
+                    }}"? This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -212,10 +221,14 @@ function openRename(id: string, currentName: string) {
 
 function confirmRename(id: string) {
   const name = renameValue.value.trim();
-  if (name) {
-    store.updateTemplate(id, { name });
-  }
+  if (!name) return;
+  store.updateTemplate(id, { name });
   renameDialogOpen[id] = false;
+}
+
+function getTemplateDisplayName(name: string): string {
+  const trimmed = name.trim();
+  return trimmed.length > 0 ? trimmed : "Untitled template";
 }
 
 // ── Bundle export ─────────────────────────────────────────────────────────────

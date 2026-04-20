@@ -47,7 +47,33 @@ export const useTemplateStore = defineStore('template', () => {
   async function updateTemplate(id: string, patch: Partial<Omit<Template, 'id'>>) {
     error.value = null
     try {
-      const updated = await templateService.updateTemplate(id, patch)
+      const current = templates.value.find((t) => t.id === id)
+      if (!current) {
+        error.value = 'Template not found in local store'
+        return
+      }
+
+      const normalizedPatch: Partial<Omit<Template, 'id'>> = { ...patch }
+
+      const rawName = Object.prototype.hasOwnProperty.call(normalizedPatch, 'name')
+        ? normalizedPatch.name
+        : current.name
+      const normalizedName = rawName?.trim()
+      if (!normalizedName) {
+        error.value = 'Template name cannot be empty'
+        return
+      }
+
+      normalizedPatch.name = normalizedName
+
+      const { id: _, ...currentPayload } = current
+      const payload: Omit<Template, 'id'> = {
+        ...currentPayload,
+        ...normalizedPatch,
+        name: normalizedName,
+      }
+
+      const updated = await templateService.updateTemplate(id, payload)
       const idx = templates.value.findIndex((t) => t.id === id)
       if (idx !== -1) templates.value[idx] = updated
     } catch (e) {
