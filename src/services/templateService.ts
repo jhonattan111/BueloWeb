@@ -1,4 +1,13 @@
-import type { Template, TemplateArtefact, TemplateMode, ValidateResult, TemplateVersionMeta, TemplateVersionSnapshot } from '@/types/template'
+import type {
+  Template,
+  TemplateArtefact,
+  TemplateFile,
+  TemplateFileKind,
+  TemplateMode,
+  ValidateResult,
+  TemplateVersionMeta,
+  TemplateVersionSnapshot,
+} from '@/types/template'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
@@ -67,23 +76,52 @@ export async function upsertArtefact(
   templateId: string,
   artefact: TemplateArtefact,
 ): Promise<void> {
-  const response = await fetch(
-    `${BASE_URL}/api/templates/${templateId}/artefacts/${artefact.name}`,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(artefact),
-    },
-  )
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      path: artefact.path ?? `${artefact.name}${artefact.extension}`,
+      content: artefact.content,
+      kind: inferKindFromPath(artefact.path ?? `${artefact.name}${artefact.extension}`),
+    }),
+  })
   if (!response.ok) {
     throw new Error(await response.text())
   }
 }
 
 export async function deleteArtefact(templateId: string, name: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/artefacts/${name}`, {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(name)}`, {
     method: 'DELETE',
   })
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+}
+
+export async function listFiles(templateId: string): Promise<TemplateFile[]> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files`)
+  return handleResponse<TemplateFile[]>(response)
+}
+
+export async function upsertFile(
+  templateId: string,
+  payload: { path: string; content: string; kind?: TemplateFileKind; mode?: TemplateMode },
+): Promise<TemplateFile> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  return handleResponse<TemplateFile>(response)
+}
+
+export async function deleteFile(templateId: string, path: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(path)}`, {
+    method: 'DELETE',
+  })
+
   if (!response.ok) {
     throw new Error(await response.text())
   }
@@ -144,4 +182,12 @@ export async function restoreVersion(templateId: string, version: number): Promi
     { method: 'POST' },
   )
   return handleResponse<Template>(response)
+}
+
+function inferKindFromPath(path: string): TemplateFileKind {
+  if (path.endsWith('.helpers.cs')) return 'helper'
+  if (path.endsWith('.schema.json')) return 'schema'
+  if (path.endsWith('.data.json')) return 'data'
+  if (path.endsWith('.cs')) return 'template'
+  return 'file'
 }

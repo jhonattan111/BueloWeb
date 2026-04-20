@@ -1,9 +1,26 @@
 export type TemplateMode = 'FullClass' | 'Builder' | 'Sections' | 'Partial'
 
 export interface TemplateArtefact {
+  path?: string
   name: string
   extension: string
   content: string
+}
+
+export type TemplateFileKind =
+  | 'template'
+  | 'template-sections'
+  | 'template-partial'
+  | 'data'
+  | 'helper'
+  | 'schema'
+  | 'file'
+
+export interface TemplateFile {
+  path: string
+  kind: TemplateFileKind
+  content: string
+  mode?: TemplateMode | null
 }
 
 export interface Template {
