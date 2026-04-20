@@ -93,6 +93,7 @@
         <ArtefactEditorTab
           :artefact="toArtefact(file)"
           @save="onSaveArtefact"
+          @validation-result="onArtefactValidationResult"
         />
       </div>
     </div>
@@ -111,6 +112,13 @@
       {{ validationError }}
     </p>
 
+    <ValidationSummaryPanel
+      :files="summaryFiles"
+      :is-open="problemsPanelOpen"
+      @toggle="problemsPanelOpen = !problemsPanelOpen"
+      @jump-to-diagnostic="onJumpToDiagnostic"
+    />
+
     <VersionHistoryPanel
       v-if="historyOpen && templateStore.activeTemplateId"
       :template-id="templateStore.activeTemplateId"
@@ -121,23 +129,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, reactive, watch } from "vue";
 import { History } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
 import ArtefactEditorTab from "./ArtefactEditorTab.vue";
 import VersionHistoryPanel from "./VersionHistoryPanel.vue";
+import ValidationSummaryPanel from "./ValidationSummaryPanel.vue";
+import type { FileProblemEntry } from "./ValidationSummaryPanel.vue";
 import { useReportStore } from "@/stores/reportStore";
 import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
 import { useTemplateDiagnostics } from "@/composables/useTemplateDiagnostics";
+import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
 import type {
   Template,
   TemplateArtefact,
   TemplateFile,
   TemplateFileKind,
   TemplateMode,
+  FileValidationResult,
+  ValidationDiagnostic,
 } from "@/types/template";
 
 const TEMPLATE_FILE_PATH = "template.report.cs";
@@ -149,6 +162,7 @@ const jsonDataModel = defineModel<string>("jsonData", { default: "" });
 const reportStore = useReportStore();
 const templateStore = useTemplateStore();
 const { files, activeFilePath, saveFile, loadFiles } = useActiveTemplate();
+const { setValidationResult } = useWorkspaceTree();
 
 const nonCoreFiles = computed(() =>
   files.value.filter(
@@ -209,6 +223,44 @@ const diagnosticState = computed(() => {
   return "ok";
 });
 
+// ── Problems panel ──────────────────────────────────────────────────────────
+const problemsPanelOpen = ref(false);
+const artefactValidationResults = reactive<Map<string, FileValidationResult>>(
+  new Map(),
+);
+
+function onArtefactValidationResult(
+  fileId: string,
+  result: FileValidationResult,
+): void {
+  artefactValidationResults.set(fileId, result);
+  // Also update the workspace tree's shared validation map
+  const templateId = templateStore.activeTemplateId;
+  if (templateId) {
+    setValidationResult(`${templateId}:${fileId}`, result);
+  }
+}
+
+// Derive summaryFiles for the panel (artefact results only — template.report.cs uses its own diagnostics)
+const summaryFiles = computed<FileProblemEntry[]>(() => {
+  const entries: FileProblemEntry[] = [];
+
+  for (const [fileId, result] of artefactValidationResults.entries()) {
+    if (result.errors.length || result.warnings.length) {
+      const fileName = fileId.split("/").at(-1) ?? fileId;
+      entries.push({ fileId, fileName, result });
+    }
+  }
+
+  return entries;
+});
+
+function onJumpToDiagnostic(fileId: string, _diag: ValidationDiagnostic): void {
+  // Switch to the file that has the error
+  activeFilePath.value = fileId;
+}
+
+// ── History / Render ────────────────────────────────────────────────────────
 const historyOpen = ref(false);
 
 async function onRestore(template: Template) {

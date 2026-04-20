@@ -1,6 +1,7 @@
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import type { Ref } from 'vue'
 import type { FileNode } from '@/types/workspace'
+import type { FileValidationResult } from '@/types/template'
 import * as workspaceService from '@/services/workspaceService'
 import * as templateService from '@/services/templateService'
 import { useTemplateStore } from '@/stores/templateStore'
@@ -8,17 +9,21 @@ import { useTemplateStore } from '@/stores/templateStore'
 const tree = ref<FileNode[]>([])
 const isLoading = ref(false)
 const selectedNode = ref<FileNode | null>(null)
+/** nodeId → latest FileValidationResult for tree badge display */
+const validationState = reactive<Map<string, FileValidationResult>>(new Map())
 let initialized = false
 
 export function useWorkspaceTree(): {
   tree: Ref<FileNode[]>
   isLoading: Ref<boolean>
   selectedNode: Ref<FileNode | null>
+  validationState: Map<string, FileValidationResult>
   refresh(): Promise<void>
   selectNode(node: FileNode): void
   createFile(parentId: string | null, name: string, extension: string, content?: string): Promise<FileNode>
   deleteFile(node: FileNode): Promise<void>
   renameTemplate(node: FileNode, newName: string): Promise<void>
+  setValidationResult(nodeId: string, result: FileValidationResult): void
 } {
   const templateStore = useTemplateStore()
 
@@ -103,6 +108,10 @@ export function useWorkspaceTree(): {
     await refresh()
   }
 
+  function setValidationResult(nodeId: string, result: FileValidationResult): void {
+    validationState.set(nodeId, result)
+  }
+
   if (!initialized) {
     initialized = true
     refresh()
@@ -112,11 +121,13 @@ export function useWorkspaceTree(): {
     tree,
     isLoading,
     selectedNode,
+    validationState,
     refresh,
     selectNode,
     createFile,
     deleteFile,
     renameTemplate,
+    setValidationResult,
   }
 }
 

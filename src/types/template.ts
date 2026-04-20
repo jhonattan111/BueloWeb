@@ -37,6 +37,19 @@ export interface ValidateResult {
   errors: Array<{ message: string; line: number; column: number }>
 }
 
+export interface FileValidationResult {
+  valid: boolean
+  errors: ValidationDiagnostic[]
+  warnings: ValidationDiagnostic[]
+}
+
+export interface ValidationDiagnostic {
+  message: string
+  line: number
+  column: number
+  severity: 'error' | 'warning' | 'info'
+}
+
 export interface TemplateVersionMeta {
   version: number
   savedAt: string

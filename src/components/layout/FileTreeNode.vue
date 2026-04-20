@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import {
   FileCode,
   Braces,
@@ -12,11 +12,13 @@ import {
   ChevronDown,
 } from "lucide-vue-next";
 import type { FileNode } from "@/types/workspace";
+import type { FileValidationResult } from "@/types/template";
 
 const props = defineProps<{
   node: FileNode;
   depth: number;
   selectedId: string | null;
+  validationState?: Map<string, FileValidationResult>;
 }>();
 
 const emit = defineEmits<{
@@ -67,6 +69,30 @@ const iconColorMap: Record<string, string> = {
 function iconColor(ext: string): string {
   return iconColorMap[ext] ?? "text-muted-foreground";
 }
+
+const validationBadge = computed<"error" | "warning" | null>(() => {
+  if (!props.validationState) return null;
+  const res = props.validationState.get(props.node.id);
+  if (!res) return null;
+  if (res.errors.length > 0) return "error";
+  if (res.warnings.length > 0) return "warning";
+  return null;
+});
+
+// For folder nodes: check if any child has errors/warnings
+const childrenBadge = computed<"error" | "warning" | null>(() => {
+  if (!props.validationState || !props.node.children) return null;
+  let hasWarning = false;
+  for (const [id, res] of props.validationState.entries()) {
+    // Check if this id belongs to a child of this folder
+    if (!id.startsWith(props.node.id + ":")) continue;
+    if (res.errors.length > 0) return "error";
+    if (res.warnings.length > 0) hasWarning = true;
+  }
+  return hasWarning ? "warning" : null;
+});
+
+const badge = computed(() => validationBadge.value ?? childrenBadge.value);
 </script>
 
 <template>
@@ -106,6 +132,18 @@ function iconColor(ext: string): string {
 
       <!-- Name -->
       <span class="truncate min-w-0 flex-1 font-medium">{{ node.name }}</span>
+
+      <!-- Validation badge -->
+      <span
+        v-if="badge === 'error'"
+        class="shrink-0 w-1.5 h-1.5 rounded-full bg-destructive"
+        title="Has errors"
+      />
+      <span
+        v-else-if="badge === 'warning'"
+        class="shrink-0 w-1.5 h-1.5 rounded-full bg-yellow-500"
+        title="Has warnings"
+      />
     </button>
 
     <!-- Children -->
@@ -116,6 +154,7 @@ function iconColor(ext: string): string {
         :node="child"
         :depth="depth + 1"
         :selected-id="selectedId"
+        :validation-state="validationState"
         @select="$emit('select', $event)"
         @contextmenu="(n, e) => $emit('contextmenu', n, e)"
       />

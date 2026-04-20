@@ -92,7 +92,7 @@ async function onOpenFile(node: FileNode) {
       break;
 
     case "project":
-      // Project file editor is Sprint 15 — no-op for now
+      // Handled by FileTreePanel directly (router.push('/project'))
       break;
   }
 }

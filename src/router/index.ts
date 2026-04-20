@@ -7,6 +7,11 @@ const router = createRouter({
       path: '/',
       component: () => import('@/pages/ReportEditor/Index.vue'),
     },
+    {
+      path: '/project',
+      name: 'project',
+      component: () => import('@/pages/ProjectEditor/Index.vue'),
+    },
   ],
 })
 

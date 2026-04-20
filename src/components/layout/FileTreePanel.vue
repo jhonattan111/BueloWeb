@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { RefreshCw, Plus } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,10 +33,13 @@ const emit = defineEmits<{
   openFile: [node: FileNode];
 }>();
 
+const router = useRouter();
+
 const {
   tree,
   isLoading,
   selectedNode,
+  validationState,
   refresh,
   selectNode,
   deleteFile,
@@ -66,12 +70,18 @@ function closeContextMenu() {
 // ── Open file ─────────────────────────────────────────────────────────────────
 function handleOpen(node: FileNode) {
   selectNode(node);
-  emit("openFile", node);
+  if (node.type === "project") {
+    router.push("/project");
+  } else {
+    emit("openFile", node);
+  }
 }
 
 function handleNodeSelect(node: FileNode) {
   selectNode(node);
-  if (node.type !== "folder") {
+  if (node.type === "project") {
+    router.push("/project");
+  } else if (node.type !== "folder") {
     emit("openFile", node);
   }
 }
@@ -189,6 +199,7 @@ function onContextNewFile(parentId: string) {
             :node="node"
             :depth="0"
             :selected-id="selectedNode?.id ?? null"
+            :validation-state="validationState"
             @select="handleNodeSelect"
             @contextmenu="(n, e) => onContextMenu(n, e)"
           />
