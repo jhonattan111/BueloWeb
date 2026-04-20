@@ -135,6 +135,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { Button } from "@/components/ui/button";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
+import ArtefactEditorTab from "./ArtefactEditorTab.vue";
 import { useReportStore } from "@/stores/reportStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
 import { useTemplateDiagnostics } from "@/composables/useTemplateDiagnostics";
