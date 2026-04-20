@@ -117,6 +117,29 @@ async function copyJsonToClipboard() {
   await navigator.clipboard.writeText(getJson());
 }
 
+// ── Load JSON from file ───────────────────────────────────────────────────────
+const jsonFileInputRef = ref<HTMLInputElement | null>(null);
+
+function openJsonFilePicker() {
+  jsonFileInputRef.value?.click();
+}
+
+async function onJsonFileSelected(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    JSON.parse(text); // validate before applying
+    setJson(text);
+    jsonError.value = null;
+  } catch {
+    jsonError.value = "Selected file is not valid JSON";
+  } finally {
+    // reset so same file can be re-selected
+    (e.target as HTMLInputElement).value = "";
+  }
+}
+
 // ── Named event handlers (avoid implicit any in template) ─────────────────────
 function onNameInput(e: Event) {
   if (!store.project) return;
@@ -485,6 +508,16 @@ function onWatermarkInput(e: Event) {
             <Button size="xs" variant="ghost" @click="copyJsonToClipboard">
               Copy to clipboard
             </Button>
+            <Button size="xs" variant="ghost" @click="openJsonFilePicker">
+              Load from file…
+            </Button>
+            <input
+              ref="jsonFileInputRef"
+              type="file"
+              accept=".json,application/json"
+              class="sr-only"
+              @change="onJsonFileSelected"
+            />
             <span v-if="jsonError" class="ml-2 text-xs text-destructive">{{
               jsonError
             }}</span>
