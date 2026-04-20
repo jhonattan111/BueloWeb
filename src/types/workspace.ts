@@ -1,11 +1,28 @@
-export type FileNodeType = 'template' | 'global-artefact' | 'folder'
+export type FileNodeType = 'file' | 'folder'
+
+export interface WorkspaceApiNode {
+  path: string
+  name: string
+  type: 'file' | 'folder'
+  extension: string
+  kind: string
+  children: WorkspaceApiNode[]
+}
+
+export interface WorkspaceFileRecord {
+  path: string
+  name: string
+  extension: string
+  content: string
+  lastModifiedUtc: string
+}
 
 export interface FileNode {
-  id: string                  // Guid for templates/artefacts; folder path for folders
-  name: string                // display name including extension, e.g. "colaborador.json"
-  extension: string           // ".buelo", ".json", ".csx", ".cs"
-  path?: string               // stable workspace-relative file path for project-wide validation mapping
+  id: string
+  path: string
+  name: string
   type: FileNodeType
-  children?: FileNode[]       // for folder nodes
-  parentId?: string           // template id for template-scoped files
+  extension: string
+  kind: string
+  children?: FileNode[]
 }

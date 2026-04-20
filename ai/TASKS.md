@@ -27,6 +27,7 @@ Backend sprints (7–9) are tracked separately in `Buelo.Api/ai/TASKS.md`.
 | 19 | [sprint-19-frontend-project-validation.md](sprints/sprint-19-frontend-project-validation.md) | Project-wide validation UX; ProjectValidationPanel; tree badges | `[x] done` | Frontend |
 | 20 | [sprint-20-frontend-remove-obsolete.md](sprints/sprint-20-frontend-remove-obsolete.md) | Remove Sections mode UI, ZIP bundle, hardcoded .cs virtual nodes | `[x] done` | Frontend |
 | 21 | [sprint-21-frontend-bugfixes.md](sprints/sprint-21-frontend-bugfixes.md) | Fix Monaco autocomplete; fix refresh button GUID title bug | `[x] done` | Frontend |
+| 22 | [sprint-22-frontend-workspace-vscode-ux.md](sprints/sprint-22-frontend-workspace-vscode-ux.md) | VS Code-like folder/file tree, multi-tabs, .json data source assignment, import UX, remove global artefact flow | `[x] done` | Frontend |
 
 ## Dependency Chain
 ```
@@ -59,6 +60,8 @@ Sprint 1 → Sprint 2 → Sprint 3 → Sprint 4
                               Sprint 20 (Remove Obsolete)
                                       ↓
                               Sprint 21 (Bug Fixes: Autocomplete + Refresh)
+                                      ↓
+                                    Sprint 22 (Workspace VS Code UX + Multi-tabs)
 ```
 
 ## Final File Structure (after all sprints)

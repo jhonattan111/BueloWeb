@@ -1,164 +1,34 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import { useTemplateStore } from "@/stores/templateStore";
-import { useActiveTemplate } from "@/composables/useActiveTemplate";
-
-interface ProjectSettings {
-  pageSize: string;
-  orientation: string;
-  marginHorizontal?: number;
-  marginVertical?: number;
-  backgroundColor?: string;
-  defaultTextColor?: string;
-  defaultFontSize?: number;
-  showHeader: boolean;
-  showFooter: boolean;
-  watermarkText?: string;
-}
-
-const DEFAULT_SETTINGS: ProjectSettings = {
-  pageSize: "A4",
-  orientation: "Portrait",
-  marginHorizontal: 2,
-  marginVertical: 2,
-  backgroundColor: "#FFFFFF",
-  defaultTextColor: "#000000",
-  defaultFontSize: 12,
-  showHeader: true,
-  showFooter: true,
-  watermarkText: "",
-};
+import { useReportSettings } from "@/composables/useReportSettings";
 
 const PAGE_SIZES = ["A4", "A3", "A5", "Letter", "Legal"] as const;
 const ORIENTATIONS = ["Portrait", "Landscape"] as const;
 
-const templateStore = useTemplateStore();
-const { files, saveFile } = useActiveTemplate();
-
 const isOpen = ref(false);
-const isSaving = ref(false);
-const saveError = ref<string | null>(null);
-const settings = ref<ProjectSettings>({ ...DEFAULT_SETTINGS });
 
-const templatePath = computed(() => {
-  const name = templateStore.activeTemplate?.name;
-  if (!name) return "";
-  return name.endsWith(".buelo") ? name : `${name}.buelo`;
+const {
+  settings,
+  jsonFiles,
+  canEdit,
+  invalidDataSource,
+  isSaving,
+  saveError,
+  refreshJsonFiles,
+  apply,
+} = useReportSettings();
+
+onMounted(() => {
+  refreshJsonFiles();
 });
 
-const templateSource = computed(
-  () =>
-    files.value.find((file) => file.path === templatePath.value)?.content ?? "",
-);
-
-const canEdit = computed(
-  () =>
-    Boolean(templateStore.activeTemplateId) && Boolean(templateSource.value),
-);
-
-watch(
-  templateSource,
-  (source) => {
-    if (!source) {
-      settings.value = { ...DEFAULT_SETTINGS };
-      return;
-    }
-
-    settings.value = {
-      ...DEFAULT_SETTINGS,
-      ...parseProjectBlock(source),
-    };
-  },
-  { immediate: true },
-);
-
-async function applyToFile(): Promise<void> {
-  if (!canEdit.value) return;
-
-  isSaving.value = true;
-  saveError.value = null;
-  try {
-    const block = serializeProjectBlock(settings.value);
-    const content = upsertProjectBlock(templateSource.value, block);
-    await saveFile({ path: templatePath.value, content });
-  } catch (err) {
-    saveError.value =
-      err instanceof Error ? err.message : "Failed to apply settings";
-  } finally {
-    isSaving.value = false;
-  }
-}
-
-function serializeProjectBlock(state: ProjectSettings): string {
-  const lines = ["@project"];
-  if (state.pageSize) lines.push(`  pageSize: ${state.pageSize}`);
-  if (state.orientation) lines.push(`  orientation: ${state.orientation}`);
-  if (state.marginHorizontal != null) {
-    lines.push(`  marginHorizontal: ${state.marginHorizontal}`);
-  }
-  if (state.marginVertical != null) {
-    lines.push(`  marginVertical: ${state.marginVertical}`);
-  }
-  if (state.backgroundColor) {
-    lines.push(`  backgroundColor: "${state.backgroundColor}"`);
-  }
-  if (state.defaultTextColor) {
-    lines.push(`  defaultTextColor: "${state.defaultTextColor}"`);
-  }
-  if (state.defaultFontSize != null) {
-    lines.push(`  defaultFontSize: ${state.defaultFontSize}`);
-  }
-  lines.push(`  showHeader: ${state.showHeader}`);
-  lines.push(`  showFooter: ${state.showFooter}`);
-  if (state.watermarkText) {
-    lines.push(`  watermarkText: "${state.watermarkText}"`);
-  }
-  return lines.join("\n");
-}
-
-function parseProjectBlock(source: string): Partial<ProjectSettings> {
-  const match = source.match(/@project\s*\n((?:[ \t]+.+\n?)*)/);
-  if (!match) return {};
-
-  const block = match[1];
-  const kv = Object.fromEntries(
-    block
-      .split("\n")
-      .map((line) => line.trim().match(/^(\w+):\s*(.+)$/))
-      .filter(Boolean)
-      .map((entry) => [entry![1], entry![2].replace(/^"|"$/g, "")]),
-  );
-
-  return {
-    pageSize: kv["pageSize"],
-    orientation: kv["orientation"],
-    marginHorizontal: kv["marginHorizontal"]
-      ? Number(kv["marginHorizontal"])
-      : undefined,
-    marginVertical: kv["marginVertical"]
-      ? Number(kv["marginVertical"])
-      : undefined,
-    backgroundColor: kv["backgroundColor"],
-    defaultTextColor: kv["defaultTextColor"],
-    defaultFontSize: kv["defaultFontSize"]
-      ? Number(kv["defaultFontSize"])
-      : undefined,
-    showHeader: kv["showHeader"] ? kv["showHeader"] === "true" : undefined,
-    showFooter: kv["showFooter"] ? kv["showFooter"] === "true" : undefined,
-    watermarkText: kv["watermarkText"],
-  };
-}
-
-function upsertProjectBlock(source: string, block: string): string {
-  const pattern = /^@project\s*\r?\n(?:[ \t]+.*(?:\r?\n|$))*/;
-  if (pattern.test(source)) {
-    return source.replace(pattern, `${block}\n`);
-  }
-
-  return source.trim().length > 0 ? `${block}\n\n${source}` : `${block}\n`;
-}
+const dataSourceError = computed(() => {
+  if (!settings.value.dataSourcePath) return null;
+  if (!invalidDataSource.value) return null;
+  return "Selected JSON file does not exist in workspace.";
+});
 </script>
 
 <template>
@@ -175,7 +45,7 @@ function upsertProjectBlock(source: string, block: string): string {
 
     <div v-if="isOpen" class="px-3 pb-3 pt-2 border-t border-border space-y-3">
       <p v-if="!canEdit" class="text-xs text-muted-foreground">
-        Open a .buelo file to configure settings.
+        Select an active .buelo tab to edit report settings.
       </p>
 
       <template v-else>
@@ -267,15 +137,53 @@ function upsertProjectBlock(source: string, block: string): string {
           </div>
         </div>
 
+        <div class="grid grid-cols-2 gap-2">
+          <div class="space-y-1">
+            <label class="text-[11px] text-muted-foreground">Font Size</label>
+            <input
+              v-model.number="settings.defaultFontSize"
+              type="number"
+              min="6"
+              step="1"
+              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] text-muted-foreground"
+              >Output Format</label
+            >
+            <select
+              v-model="settings.outputFormat"
+              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+            >
+              <option value="pdf">PDF</option>
+              <option value="excel">Excel</option>
+            </select>
+          </div>
+        </div>
+
         <div class="space-y-1">
-          <label class="text-[11px] text-muted-foreground">Font Size</label>
-          <input
-            v-model.number="settings.defaultFontSize"
-            type="number"
-            min="6"
-            step="1"
+          <label class="text-[11px] text-muted-foreground"
+            >Data source (.json)</label
+          >
+          <select
+            v-model="settings.dataSourcePath"
             class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-          />
+            @focus="refreshJsonFiles"
+          >
+            <option value="">None</option>
+            <option
+              v-for="jsonPath in jsonFiles"
+              :key="jsonPath"
+              :value="jsonPath"
+            >
+              {{ jsonPath }}
+            </option>
+          </select>
+          <p v-if="dataSourceError" class="text-xs text-destructive">
+            {{ dataSourceError }}
+          </p>
         </div>
 
         <div class="flex items-center gap-4">
@@ -285,7 +193,6 @@ function upsertProjectBlock(source: string, block: string): string {
             <input v-model="settings.showHeader" type="checkbox" />
             Show Header
           </label>
-
           <label
             class="inline-flex items-center gap-2 text-xs text-muted-foreground"
           >
@@ -306,12 +213,7 @@ function upsertProjectBlock(source: string, block: string): string {
 
         <p v-if="saveError" class="text-xs text-destructive">{{ saveError }}</p>
 
-        <Button
-          size="sm"
-          class="w-full"
-          :disabled="isSaving"
-          @click="applyToFile"
-        >
+        <Button size="sm" class="w-full" :disabled="isSaving" @click="apply">
           {{ isSaving ? "Applying..." : "Apply to file" }}
         </Button>
       </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
+import { nextTick, ref, watch } from "vue";
 import type { FileNode } from "@/types/workspace";
 
 const props = defineProps<{
@@ -13,7 +13,8 @@ const emit = defineEmits<{
   open: [node: FileNode];
   rename: [node: FileNode];
   delete: [node: FileNode];
-  newFile: [parentId: string];
+  newFile: [parentPath: string | null];
+  newFolder: [parentPath: string | null];
   close: [];
 }>();
 
@@ -21,106 +22,91 @@ const menuRef = ref<HTMLElement | null>(null);
 
 watch(
   () => props.visible,
-  async (val) => {
-    if (val) {
-      await nextTick();
-      menuRef.value?.focus();
-    }
+  async (visible) => {
+    if (!visible) return;
+    await nextTick();
+    menuRef.value?.focus();
   },
 );
 
-function handleOpen() {
+const isFolder = () => props.node?.type === "folder";
+
+function openNode(): void {
   if (props.node) emit("open", props.node);
   emit("close");
 }
 
-function handleRename() {
+function renameNode(): void {
   if (props.node) emit("rename", props.node);
   emit("close");
 }
 
-function handleDelete() {
+function deleteNode(): void {
   if (props.node) emit("delete", props.node);
   emit("close");
 }
 
-function handleNewFile() {
-  if (props.node) emit("newFile", props.node.id);
+function createFile(): void {
+  emit("newFile", isFolder() ? (props.node?.path ?? null) : null);
   emit("close");
 }
 
-const isFolder = () => props.node?.type === "folder";
-const isGlobalArtefact = () => props.node?.type === "global-artefact";
-const isTemplateFile = () => props.node?.type === "template";
+function createFolder(): void {
+  emit("newFolder", isFolder() ? (props.node?.path ?? null) : null);
+  emit("close");
+}
 </script>
 
 <template>
   <Teleport to="body">
     <div
-      v-if="visible && node"
+      v-if="visible"
       ref="menuRef"
       tabindex="-1"
-      class="fixed z-50 min-w-[160px] rounded-md border border-border bg-popover shadow-md py-1 text-xs outline-none"
+      class="fixed z-50 min-w-[180px] rounded-md border border-border bg-popover shadow-md py-1 text-xs outline-none"
       :style="{ top: `${y}px`, left: `${x}px` }"
       @keydown.escape="$emit('close')"
     >
-      <!-- Template folder -->
-      <template v-if="isFolder()">
-        <button
-          class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-          @click="handleNewFile"
-        >
-          New file…
-        </button>
+      <button
+        class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+        @click="createFile"
+      >
+        New File...
+      </button>
+      <button
+        class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+        @click="createFolder"
+      >
+        New Folder...
+      </button>
+
+      <template v-if="node && node.type === 'file'">
         <div class="my-1 border-t border-border" />
         <button
           class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-          @click="handleRename"
+          @click="openNode"
+        >
+          Open
+        </button>
+      </template>
+
+      <template v-if="node">
+        <div class="my-1 border-t border-border" />
+        <button
+          class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+          @click="renameNode"
         >
           Rename
         </button>
         <button
           class="flex w-full items-center px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-sm"
-          @click="handleDelete"
-        >
-          Delete
-        </button>
-      </template>
-
-      <!-- Template artefact -->
-      <template v-else-if="isTemplateFile()">
-        <button
-          class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-          @click="handleOpen"
-        >
-          Open
-        </button>
-        <button
-          class="flex w-full items-center px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-sm"
-          @click="handleDelete"
-        >
-          Delete
-        </button>
-      </template>
-
-      <!-- Global artefact -->
-      <template v-else-if="isGlobalArtefact()">
-        <button
-          class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-          @click="handleOpen"
-        >
-          Open
-        </button>
-        <button
-          class="flex w-full items-center px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-sm"
-          @click="handleDelete"
+          @click="deleteNode"
         >
           Delete
         </button>
       </template>
     </div>
 
-    <!-- Click-outside overlay -->
     <div
       v-if="visible"
       class="fixed inset-0 z-40"

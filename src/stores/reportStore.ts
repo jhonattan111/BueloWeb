@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { renderReport, renderById } from '@/services/reportService'
+import { renderReport, renderById, renderWorkspaceFile as renderWorkspaceFileApi } from '@/services/reportService'
 import type { TemplateMode } from '@/types/template'
 import { useTemplateStore } from '@/stores/templateStore'
 
@@ -74,6 +74,36 @@ export const useReportStore = defineStore('report', () => {
     }
   }
 
+  async function renderWorkspaceFile(payload: {
+    templatePath: string
+    dataSourcePath?: string
+    format?: string
+    fileName?: string
+  }): Promise<void> {
+    renderError.value = null
+    isRendering.value = true
+
+    try {
+      const result = await renderWorkspaceFileApi(
+        {
+          templatePath: payload.templatePath,
+          dataSourcePath: payload.dataSourcePath,
+          fileName: payload.fileName,
+          data: {},
+        },
+        { format: payload.format ?? 'pdf' },
+      )
+
+      resultBlob.value = result.blob
+      resultContentType.value = result.contentType
+      resultFileExtension.value = result.fileExtension
+    } catch (err) {
+      renderError.value = err instanceof Error ? err.message : 'Unknown error'
+    } finally {
+      isRendering.value = false
+    }
+  }
+
   return {
     // Result
     resultBlob,
@@ -88,6 +118,7 @@ export const useReportStore = defineStore('report', () => {
     // Actions
     render,
     renderTemplate,
+    renderWorkspaceFile,
     setFormatHint,
   }
 })

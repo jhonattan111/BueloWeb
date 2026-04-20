@@ -3,12 +3,34 @@
     <div
       class="flex items-center gap-2 px-2 h-10 shrink-0 border-b border-border overflow-x-auto"
     >
-      <div
-        class="text-xs text-muted-foreground truncate max-w-[45ch]"
-        :title="activeFilePath"
+      <button
+        v-for="path in openPaths"
+        :key="path"
+        type="button"
+        class="group inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs"
+        :class="
+          activeFilePath === path
+            ? 'bg-accent text-accent-foreground border-border'
+            : 'bg-background/60 text-muted-foreground border-transparent hover:bg-muted'
+        "
+        @click="switchToFile(path)"
       >
-        {{ activeFilePath || templatePath }}
-      </div>
+        <span class="max-w-[26ch] truncate" :title="path">{{
+          fileName(path)
+        }}</span>
+        <span
+          v-if="isDirty(path)"
+          class="inline-block size-1.5 rounded-full bg-amber-500"
+          title="Unsaved"
+        />
+        <button
+          type="button"
+          class="opacity-0 group-hover:opacity-100 rounded p-0.5 hover:bg-muted-foreground/20"
+          @click.stop="closeFile(path)"
+        >
+          ×
+        </button>
+      </button>
 
       <div class="flex-1 min-w-2" />
 
@@ -48,17 +70,13 @@
 
       <Button
         size="sm"
-        variant="ghost"
-        class="shrink-0 text-xs px-2 h-6"
-        @click="historyOpen = !historyOpen"
-      >
-        <History class="size-3.5 mr-1" />History
-      </Button>
-
-      <Button
-        size="sm"
-        :disabled="reportStore.isRendering"
+        :disabled="reportStore.isRendering || !canRenderActive"
         class="shrink-0"
+        :title="
+          canRenderActive
+            ? 'Render active file'
+            : 'Render is available only for .buelo tabs'
+        "
         @click="onRender"
       >
         <span v-if="reportStore.isRendering">Rendering...</span>
@@ -68,9 +86,13 @@
 
     <div class="flex-1 min-h-0 relative">
       <div
-        v-show="effectiveActivePath === templatePath"
-        class="absolute inset-0"
+        v-if="!activeFile"
+        class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
       >
+        Open a file from the tree to start editing.
+      </div>
+
+      <div v-else-if="activeExtension === '.buelo'" class="absolute inset-0">
         <TemplateEditor
           ref="templateEditorRef"
           v-model="templateCodeModel"
@@ -78,21 +100,13 @@
         />
       </div>
 
-      <div
-        v-show="effectiveActivePath === DATA_FILE_PATH"
-        class="absolute inset-0"
-      >
+      <div v-else-if="activeExtension === '.json'" class="absolute inset-0">
         <JsonEditor v-model="jsonDataModel" class="h-full" />
       </div>
 
-      <div
-        v-for="file in nonCoreFiles"
-        :key="file.path"
-        v-show="effectiveActivePath === file.path"
-        class="absolute inset-0"
-      >
+      <div v-else-if="activeArtefact" class="absolute inset-0">
         <ArtefactEditorTab
-          :artefact="toArtefact(file)"
+          :artefact="activeArtefact"
           @save="onSaveArtefact"
           @validation-result="onArtefactValidationResult"
         />
@@ -112,26 +126,16 @@
     >
       {{ validationError }}
     </p>
-
-    <VersionHistoryPanel
-      v-if="historyOpen && templateStore.activeTemplateId"
-      :template-id="templateStore.activeTemplateId"
-      @close="historyOpen = false"
-      @restore="onRestore"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { History } from "lucide-vue-next";
+import { useDebounceFn } from "@vueuse/core";
 import { Button } from "@/components/ui/button";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
-import ArtefactEditorTab from "./ArtefactEditorTab.vue";
-import VersionHistoryPanel from "./VersionHistoryPanel.vue";
 import { useReportStore } from "@/stores/reportStore";
-import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
 import { useTemplateDiagnostics } from "@/composables/useTemplateDiagnostics";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
@@ -140,82 +144,43 @@ import {
   type UseProjectValidation,
 } from "@/composables/useProjectValidation";
 import type {
-  Template,
+  FileValidationResult,
   TemplateArtefact,
   TemplateFile,
   TemplateFileKind,
-  FileValidationResult,
 } from "@/types/template";
-
-const DATA_FILE_PATH = "data/mock.data.json";
+import {
+  parseProjectBlock,
+  readOutputFormatFromBueloSource,
+} from "@/composables/useReportSettings";
 
 const templateCodeModel = defineModel<string>("templateCode", { default: "" });
 const jsonDataModel = defineModel<string>("jsonData", { default: "" });
 
 const reportStore = useReportStore();
-const templateStore = useTemplateStore();
-const { files, activeFilePath, saveFile, loadFiles } = useActiveTemplate();
+const {
+  activeFile,
+  activeFilePath,
+  openPaths,
+  saveFile,
+  setFileContent,
+  switchToFile,
+  closeFile,
+  isDirty,
+  markDirty,
+} = useActiveTemplate();
 const { setValidationResult } = useWorkspaceTree();
 const projectValidation = inject<UseProjectValidation | null>(
   PROJECT_VALIDATION_KEY,
   null,
 );
 
-const templatePath = computed(() => {
-  const name = templateStore.activeTemplate?.name ?? "template";
-  return name.endsWith(".buelo") ? name : `${name}.buelo`;
-});
-
-const nonCoreFiles = computed(() =>
-  files.value.filter(
-    (file) => file.path !== templatePath.value && file.path !== DATA_FILE_PATH,
-  ),
-);
-
-const effectiveActivePath = computed(() => {
-  const current = activeFilePath.value || templatePath.value;
-  return files.value.some((f) => f.path === current)
-    ? current
-    : templatePath.value;
-});
-
-watch(
-  files,
-  (nextFiles) => {
-    const templateFile = nextFiles.find((f) => f.path === templatePath.value);
-    if (templateFile && templateCodeModel.value !== templateFile.content) {
-      templateCodeModel.value = templateFile.content;
-    }
-
-    const dataFile = nextFiles.find((f) => f.path === DATA_FILE_PATH);
-    if (dataFile && jsonDataModel.value !== dataFile.content) {
-      jsonDataModel.value = dataFile.content;
-    }
-  },
-  { immediate: true, deep: true },
-);
-
-watch(templateCodeModel, (value) => {
-  const idx = files.value.findIndex((f) => f.path === templatePath.value);
-  if (idx !== -1) {
-    files.value[idx] = { ...files.value[idx], content: value };
-  }
-});
-
-watch(jsonDataModel, (value) => {
-  const idx = files.value.findIndex((f) => f.path === DATA_FILE_PATH);
-  if (idx !== -1) {
-    files.value[idx] = { ...files.value[idx], content: value };
-  }
-});
-
 const templateEditorRef = ref<InstanceType<typeof TemplateEditor> | null>(null);
 
-const { validationError } = useTemplateDiagnostics(
-  () => templateCodeModel.value,
-  () => "BueloDsl",
-  () => templateEditorRef.value?.getModel() ?? null,
+const activeExtension = computed(() =>
+  extensionOf(activeFile.value?.path ?? ""),
 );
+const canRenderActive = computed(() => activeExtension.value === ".buelo");
 
 const isProjectValidating = computed(
   () => projectValidation?.isValidating.value ?? false,
@@ -235,62 +200,131 @@ const diagnosticState = computed(() => {
   return "ok";
 });
 
-function onArtefactValidationResult(
-  fileId: string,
-  result: FileValidationResult,
-): void {
-  // Also update the workspace tree's shared validation map
-  const templateId = templateStore.activeTemplateId;
-  if (templateId) {
-    setValidationResult(`${templateId}:${fileId}`, result);
-  }
-}
+watch(
+  () => activeFile.value,
+  (file) => {
+    if (!file) return;
+    const ext = extensionOf(file.path);
+    if (ext === ".buelo") {
+      templateCodeModel.value = file.content;
+    }
+    if (ext === ".json") {
+      jsonDataModel.value = file.content;
+    }
+  },
+  { immediate: true },
+);
 
-// ── History / Render ────────────────────────────────────────────────────────
-const historyOpen = ref(false);
+const debouncedSaveBuelo = useDebounceFn(async () => {
+  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".buelo")
+    return;
+  await saveFile({
+    path: activeFile.value.path,
+    content: templateCodeModel.value,
+  });
+}, 600);
+
+const debouncedSaveJson = useDebounceFn(async () => {
+  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".json")
+    return;
+  await saveFile({
+    path: activeFile.value.path,
+    content: jsonDataModel.value,
+    kind: "data",
+  });
+}, 600);
+
+watch(templateCodeModel, (value) => {
+  const path = activeFile.value?.path;
+  if (!path || extensionOf(path) !== ".buelo") return;
+  setFileContent(path, value);
+  markDirty(path, true);
+  debouncedSaveBuelo();
+});
+
+watch(jsonDataModel, (value) => {
+  const path = activeFile.value?.path;
+  if (!path || extensionOf(path) !== ".json") return;
+  setFileContent(path, value);
+  markDirty(path, true);
+  debouncedSaveJson();
+});
+
+const { validationError } = useTemplateDiagnostics(
+  () => templateCodeModel.value,
+  () => "BueloDsl",
+  () => templateEditorRef.value?.getModel() ?? null,
+  () => activeFile.value?.path ?? "",
+);
+
+const activeArtefact = computed(() => {
+  if (!activeFile.value) return null;
+  if (activeExtension.value === ".buelo" || activeExtension.value === ".json")
+    return null;
+  return toArtefact(activeFile.value);
+});
 
 async function runProjectValidation(): Promise<void> {
   if (!projectValidation) return;
   await projectValidation.runValidation();
 }
 
-async function onRestore(template: Template) {
-  templateCodeModel.value = template.template;
-  historyOpen.value = false;
-  await loadFiles();
-}
+async function onRender(): Promise<void> {
+  if (!activeFile.value || !canRenderActive.value) return;
 
-function onRender() {
-  reportStore.render(templateCodeModel.value, jsonDataModel.value, "BueloDsl");
-}
+  const source = activeFile.value.content;
+  const parsedProject = parseProjectBlock(source);
+  const outputFormat = readOutputFormatFromBueloSource(source);
 
-async function onSaveArtefact(artefact: TemplateArtefact) {
-  await saveFile({
-    path: artefact.path ?? `${artefact.name}${artefact.extension}`,
-    content: artefact.content,
-    kind: inferFileKind(
-      artefact.path ?? `${artefact.name}${artefact.extension}`,
-    ),
+  await reportStore.renderWorkspaceFile({
+    templatePath: activeFile.value.path,
+    dataSourcePath: parsedProject.dataSourcePath,
+    format: outputFormat,
+    fileName: fileName(activeFile.value.path).replace(/\.buelo$/i, ""),
   });
 }
 
-function toArtefact(file: TemplateFile): TemplateArtefact {
-  const fileName = file.path.split("/").at(-1) ?? file.path;
-  const dotIndex = fileName.indexOf(".");
-  const name = dotIndex >= 0 ? fileName.slice(0, dotIndex) : fileName;
-  const extension = dotIndex >= 0 ? fileName.slice(dotIndex) : "";
+async function onSaveArtefact(artefact: TemplateArtefact): Promise<void> {
+  const path = artefact.path ?? `${artefact.name}${artefact.extension}`;
+  await saveFile({
+    path,
+    content: artefact.content,
+    kind: inferFileKind(path),
+  });
+}
 
+function onArtefactValidationResult(
+  fileId: string,
+  result: FileValidationResult,
+): void {
+  setValidationResult(fileId, result);
+}
+
+function toArtefact(file: TemplateFile): TemplateArtefact {
+  const name = fileName(file.path);
+  const dotIndex = name.lastIndexOf(".");
   return {
     path: file.path,
-    name,
-    extension,
+    name: dotIndex >= 0 ? name.slice(0, dotIndex) : name,
+    extension: dotIndex >= 0 ? name.slice(dotIndex) : "",
     content: file.content,
   };
 }
 
 function inferFileKind(path: string): TemplateFileKind {
-  if (path.endsWith(".helpers.cs")) return "helper";
-  if (path.endsWith(".data.json")) return "data";
+  const ext = extensionOf(path);
+  if (ext === ".json") return "data";
+  if (ext === ".cs" || ext === ".csx") return "helper";
   return "file";
+}
+
+function extensionOf(path: string): string {
+  const name = fileName(path).toLowerCase();
+  const index = name.lastIndexOf(".");
+  return index >= 0 ? name.slice(index) : "";
+}
+
+function fileName(path: string): string {
+  return path.split("/").at(-1) ?? path;
 }
 </script>

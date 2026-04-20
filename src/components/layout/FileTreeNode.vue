@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import {
-  FileCode,
   Braces,
+  ChevronDown,
+  ChevronRight,
   Code,
   File,
-  FolderOpen,
+  FileCode,
   Folder,
-  ChevronRight,
-  ChevronDown,
+  FolderOpen,
 } from "lucide-vue-next";
 import type { FileNode } from "@/types/workspace";
 import type { FileValidationResult } from "@/types/template";
@@ -27,108 +27,91 @@ const emit = defineEmits<{
 
 const expanded = ref(props.node.type === "folder");
 
-function toggle() {
-  if (props.node.children) {
+function onClick(): void {
+  if (props.node.type === "folder") {
     expanded.value = !expanded.value;
-  }
-}
-
-function handleClick() {
-  if (props.node.children) {
-    toggle();
   }
   emit("select", props.node);
 }
 
-function handleContextMenu(event: MouseEvent) {
+function onContextMenu(event: MouseEvent): void {
   event.preventDefault();
   emit("contextmenu", props.node, event);
 }
 
-const iconMap: Record<string, ReturnType<typeof Object.assign>> = {
-  ".buelo": FileCode,
-  ".json": Braces,
-  ".cs": Code,
-  ".csx": Code,
-};
-
-function fileIcon(ext: string) {
-  return iconMap[ext] ?? File;
+function fileIcon(extension: string) {
+  const normalized = extension.toLowerCase();
+  if (normalized === ".buelo") return FileCode;
+  if (normalized === ".json") return Braces;
+  if (normalized === ".cs" || normalized === ".csx") return Code;
+  return File;
 }
 
-const iconColorMap: Record<string, string> = {
-  ".buelo": "text-blue-400",
-  ".json": "text-yellow-400",
-  ".cs": "text-purple-400",
-  ".csx": "text-purple-400",
-};
-
-function iconColor(ext: string): string {
-  return iconColorMap[ext] ?? "text-muted-foreground";
+function iconColor(extension: string): string {
+  const normalized = extension.toLowerCase();
+  if (normalized === ".buelo") return "text-blue-400";
+  if (normalized === ".json") return "text-amber-400";
+  if (normalized === ".cs" || normalized === ".csx") return "text-sky-400";
+  return "text-muted-foreground";
 }
 
 function normalizePath(path: string | undefined): string {
   return (path ?? "").replace(/\\/g, "/").trim();
 }
 
-const validationBadge = computed<"error" | "warning" | null>(() => {
+const ownBadge = computed<"error" | "warning" | null>(() => {
   if (!props.validationState) return null;
-  const pathKey = normalizePath(props.node.path);
-  const res =
-    (pathKey ? props.validationState.get(pathKey) : null) ??
-    props.validationState.get(props.node.id);
-  if (!res) return null;
-  if (res.errors.length > 0) return "error";
-  if (res.warnings.length > 0) return "warning";
+  const byPath = props.validationState.get(normalizePath(props.node.path));
+  const byId = props.validationState.get(props.node.id);
+  const result = byPath ?? byId;
+  if (!result) return null;
+  if (result.errors.length > 0) return "error";
+  if (result.warnings.length > 0) return "warning";
   return null;
 });
 
-// For folder nodes: check if any child has errors/warnings
 const childrenBadge = computed<"error" | "warning" | null>(() => {
-  if (!props.validationState || !props.node.children) return null;
-  let hasWarning = false;
+  if (!props.validationState || props.node.type !== "folder") return null;
+
   const folderPath = normalizePath(props.node.path);
-
-  for (const [id, res] of props.validationState.entries()) {
-    const inIdNamespace = id.startsWith(props.node.id + ":");
-    const inPathNamespace = folderPath
-      ? id.startsWith(`${folderPath}/`)
-      : false;
-    if (!inIdNamespace && !inPathNamespace) continue;
-
-    if (res.errors.length > 0) return "error";
-    if (res.warnings.length > 0) hasWarning = true;
+  let warning = false;
+  for (const [key, value] of props.validationState.entries()) {
+    if (!key.startsWith(`${folderPath}/`)) continue;
+    if (value.errors.length > 0) return "error";
+    if (value.warnings.length > 0) warning = true;
   }
-  return hasWarning ? "warning" : null;
+
+  return warning ? "warning" : null;
 });
 
-const badge = computed(() => validationBadge.value ?? childrenBadge.value);
+const badge = computed(() => ownBadge.value ?? childrenBadge.value);
 </script>
 
 <template>
   <div>
     <button
       class="flex items-center gap-1 w-full text-left rounded px-1 py-0.5 text-xs hover:bg-muted transition-colors"
-      :class="[
+      :class="
         selectedId === node.id
           ? 'bg-accent/40 text-foreground'
-          : 'text-muted-foreground',
-      ]"
+          : 'text-muted-foreground'
+      "
       :style="{ paddingLeft: `${depth * 12 + 4}px` }"
-      @click="handleClick"
-      @contextmenu="handleContextMenu"
+      @click="onClick"
+      @contextmenu="onContextMenu"
     >
-      <!-- Folder chevron -->
-      <span v-if="node.children" class="shrink-0 text-muted-foreground">
+      <span
+        v-if="node.type === 'folder'"
+        class="shrink-0 text-muted-foreground"
+      >
         <ChevronDown v-if="expanded" class="size-3" />
         <ChevronRight v-else class="size-3" />
       </span>
       <span v-else class="shrink-0 w-3" />
 
-      <!-- Icon -->
       <component
         :is="
-          node.children
+          node.type === 'folder'
             ? expanded
               ? FolderOpen
               : Folder
@@ -136,37 +119,36 @@ const badge = computed(() => validationBadge.value ?? childrenBadge.value);
         "
         class="size-3.5 shrink-0"
         :class="
-          node.children ? 'text-muted-foreground' : iconColor(node.extension)
+          node.type === 'folder'
+            ? 'text-muted-foreground'
+            : iconColor(node.extension)
         "
       />
 
-      <!-- Name -->
       <span class="truncate min-w-0 flex-1 font-medium">{{ node.name }}</span>
 
-      <!-- Validation badge -->
       <span
         v-if="badge === 'error'"
         class="shrink-0 w-1.5 h-1.5 rounded-full bg-destructive"
-        title="Has errors"
       />
       <span
         v-else-if="badge === 'warning'"
         class="shrink-0 w-1.5 h-1.5 rounded-full bg-yellow-500"
-        title="Has warnings"
       />
     </button>
 
-    <!-- Children -->
-    <div v-if="node.children && expanded">
+    <div v-if="node.type === 'folder' && expanded">
       <FileTreeNode
-        v-for="child in node.children"
+        v-for="child in node.children ?? []"
         :key="child.id"
         :node="child"
         :depth="depth + 1"
         :selected-id="selectedId"
         :validation-state="validationState"
         @select="$emit('select', $event)"
-        @contextmenu="(n, e) => $emit('contextmenu', n, e)"
+        @contextmenu="
+          (nodeValue, event) => $emit('contextmenu', nodeValue, event)
+        "
       />
     </div>
   </div>

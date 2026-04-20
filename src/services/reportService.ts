@@ -16,12 +16,21 @@ export interface RenderResult {
 }
 
 interface ReportRequest {
+  TemplatePath?: string
+  DataSourcePath?: string
   Template: string
   FileName: string
   Data: object
   Mode: TemplateMode
   PageSettings?: unknown
   FormatHints?: Record<string, string>
+}
+
+interface WorkspaceRenderRequest {
+  templatePath: string
+  dataSourcePath?: string
+  data?: object
+  fileName?: string
 }
 
 export async function renderReport(
@@ -84,6 +93,38 @@ export async function renderById(
     const message = await readApiError(response)
     throw new Error(message || `Request failed: ${response.status}`)
   }
+  const blob = await response.blob()
+  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const fileExtension = contentTypeToExtension(contentType)
+  return { blob, contentType, fileExtension }
+}
+
+export async function renderWorkspaceFile(
+  payload: WorkspaceRenderRequest,
+  options?: {
+    format?: string
+  },
+): Promise<RenderResult> {
+  const format = options?.format ?? 'pdf'
+  const response = await fetch(
+    `${BASE_URL}/api/report/render/file?format=${encodeURIComponent(format)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        templatePath: payload.templatePath,
+        dataSourcePath: payload.dataSourcePath,
+        data: payload.data ?? {},
+        fileName: payload.fileName ?? 'report',
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    const message = await readApiError(response)
+    throw new Error(message || `Request failed: ${response.status}`)
+  }
+
   const blob = await response.blob()
   const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)

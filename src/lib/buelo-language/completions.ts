@@ -10,41 +10,31 @@ import {
   DIRECTIVES,
 } from './spec'
 import { COMPONENT_SNIPPETS } from './snippets'
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
+import { listWorkspaceFilePaths } from '@/services/workspaceService'
 
 // 30-second cache
-let helperArtefactsCache: string[] | null = null
-let helperCacheTime = 0
-let dataArtefactsCache: string[] | null = null
-let dataCacheTime = 0
+let workspacePathsCache: string[] | null = null
+let workspacePathsCacheTime = 0
 const CACHE_TTL = 30_000
 
-async function fetchArtefactNames(extension: string): Promise<string[]> {
+async function getWorkspacePaths(): Promise<string[]> {
+  const now = Date.now()
+  if (workspacePathsCache && now - workspacePathsCacheTime < CACHE_TTL) {
+    return workspacePathsCache
+  }
+
   try {
-    const res = await fetch(`${BASE_URL}/api/artefacts?extension=${encodeURIComponent(extension)}`)
-    if (!res.ok) return []
-    const list = (await res.json()) as Array<{ name: string; extension: string }>
-    return list.map((a) => `${a.name}${a.extension}`)
+    workspacePathsCache = await listWorkspaceFilePaths()
+    workspacePathsCacheTime = now
+    return workspacePathsCache
   } catch {
     return []
   }
 }
 
-async function getHelperArtefactNames(): Promise<string[]> {
-  const now = Date.now()
-  if (helperArtefactsCache && now - helperCacheTime < CACHE_TTL) return helperArtefactsCache
-  helperArtefactsCache = await fetchArtefactNames('.csx')
-  helperCacheTime = now
-  return helperArtefactsCache
-}
-
-async function getDataArtefactNames(): Promise<string[]> {
-  const now = Date.now()
-  if (dataArtefactsCache && now - dataCacheTime < CACHE_TTL) return dataArtefactsCache
-  dataArtefactsCache = await fetchArtefactNames('.json')
-  dataCacheTime = now
-  return dataArtefactsCache
+function filterPathCompletions(paths: string[], prefix: string): string[] {
+  if (!prefix.trim()) return paths
+  return paths.filter((path) => path.toLowerCase().includes(prefix.toLowerCase()))
 }
 
 function makeRange(
@@ -101,9 +91,15 @@ export function buildCompletionProvider(): monaco.languages.CompletionItemProvid
         }
       }
 
-      // ── import ... from "…" artefact names ────────────────────────────
+      // ── import ... from "…" workspace paths ───────────────────────────
       if (/^import\s.+from\s+"[^"]*$/.test(lineUntilCursor)) {
-        const names = await getHelperArtefactNames()
+        const typed = lineUntilCursor.match(/"([^"]*)$/)?.[1] ?? ''
+        const names = filterPathCompletions(
+          (await getWorkspacePaths()).filter((path) =>
+            ['.buelo', '.json', '.cs', '.csx'].some((ext) => path.toLowerCase().endsWith(ext)),
+          ),
+          typed,
+        )
         const quoteStart = lineUntilCursor.lastIndexOf('"') + 2
         const fileRange: monaco.IRange = {
           startLineNumber: position.lineNumber,
@@ -121,9 +117,13 @@ export function buildCompletionProvider(): monaco.languages.CompletionItemProvid
         }
       }
 
-      // ── @data from "…" data artefact names ────────────────────────────
+      // ── @data from "…" workspace json paths ───────────────────────────
       if (/^@data\s+from\s+"[^"]*$/.test(lineUntilCursor)) {
-        const names = await getDataArtefactNames()
+        const typed = lineUntilCursor.match(/"([^"]*)$/)?.[1] ?? ''
+        const names = filterPathCompletions(
+          (await getWorkspacePaths()).filter((path) => path.toLowerCase().endsWith('.json')),
+          typed,
+        )
         const quoteStart = lineUntilCursor.lastIndexOf('"') + 2
         const fileRange: monaco.IRange = {
           startLineNumber: position.lineNumber,

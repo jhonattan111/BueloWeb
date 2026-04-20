@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { RefreshCw, Plus } from "lucide-vue-next";
+import { FolderPlus, Plus, RefreshCw } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -22,8 +22,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import FileTreeNode from "./FileTreeNode.vue";
 import FileTreeContextMenu from "./FileTreeContextMenu.vue";
+import FileTreeNode from "./FileTreeNode.vue";
 import NewFileDialog from "@/components/editors/NewFileDialog.vue";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
 import type { FileNode } from "@/types/workspace";
@@ -39,11 +39,11 @@ const {
   validationState,
   refresh,
   selectNode,
-  deleteFile,
-  renameTemplate,
+  deleteNode,
+  renameNode,
+  createFolder,
 } = useWorkspaceTree();
 
-// ── Context menu ──────────────────────────────────────────────────────────────
 const contextMenu = ref({
   visible: false,
   x: 0,
@@ -51,7 +51,20 @@ const contextMenu = ref({
   node: null as FileNode | null,
 });
 
-function onContextMenu(node: FileNode, event: MouseEvent) {
+const newFileDialog = ref({ open: false, parentPath: null as string | null });
+const newFolderDialog = ref({
+  open: false,
+  parentPath: null as string | null,
+  name: "",
+});
+const deleteDialog = ref({ open: false, node: null as FileNode | null });
+const renameDialog = ref({
+  open: false,
+  node: null as FileNode | null,
+  value: "",
+});
+
+function onContextMenu(node: FileNode, event: MouseEvent): void {
   contextMenu.value = {
     visible: true,
     x: event.clientX,
@@ -60,74 +73,75 @@ function onContextMenu(node: FileNode, event: MouseEvent) {
   };
 }
 
-function closeContextMenu() {
+function closeContextMenu(): void {
   contextMenu.value.visible = false;
 }
 
-// ── Open file ─────────────────────────────────────────────────────────────────
-function handleOpen(node: FileNode) {
+function handleNodeSelect(node: FileNode): void {
   selectNode(node);
-  emit("openFile", node);
-}
-
-function handleNodeSelect(node: FileNode) {
-  selectNode(node);
-  if (node.type !== "folder") {
+  if (node.type === "file") {
     emit("openFile", node);
   }
 }
 
-// ── Delete ────────────────────────────────────────────────────────────────────
-const deleteDialog = ref({ open: false, node: null as FileNode | null });
+function openNewFile(parentPath: string | null = null): void {
+  newFileDialog.value = { open: true, parentPath };
+}
 
-function requestDelete(node: FileNode) {
+function openNewFolder(parentPath: string | null = null): void {
+  newFolderDialog.value = { open: true, parentPath, name: "" };
+}
+
+async function confirmNewFolder(): Promise<void> {
+  const name = newFolderDialog.value.name.trim();
+  if (!name) return;
+  await createFolder(newFolderDialog.value.parentPath, name);
+  newFolderDialog.value = { open: false, parentPath: null, name: "" };
+}
+
+function requestDelete(node: FileNode): void {
   deleteDialog.value = { open: true, node };
 }
 
-async function confirmDelete() {
+async function confirmDelete(): Promise<void> {
   if (!deleteDialog.value.node) return;
-  await deleteFile(deleteDialog.value.node);
+  await deleteNode(deleteDialog.value.node);
   deleteDialog.value = { open: false, node: null };
 }
 
-// ── Rename ────────────────────────────────────────────────────────────────────
-const renameDialog = ref({
-  open: false,
-  node: null as FileNode | null,
-  value: "",
-});
+function requestRename(node: FileNode): void {
+  const defaultValue =
+    node.type === "file"
+      ? node.name.replace(
+          new RegExp(`${node.extension.replace(".", "\\.")}$$`, "i"),
+          "",
+        )
+      : node.name;
 
-function requestRename(node: FileNode) {
   renameDialog.value = {
     open: true,
     node,
-    value: node.name.replace(/\.buelo$/, ""),
+    value: defaultValue,
   };
 }
 
-async function confirmRename() {
-  const { node, value } = renameDialog.value;
-  if (!node || !value.trim()) return;
-  await renameTemplate(node, value.trim());
+async function confirmRename(): Promise<void> {
+  const node = renameDialog.value.node;
+  const value = renameDialog.value.value.trim();
+  if (!node || !value) return;
+
+  const nextName =
+    node.type === "file" && node.extension && !value.endsWith(node.extension)
+      ? `${value}${node.extension}`
+      : value;
+
+  await renameNode(node, nextName);
   renameDialog.value = { open: false, node: null, value: "" };
-}
-
-// ── New file ──────────────────────────────────────────────────────────────────
-const newFileDialog = ref({ open: false, parentId: null as string | null });
-
-function openNewFile(parentId: string | null = null) {
-  newFileDialog.value = { open: true, parentId };
-}
-
-function onContextNewFile(parentId: string) {
-  // parentId from context menu is the folder (template) node id
-  openNewFile(parentId);
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full min-h-0">
-    <!-- Header -->
     <div
       class="flex items-center justify-between px-3 h-10 shrink-0 border-b border-border"
     >
@@ -152,6 +166,14 @@ function onContextNewFile(parentId: string) {
         <Button
           variant="ghost"
           size="icon-sm"
+          aria-label="New folder"
+          @click="openNewFolder(null)"
+        >
+          <FolderPlus class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           aria-label="New file"
           @click="openNewFile(null)"
         >
@@ -160,29 +182,30 @@ function onContextNewFile(parentId: string) {
       </div>
     </div>
 
-    <!-- Tree -->
     <ScrollArea class="flex-1 min-h-0">
       <div class="p-1">
-        <!-- Loading skeleton -->
         <template v-if="isLoading && tree.length === 0">
           <div
-            v-for="n in 4"
+            v-for="n in 5"
             :key="n"
             class="h-6 rounded bg-muted animate-pulse mb-1"
           />
         </template>
 
-        <!-- Empty state -->
         <template v-else-if="tree.length === 0">
           <div class="px-2 py-4 text-center">
             <p class="text-xs text-muted-foreground mb-2">
-              No files yet. Create a new template to get started.
+              Workspace is empty.
             </p>
-            <Button size="sm" @click="openNewFile(null)">New template</Button>
+            <div class="flex items-center justify-center gap-2">
+              <Button size="sm" variant="outline" @click="openNewFolder(null)"
+                >New folder</Button
+              >
+              <Button size="sm" @click="openNewFile(null)">New file</Button>
+            </div>
           </div>
         </template>
 
-        <!-- Tree nodes -->
         <template v-else>
           <FileTreeNode
             v-for="node in tree"
@@ -192,26 +215,25 @@ function onContextNewFile(parentId: string) {
             :selected-id="selectedNode?.id ?? null"
             :validation-state="validationState"
             @select="handleNodeSelect"
-            @contextmenu="(n, e) => onContextMenu(n, e)"
+            @contextmenu="(nodeValue, event) => onContextMenu(nodeValue, event)"
           />
         </template>
       </div>
     </ScrollArea>
 
-    <!-- Context menu -->
     <FileTreeContextMenu
       :node="contextMenu.node"
       :x="contextMenu.x"
       :y="contextMenu.y"
       :visible="contextMenu.visible"
-      @open="handleOpen"
+      @open="(node) => emit('openFile', node)"
       @rename="requestRename"
       @delete="requestDelete"
-      @new-file="onContextNewFile"
+      @new-file="openNewFile"
+      @new-folder="openNewFolder"
       @close="closeContextMenu"
     />
 
-    <!-- Delete confirmation -->
     <AlertDialog
       :open="deleteDialog.open"
       @update:open="deleteDialog.open = $event"
@@ -221,9 +243,9 @@ function onContextNewFile(parentId: string) {
           <AlertDialogTitle
             >Delete "{{ deleteDialog.node?.name }}"?</AlertDialogTitle
           >
-          <AlertDialogDescription>
-            This action cannot be undone.
-          </AlertDialogDescription>
+          <AlertDialogDescription
+            >This action cannot be undone.</AlertDialogDescription
+          >
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="deleteDialog.open = false"
@@ -234,18 +256,15 @@ function onContextNewFile(parentId: string) {
       </AlertDialogContent>
     </AlertDialog>
 
-    <!-- Rename dialog -->
     <Dialog :open="renameDialog.open" @update:open="renameDialog.open = $event">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename Template</DialogTitle>
-          <DialogDescription
-            >Enter a new name for this template.</DialogDescription
-          >
+          <DialogTitle>Rename</DialogTitle>
+          <DialogDescription>Enter a new name for this node.</DialogDescription>
         </DialogHeader>
         <Input
           v-model="renameDialog.value"
-          placeholder="Template name"
+          placeholder="New name"
           @keydown.enter="confirmRename"
         />
         <DialogFooter>
@@ -259,16 +278,39 @@ function onContextNewFile(parentId: string) {
       </DialogContent>
     </Dialog>
 
-    <!-- New file dialog -->
+    <Dialog
+      :open="newFolderDialog.open"
+      @update:open="newFolderDialog.open = $event"
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Folder</DialogTitle>
+          <DialogDescription
+            >Create a folder in the workspace tree.</DialogDescription
+          >
+        </DialogHeader>
+        <Input
+          v-model="newFolderDialog.name"
+          placeholder="Folder name"
+          @keydown.enter="confirmNewFolder"
+        />
+        <DialogFooter>
+          <Button variant="outline" @click="newFolderDialog.open = false"
+            >Cancel</Button
+          >
+          <Button
+            :disabled="!newFolderDialog.name.trim()"
+            @click="confirmNewFolder"
+            >Create</Button
+          >
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <NewFileDialog
       v-model:open="newFileDialog.open"
-      :default-parent-id="newFileDialog.parentId"
-      @created="
-        (node) => {
-          selectNode(node);
-          emit('openFile', node);
-        }
-      "
+      :default-parent-path="newFileDialog.parentPath"
+      @created="(node) => emit('openFile', node)"
     />
   </div>
 </template>

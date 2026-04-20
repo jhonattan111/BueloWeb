@@ -1,17 +1,35 @@
-import { ref, reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import type { Ref } from 'vue'
 import type { FileNode } from '@/types/workspace'
 import type { FileValidationResult } from '@/types/template'
 import * as workspaceService from '@/services/workspaceService'
-import * as templateService from '@/services/templateService'
-import { useTemplateStore } from '@/stores/templateStore'
 
 const tree = ref<FileNode[]>([])
 const isLoading = ref(false)
 const selectedNode = ref<FileNode | null>(null)
-/** nodeId → latest FileValidationResult for tree badge display */
 const validationState = reactive<Map<string, FileValidationResult>>(new Map())
 let initialized = false
+
+function normalizePath(path: string | undefined): string {
+  return (path ?? '').replace(/\\/g, '/').trim()
+}
+
+function fileNameOf(path: string): string {
+  const normalized = normalizePath(path)
+  return normalized.split('/').at(-1) ?? normalized
+}
+
+function extensionOf(name: string): string {
+  const dotIndex = name.lastIndexOf('.')
+  return dotIndex >= 0 ? name.slice(dotIndex).toLowerCase() : ''
+}
+
+function inferKind(extension: string): string {
+  if (extension === '.json') return 'data'
+  if (extension === '.cs' || extension === '.csx') return 'helper'
+  if (extension === '.buelo') return 'template'
+  return 'file'
+}
 
 export function useWorkspaceTree(): {
   tree: Ref<FileNode[]>
@@ -19,99 +37,86 @@ export function useWorkspaceTree(): {
   selectedNode: Ref<FileNode | null>
   validationState: Map<string, FileValidationResult>
   refresh(): Promise<void>
-  selectNode(node: FileNode): void
-  createFile(parentId: string | null, name: string, extension: string, content?: string): Promise<FileNode>
-  deleteFile(node: FileNode): Promise<void>
-  renameTemplate(node: FileNode, newName: string): Promise<void>
+  selectNode(node: FileNode | null): void
+  createFile(parentFolderPath: string | null, name: string, extension: string, content?: string): Promise<FileNode>
+  createFolder(parentFolderPath: string | null, name: string): Promise<FileNode>
+  deleteNode(node: FileNode): Promise<void>
+  renameNode(node: FileNode, newName: string): Promise<void>
   setValidationResult(nodeId: string, result: FileValidationResult): void
   clearValidationResults(): void
 } {
-  const templateStore = useTemplateStore()
-
   async function refresh(): Promise<void> {
-    const prevSelectedId = selectedNode.value?.id
+    const previousPath = normalizePath(selectedNode.value?.path)
     isLoading.value = true
     try {
-      await templateStore.fetchTemplates()
       tree.value = await workspaceService.fetchWorkspaceTree()
-      if (prevSelectedId) {
-        selectedNode.value = findNodeById(tree.value, prevSelectedId) ?? null
-      }
+      if (!previousPath) return
+      selectedNode.value = findNodeByPath(tree.value, previousPath)
     } finally {
       isLoading.value = false
     }
   }
 
-  function selectNode(node: FileNode): void {
+  function selectNode(node: FileNode | null): void {
     selectedNode.value = node
   }
 
   async function createFile(
-    parentId: string | null,
+    parentFolderPath: string | null,
     name: string,
     extension: string,
     content = '',
   ): Promise<FileNode> {
-    if (parentId) {
-      // Template-scoped artefact
-      const path = `${name}${extension}`
-      await templateService.upsertFile(parentId, {
-        path,
-        content,
-        kind: inferKindFromExtension(extension),
-      })
-      await refresh()
-      const newNode: FileNode = {
-        id: `${parentId}:${path}`,
-        name: `${name}${extension}`,
-        extension,
-        path,
-        type: 'template',
-        parentId,
-      }
-      selectedNode.value = newNode
-      return newNode
-    } else {
-      // Global artefact
-      const created = await workspaceService.createGlobalArtefact({
-        name,
-        extension,
-        content,
-        tags: [],
-      })
-      await refresh()
-      const newNode: FileNode = {
-        id: created.id,
-        name: `${created.name}${created.extension}`,
-        extension: created.extension,
-        path: `_global/${created.name}${created.extension}`,
-        type: 'global-artefact',
-      }
-      selectedNode.value = newNode
-      return newNode
+    const cleanName = name.trim()
+    const finalName = cleanName.endsWith(extension) ? cleanName : `${cleanName}${extension}`
+    const path = workspaceService.buildPath(parentFolderPath, finalName)
+    const created = await workspaceService.createFile(path, content)
+    await refresh()
+
+    const node: FileNode = {
+      id: normalizePath(created.path),
+      path: normalizePath(created.path),
+      name: created.name || fileNameOf(created.path),
+      type: 'file',
+      extension: created.extension || extensionOf(created.path),
+      kind: inferKind(created.extension || extensionOf(created.path)),
     }
+
+    const resolved = findNodeByPath(tree.value, node.path) ?? node
+    selectedNode.value = resolved
+    return resolved
   }
 
-  async function deleteFile(node: FileNode): Promise<void> {
-    if (node.type === 'global-artefact') {
-      await workspaceService.deleteGlobalArtefact(node.id)
-    } else if (node.type === 'folder') {
-      // Delete template
-      await templateStore.deleteTemplate(node.id)
-    } else if (node.type === 'template' && node.parentId) {
-      // Delete template artefact — extract path from id
-      const filePath = node.id.split(':').slice(1).join(':')
-      await templateService.deleteFile(node.parentId, filePath)
+  async function createFolder(parentFolderPath: string | null, name: string): Promise<FileNode> {
+    const path = workspaceService.buildPath(parentFolderPath, name.trim())
+    await workspaceService.createFolder(path)
+    await refresh()
+
+    const node: FileNode = {
+      id: normalizePath(path),
+      path: normalizePath(path),
+      name: fileNameOf(path),
+      type: 'folder',
+      extension: '',
+      kind: 'folder',
+      children: [],
     }
-    if (selectedNode.value?.id === node.id) {
+
+    const resolved = findNodeByPath(tree.value, node.path) ?? node
+    selectedNode.value = resolved
+    return resolved
+  }
+
+  async function deleteNode(node: FileNode): Promise<void> {
+    await workspaceService.deleteNode(node.path)
+    if (normalizePath(selectedNode.value?.path) === normalizePath(node.path)) {
       selectedNode.value = null
     }
     await refresh()
   }
 
-  async function renameTemplate(node: FileNode, newName: string): Promise<void> {
-    if (node.type !== 'folder') return
-    await templateStore.updateTemplate(node.id, { name: newName })
+  async function renameNode(node: FileNode, newName: string): Promise<void> {
+    await workspaceService.renameNode(node.path, newName.trim())
     await refresh()
   }
 
@@ -136,29 +141,22 @@ export function useWorkspaceTree(): {
     refresh,
     selectNode,
     createFile,
-    deleteFile,
-    renameTemplate,
+    createFolder,
+    deleteNode,
+    renameNode,
     setValidationResult,
     clearValidationResults,
   }
 }
 
-function inferKindFromExtension(
-  ext: string,
-): import('@/types/template').TemplateFileKind {
-  if (ext === '.cs' || ext === '.csx') return 'helper'
-  if (ext === '.json') return 'data'
-  return 'file'
-}
-
-function findNodeById(nodes: FileNode[], id: string): FileNode | undefined {
+function findNodeByPath(nodes: FileNode[], path: string): FileNode | null {
+  const normalizedTarget = normalizePath(path)
   for (const node of nodes) {
-    if (node.id === id) return node
+    if (normalizePath(node.path) === normalizedTarget) return node
     if (node.children?.length) {
-      const found = findNodeById(node.children, id)
-      if (found) return found
+      const nested = findNodeByPath(node.children, normalizedTarget)
+      if (nested) return nested
     }
   }
-
-  return undefined
+  return null
 }
