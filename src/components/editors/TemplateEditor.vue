@@ -14,7 +14,7 @@ const props = defineProps<{ modelValue: string }>();
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 
 const containerRef = ref<HTMLElement | null>(null);
-const { getValue, setValue, onDidChangeContent } = useMonacoEditor(
+const { getValue, setValue, onDidChangeContent, getModel } = useMonacoEditor(
   containerRef,
   "buelo",
   props.modelValue || DEFAULT_TEMPLATE,
@@ -34,4 +34,6 @@ watch(
   () => props.modelValue,
   (val) => setValue(val),
 );
+
+defineExpose({ getModel });
 </script>

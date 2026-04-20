@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { renderReport } from '@/services/reportService'
+import { renderReport, renderById } from '@/services/reportService'
 
 export const useReportStore = defineStore('report', () => {
   const pdfBlob = ref<Blob | null>(null)
@@ -28,5 +28,17 @@ export const useReportStore = defineStore('report', () => {
     }
   }
 
-  return { pdfBlob, isRendering, renderError, render }
+  async function renderTemplate(templateId: string, version?: number): Promise<void> {
+    renderError.value = null
+    isRendering.value = true
+    try {
+      pdfBlob.value = await renderById(templateId, version)
+    } catch (err) {
+      renderError.value = err instanceof Error ? err.message : 'Unknown error'
+    } finally {
+      isRendering.value = false
+    }
+  }
+
+  return { pdfBlob, isRendering, renderError, render, renderTemplate }
 })

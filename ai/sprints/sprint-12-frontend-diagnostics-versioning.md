@@ -4,7 +4,7 @@
 Connect the editor to the backend validate endpoint for real-time error squiggles. Add a version history panel that lets users browse snapshots and restore any previous version. Completes the frontend feature roadmap.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
 - Sprint 9 backend complete (validate + version endpoints available) ✅

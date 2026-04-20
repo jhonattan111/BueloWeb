@@ -17,7 +17,7 @@ Backend sprints (7–9) are tracked separately in `Buelo.Api/ai/TASKS.md`.
 | 6 | [sprint-6-template-api.md](sprints/sprint-6-template-api.md) | Replace localStorage with backend REST API | `[x] done` | Frontend |
 | 10 | [sprint-10-frontend-buelo-language.md](sprints/sprint-10-frontend-buelo-language.md) | Buelo DSL Monaco language: tokenizer, autocomplete, hover docs | `[x] done` | Frontend |
 | 11 | [sprint-11-frontend-artefact-manager.md](sprints/sprint-11-frontend-artefact-manager.md) | Artefact tabs UI, AddArtefactDialog, bundle export/import | `[x] done` | Frontend |
-| 12 | [sprint-12-frontend-diagnostics-versioning.md](sprints/sprint-12-frontend-diagnostics-versioning.md) | Live diagnostics squiggles, version history panel, restore flow | `[ ] pending` | Frontend |
+| 12 | [sprint-12-frontend-diagnostics-versioning.md](sprints/sprint-12-frontend-diagnostics-versioning.md) | Live diagnostics squiggles, version history panel, restore flow | `[x] done` | Frontend |
 
 ## Dependency Chain
 ```

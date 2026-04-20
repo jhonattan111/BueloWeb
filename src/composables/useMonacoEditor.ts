@@ -5,6 +5,7 @@ export function useMonacoEditor(
   containerRef: Ref<HTMLElement | null>,
   language: string,
   initialValue: string,
+  options?: { readOnly?: boolean },
 ) {
   let editor: monaco.editor.IStandaloneCodeEditor | null = null
   const pendingChangeCallbacks: Array<() => void> = []
@@ -22,6 +23,7 @@ export function useMonacoEditor(
       automaticLayout: true,
       scrollBeyondLastLine: false,
       tabSize: 2,
+      readOnly: options?.readOnly ?? false,
     })
 
     // Register callbacks queued before Monaco editor creation.
@@ -59,5 +61,9 @@ export function useMonacoEditor(
     changeDisposables.push(editor.onDidChangeModelContent(cb))
   }
 
-  return { getValue, setValue, onDidChangeContent }
+  function getModel(): monaco.editor.ITextModel | null {
+    return editor?.getModel() ?? null
+  }
+
+  return { getValue, setValue, onDidChangeContent, getModel }
 }

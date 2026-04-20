@@ -51,8 +51,54 @@
         <Plus class="size-3.5" />
       </button>
 
-      <!-- Spacer + Render button -->
+      <!-- Spacer + diagnostic icon + toolbar buttons + Render -->
       <div class="flex-1 min-w-2" />
+
+      <!-- Diagnostic status icon -->
+      <span
+        v-if="diagnosticState === 'validating'"
+        class="text-muted-foreground text-xs animate-spin inline-block"
+        title="Validating…"
+        >⟳</span
+      >
+      <span
+        v-else-if="diagnosticState === 'error'"
+        class="text-destructive text-xs"
+        title="Validation errors"
+        >✕</span
+      >
+      <span
+        v-else-if="diagnosticState === 'ok'"
+        class="text-xs"
+        style="color: #4ade80"
+        title="No errors"
+        >✓</span
+      >
+      <span v-else class="text-muted-foreground text-xs" title="Not validated"
+        >–</span
+      >
+
+      <!-- Validate button -->
+      <Button
+        size="sm"
+        variant="ghost"
+        :disabled="isValidating"
+        class="shrink-0 text-xs px-2 h-6"
+        @click="validate"
+      >
+        Validate
+      </Button>
+
+      <!-- History button -->
+      <Button
+        size="sm"
+        variant="ghost"
+        class="shrink-0 text-xs px-2 h-6"
+        @click="historyOpen = !historyOpen"
+      >
+        <History class="size-3.5 mr-1" />History
+      </Button>
+
       <Button
         size="sm"
         :disabled="reportStore.isRendering"
@@ -68,7 +114,11 @@
     <div class="flex-1 min-h-0 relative">
       <!-- Template editor -->
       <div v-show="activeTab === '__template__'" class="absolute inset-0">
-        <TemplateEditor v-model="templateCodeModel" class="h-full" />
+        <TemplateEditor
+          ref="templateEditorRef"
+          v-model="templateCodeModel"
+          class="h-full"
+        />
       </div>
 
       <!-- Data editor -->
@@ -117,12 +167,20 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <!-- Version history panel (overlay) -->
+    <VersionHistoryPanel
+      v-if="historyOpen && templateStore.activeTemplateId"
+      :template-id="templateStore.activeTemplateId"
+      @close="historyOpen = false"
+      @restore="onRestore"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Plus, X } from "lucide-vue-next";
+import { History, Plus, X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -138,15 +196,24 @@ import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
 import ArtefactEditorTab from "./ArtefactEditorTab.vue";
 import AddArtefactDialog from "./AddArtefactDialog.vue";
+import VersionHistoryPanel from "./VersionHistoryPanel.vue";
 import { useReportStore } from "@/stores/reportStore";
+import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
-import type { TemplateArtefact } from "@/types/template";
+import { useTemplateDiagnostics } from "@/composables/useTemplateDiagnostics";
+import type {
+  Template,
+  TemplateArtefact,
+  TemplateMode,
+} from "@/types/template";
 
 const templateCodeModel = defineModel<string>("templateCode", { default: "" });
 const jsonDataModel = defineModel<string>("jsonData", { default: "" });
 
 const reportStore = useReportStore();
-const { artefacts, saveArtefact, removeArtefact } = useActiveTemplate();
+const templateStore = useTemplateStore();
+const { artefacts, saveArtefact, removeArtefact, loadArtefacts } =
+  useActiveTemplate();
 
 const activeTab = ref<string>("__template__");
 
@@ -166,6 +233,31 @@ function tabClass(tabId: string) {
 
 function onRender() {
   reportStore.render(templateCodeModel.value, jsonDataModel.value);
+}
+
+// ── Diagnostics ───────────────────────────────────────────────────────────────
+const templateEditorRef = ref<InstanceType<typeof TemplateEditor> | null>(null);
+
+const { isValidating, hasErrors, validate } = useTemplateDiagnostics(
+  () => templateCodeModel.value,
+  () => (templateStore.activeTemplate?.mode as TemplateMode) ?? "Sections",
+  () => templateEditorRef.value?.getModel() ?? null,
+);
+
+const diagnosticState = computed(() => {
+  if (isValidating.value) return "validating";
+  if (hasErrors.value) return "error";
+  if (!isValidating.value && !hasErrors.value) return "ok";
+  return "idle";
+});
+
+// ── History panel ─────────────────────────────────────────────────────────────
+const historyOpen = ref(false);
+
+async function onRestore(template: Template) {
+  templateCodeModel.value = template.template;
+  historyOpen.value = false;
+  await loadArtefacts();
 }
 
 // ── Artefact add ─────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import type { Template, TemplateArtefact } from '@/types/template'
+import type { Template, TemplateArtefact, TemplateMode, ValidateResult, TemplateVersionMeta, TemplateVersionSnapshot } from '@/types/template'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
@@ -106,5 +106,42 @@ export async function importBundle(file: File): Promise<Template> {
     method: 'POST',
     body: form,
   })
+  return handleResponse<Template>(response)
+}
+
+// ── Validate ──────────────────────────────────────────────────────────────────
+
+export async function validateTemplate(
+  template: string,
+  mode: TemplateMode,
+): Promise<ValidateResult> {
+  const response = await fetch(`${BASE_URL}/api/report/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ template, mode }),
+  })
+  return handleResponse<ValidateResult>(response)
+}
+
+// ── Version history ───────────────────────────────────────────────────────────
+
+export async function listVersions(templateId: string): Promise<TemplateVersionMeta[]> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/versions`)
+  return handleResponse<TemplateVersionMeta[]>(response)
+}
+
+export async function getVersion(
+  templateId: string,
+  version: number,
+): Promise<TemplateVersionSnapshot> {
+  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/versions/${version}`)
+  return handleResponse<TemplateVersionSnapshot>(response)
+}
+
+export async function restoreVersion(templateId: string, version: number): Promise<Template> {
+  const response = await fetch(
+    `${BASE_URL}/api/templates/${templateId}/versions/${version}/restore`,
+    { method: 'POST' },
+  )
   return handleResponse<Template>(response)
 }

@@ -40,3 +40,15 @@ export async function renderReport(
 
   return response.blob()
 }
+
+export async function renderById(templateId: string, version?: number): Promise<Blob> {
+  const url = version !== undefined
+    ? `${BASE_URL}/api/report/render/${templateId}?version=${version}`
+    : `${BASE_URL}/api/report/render/${templateId}`
+  const response = await fetch(url, { method: 'POST' })
+  if (!response.ok) {
+    const message = await response.text().catch(() => response.statusText)
+    throw new Error(message || `Request failed: ${response.status}`)
+  }
+  return response.blob()
+}
