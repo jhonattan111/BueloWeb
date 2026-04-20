@@ -8,23 +8,10 @@
         class="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
         >Preview</span
       >
-      <FormatSelector
-        v-if="store.supportedFormats.length > 1"
-        v-model="store.selectedFormat"
-        :formats="store.supportedFormats"
-        :template-mode="templateMode"
-        @update:model-value="store.setFormat"
-      />
+      <span class="text-[11px] text-muted-foreground uppercase"
+        >Auto format</span
+      >
     </div>
-
-    <!-- Format hints panel (Excel options) -->
-    <FormatHintsPanel
-      :format="store.selectedFormat"
-      :model-value="store.formatHints"
-      :is-open="hintsOpen"
-      @update:model-value="onHintsUpdate"
-      @toggle="hintsOpen = !hintsOpen"
-    />
 
     <!-- Body -->
     <div class="relative flex-1 min-h-0 overflow-hidden">
@@ -111,25 +98,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from "vue";
+import { computed, ref, watch, onUnmounted } from "vue";
 import { Download, FileSpreadsheet } from "lucide-vue-next";
 import { useReportStore } from "@/stores/reportStore";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import FormatSelector from "./FormatSelector.vue";
-import FormatHintsPanel from "./FormatHintsPanel.vue";
 import { downloadBlob } from "@/lib/utils";
-
-const props = defineProps<{
-  /** Pass the active template mode so FormatSelector can disable Excel when needed */
-  templateMode?: string;
-}>();
 
 const store = useReportStore();
 const objectUrl = ref<string | null>(null);
-const hintsOpen = ref(false);
-
-const templateMode = computed(() => props.templateMode);
 const downloadFilename = computed(() => `report${store.resultFileExtension}`);
 
 watch(
@@ -155,12 +132,6 @@ onUnmounted(() => {
     URL.revokeObjectURL(objectUrl.value);
   }
 });
-
-function onHintsUpdate(hints: Record<string, string>): void {
-  for (const [key, value] of Object.entries(hints)) {
-    store.setFormatHint(key, value);
-  }
-}
 
 function downloadAgain(): void {
   if (store.resultBlob) {

@@ -4,6 +4,19 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 const EMPTY_RESULT: FileValidationResult = { valid: true, errors: [], warnings: [] }
 
+export interface FileValidationEntry {
+  path: string
+  extension: string
+  result: FileValidationResult
+}
+
+export interface ProjectValidationResult {
+  valid: boolean
+  totalErrors: number
+  totalWarnings: number
+  files: FileValidationEntry[]
+}
+
 /**
  * Validate file content against the backend.
  * `.json` files are skipped — Monaco handles JSON validation natively.
@@ -38,4 +51,17 @@ export async function validateFile(
     // Network error — don't surface as validation errors, just return clean
     return EMPTY_RESULT
   }
+}
+
+export async function validateProject(): Promise<ProjectValidationResult> {
+  const response = await fetch(`${BASE_URL}/api/validate/project`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    throw new Error(text || `Server error: ${response.status}`)
+  }
+
+  return response.json() as Promise<ProjectValidationResult>
 }

@@ -79,6 +79,7 @@ const { createFile } = useWorkspaceTree();
 const name = ref("");
 const selectedTypeIndex = ref(0);
 const selectedParentId = ref<string | null>(props.defaultParentId ?? null);
+const outputFormat = ref<"pdf" | "excel">("pdf");
 
 watch(
   () => props.defaultParentId,
@@ -94,11 +95,17 @@ watch(
       name.value = "";
       selectedTypeIndex.value = 0;
       selectedParentId.value = props.defaultParentId ?? null;
+      outputFormat.value = "pdf";
     }
   },
 );
 
 const selectedType = computed(() => FILE_TYPES[selectedTypeIndex.value]);
+const isReportType = computed(
+  () =>
+    selectedType.value.extension === ".buelo" &&
+    selectedType.value.nodeType === "template",
+);
 
 const nameError = computed(() => {
   if (!name.value.trim()) return null;
@@ -122,6 +129,39 @@ const templates = computed(() => templateStore.templates);
 async function confirm() {
   if (!isValid.value) return;
 
+  if (isReportType.value) {
+    try {
+      await templateStore.createTemplate({
+        name: name.value.trim(),
+        template: BUELO_STARTER_TEMPLATE,
+        outputFormat: outputFormat.value,
+      });
+
+      const activeTemplate = templateStore.activeTemplate;
+      if (!activeTemplate) return;
+
+      const node: FileNode = {
+        id: activeTemplate.id,
+        name: activeTemplate.name.endsWith(".buelo")
+          ? activeTemplate.name
+          : `${activeTemplate.name}.buelo`,
+        extension: ".buelo",
+        path: activeTemplate.name.endsWith(".buelo")
+          ? activeTemplate.name
+          : `${activeTemplate.name}.buelo`,
+        type: "folder",
+      };
+
+      emit("created", node);
+      emit("update:open", false);
+      outputFormat.value = "pdf";
+      return;
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+  }
+
   const isGlobal = selectedType.value.nodeType === "global-artefact";
   const parentId = isGlobal ? null : selectedParentId.value;
 
@@ -134,6 +174,7 @@ async function confirm() {
     );
     emit("created", node);
     emit("update:open", false);
+    outputFormat.value = "pdf";
   } catch (err) {
     // Surface errors through the store or a local error ref if needed
     console.error(err);
@@ -182,9 +223,24 @@ async function confirm() {
           </select>
         </div>
 
-        <!-- Parent template (only for template-scoped types) -->
+        <!-- Output format (report only) -->
+        <div v-if="isReportType" class="flex flex-col gap-1.5">
+          <label class="text-xs font-medium">Output format</label>
+          <div class="flex items-center gap-4 text-sm">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input v-model="outputFormat" type="radio" value="pdf" />
+              <span>PDF</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input v-model="outputFormat" type="radio" value="excel" />
+              <span>Excel</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Parent template (only for non-report template-scoped types) -->
         <div
-          v-if="selectedType.nodeType === 'template'"
+          v-if="selectedType.nodeType === 'template' && !isReportType"
           class="flex flex-col gap-1.5"
         >
           <label class="text-xs font-medium">Parent template (optional)</label>

@@ -1,14 +1,27 @@
 <template>
   <AppLayout>
     <template #sidebar-left>
-      <FileTreePanel @open-file="onOpenFile" />
+      <div class="flex flex-col h-full min-h-0">
+        <FileTreePanel class="flex-1 min-h-0" @open-file="onOpenFile" />
+        <ProjectSettingsPanel />
+      </div>
     </template>
 
     <template #editor>
-      <CodeEditorPanel
-        v-model:templateCode="templateCode"
-        v-model:jsonData="jsonData"
-      />
+      <div class="relative h-full min-h-0">
+        <CodeEditorPanel
+          v-model:templateCode="templateCode"
+          v-model:jsonData="jsonData"
+        />
+        <ProjectValidationPanel
+          :result="projectValidation.result.value"
+          :is-validating="projectValidation.isValidating.value"
+          :error="projectValidation.error.value"
+          :open="projectValidation.panelOpen.value"
+          @close="projectValidation.panelOpen.value = false"
+          @open-file="onOpenValidationFile"
+        />
+      </div>
     </template>
 
     <template #sidebar-right>
@@ -18,18 +31,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { provide, ref, watch } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import FileTreePanel from "@/components/layout/FileTreePanel.vue";
+import ProjectSettingsPanel from "@/components/layout/ProjectSettingsPanel.vue";
 import CodeEditorPanel from "@/components/editors/CodeEditorPanel.vue";
+import ProjectValidationPanel from "@/components/editors/ProjectValidationPanel.vue";
 import PreviewPanel from "@/components/preview/PreviewPanel.vue";
 import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
+import {
+  PROJECT_VALIDATION_KEY,
+  useProjectValidation,
+} from "@/composables/useProjectValidation";
+import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
 import type { FileNode } from "@/types/workspace";
 
 const store = useTemplateStore();
 const { activeFilePath, openGlobalArtefact } = useActiveTemplate();
+const { tree } = useWorkspaceTree();
+const projectValidation = useProjectValidation();
+
+provide(PROJECT_VALIDATION_KEY, projectValidation);
 
 const templateCode = ref<string>("");
 const jsonData = ref<string>("");
@@ -90,10 +114,39 @@ async function onOpenFile(node: FileNode) {
       // Load global artefact as a virtual editor tab
       await openGlobalArtefact(node.id);
       break;
-
-    case "project":
-      // Handled by FileTreePanel directly (router.push('/project'))
-      break;
   }
+}
+
+async function onOpenValidationFile(path: string) {
+  const node = findNodeByPath(path, tree.value);
+  if (!node) return;
+  await onOpenFile(node);
+}
+
+function findNodeByPath(path: string, nodes: FileNode[]): FileNode | null {
+  const normalizedPath = normalizePath(path);
+  const fileName = normalizedPath.split("/").at(-1);
+
+  for (const node of nodes) {
+    const nodePath = normalizePath(node.path);
+    if (nodePath && nodePath === normalizedPath) {
+      return node;
+    }
+
+    if (fileName && node.name === fileName && node.type !== "folder") {
+      return node;
+    }
+
+    if (node.children?.length) {
+      const nested = findNodeByPath(path, node.children);
+      if (nested) return nested;
+    }
+  }
+
+  return null;
+}
+
+function normalizePath(path: string | undefined): string {
+  return (path ?? "").replace(/\\/g, "/").trim();
 }
 </script>

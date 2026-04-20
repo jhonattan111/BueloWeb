@@ -17,7 +17,8 @@ export const useTemplateStore = defineStore('template', () => {
     isLoading.value = true
     error.value = null
     try {
-      templates.value = await templateService.listTemplates()
+      const fetched = await templateService.listTemplates()
+      templates.value = fetched.map(normalizeTemplateName)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to load templates'
     } finally {
@@ -25,18 +26,25 @@ export const useTemplateStore = defineStore('template', () => {
     }
   }
 
-  async function createTemplate() {
+  async function createTemplate(options?: {
+    name: string
+    template?: string
+    outputFormat?: 'pdf' | 'excel'
+  }): Promise<void> {
     isLoading.value = true
     error.value = null
     try {
+      const name = options?.name?.trim() || 'New Template'
       const t = await templateService.createTemplate({
-        name: 'New Template',
-        template: 'Hello, {{ name }}!',
+        name,
+        template: options?.template ?? 'Hello, {{ name }}!',
+        ...(options?.outputFormat ? { outputFormat: options.outputFormat } : {}),
         mockData: { name: 'World' },
         artefacts: [],
       })
-      templates.value.push(t)
-      activeTemplateId.value = t.id
+      const normalized = normalizeTemplateName(t)
+      templates.value.push(normalized)
+      activeTemplateId.value = normalized.id
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to create template'
     } finally {
@@ -75,7 +83,7 @@ export const useTemplateStore = defineStore('template', () => {
 
       const updated = await templateService.updateTemplate(id, payload)
       const idx = templates.value.findIndex((t) => t.id === id)
-      if (idx !== -1) templates.value[idx] = updated
+      if (idx !== -1) templates.value[idx] = normalizeTemplateName(updated)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to update template'
     }
@@ -114,4 +122,23 @@ export const useTemplateStore = defineStore('template', () => {
     selectTemplate,
   }
 })
+
+function normalizeTemplateName(template: Template): Template {
+  const name = template.name.trim()
+  if (!name || isGuidLike(name)) {
+    return {
+      ...template,
+      name: `[unnamed-${template.id.slice(0, 8)}]`,
+    }
+  }
+
+  return {
+    ...template,
+    name,
+  }
+}
+
+function isGuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
 

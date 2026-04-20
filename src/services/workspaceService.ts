@@ -1,5 +1,5 @@
 import type { FileNode } from '@/types/workspace'
-import type { GlobalArtefact } from '@/types/globalArtefact'
+import type { GlobalArtefact } from '../types/globalArtefact'
 import * as templateService from '@/services/templateService'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
@@ -65,20 +65,17 @@ export async function fetchWorkspaceTree(): Promise<FileNode[]> {
     listGlobalArtefacts(),
   ])
 
-  const projectNode: FileNode = {
-    id: 'project',
-    name: 'project.bueloproject',
-    extension: '.bueloproject',
-    type: 'project',
-  }
-
-  const templateNodes: FileNode[] = templates.map((t) => ({
-    id: t.id,
-    name: t.name.endsWith('.buelo') ? t.name : `${t.name}.buelo`,
-    extension: '.buelo',
-    type: 'folder',
-    children: buildTemplateChildren(t.id, t.artefacts),
-  }))
+  const templateNodes: FileNode[] = templates.map((t) => {
+    const templateFileName = toTemplateFileName(t.name, t.id)
+    return {
+      id: t.id,
+      name: templateFileName,
+      extension: '.buelo',
+      path: templateFileName,
+      type: 'folder',
+      children: buildTemplateChildren(t.id, templateFileName, t.artefacts),
+    }
+  })
 
   const globalFolderNode: FileNode | null =
     globalArtefacts.length === 0
@@ -87,41 +84,26 @@ export async function fetchWorkspaceTree(): Promise<FileNode[]> {
           id: '_global',
           name: '_global',
           extension: '',
+          path: '_global',
           type: 'folder',
           children: globalArtefacts.map((a) => ({
             id: a.id,
             name: `${a.name}${a.extension}`,
             extension: a.extension,
+            path: `_global/${a.name}${a.extension}`,
             type: 'global-artefact' as const,
           })),
         }
 
-  return [
-    projectNode,
-    ...templateNodes,
-    ...(globalFolderNode ? [globalFolderNode] : []),
-  ]
+  return [...templateNodes, ...(globalFolderNode ? [globalFolderNode] : [])]
 }
 
 function buildTemplateChildren(
   templateId: string,
+  templateFileName: string,
   artefacts: Array<{ path?: string; name: string; extension: string; content: string }>,
 ): FileNode[] {
-  const main: FileNode = {
-    id: `${templateId}:template.report.cs`,
-    name: 'template.report.cs',
-    extension: '.cs',
-    type: 'template',
-    parentId: templateId,
-  }
-
-  const data: FileNode = {
-    id: `${templateId}:data/mock.data.json`,
-    name: 'mock.data.json',
-    extension: '.json',
-    type: 'template',
-    parentId: templateId,
-  }
+  const templateRoot = templateFileName.replace(/\.buelo$/i, '')
 
   const artefactNodes: FileNode[] = artefacts.map((a) => {
     const filePath = a.path ?? `${a.name}${a.extension}`
@@ -130,10 +112,24 @@ function buildTemplateChildren(
       id: `${templateId}:${filePath}`,
       name: fileName,
       extension: a.extension,
+      path: `${templateRoot}/${filePath}`,
       type: 'template' as const,
       parentId: templateId,
     }
   })
 
-  return [main, data, ...artefactNodes]
+  return artefactNodes
+}
+
+function toTemplateFileName(name: string, id: string): string {
+  const normalized = name.trim()
+  if (!normalized || isGuidLike(normalized)) {
+    return `[unnamed-${id.slice(0, 8)}].buelo`
+  }
+
+  return normalized.endsWith('.buelo') ? normalized : `${normalized}.buelo`
+}
+
+function isGuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }

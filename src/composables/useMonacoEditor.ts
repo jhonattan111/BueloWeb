@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor'
 import { onMounted, onUnmounted, type Ref } from 'vue'
+import { BUELO_LANGUAGE_ID } from '@/lib/buelo-language'
 
 export function useMonacoEditor(
   containerRef: Ref<HTMLElement | null>,
@@ -14,15 +15,24 @@ export function useMonacoEditor(
   onMounted(() => {
     if (!containerRef.value) return
 
+    const normalizedLanguage = language === BUELO_LANGUAGE_ID ? BUELO_LANGUAGE_ID : language
+
     editor = monaco.editor.create(containerRef.value, {
       value: initialValue,
-      language,
+      language: normalizedLanguage,
       theme: 'vs-dark',
       fontSize: 13,
       minimap: { enabled: false },
       automaticLayout: true,
       scrollBeyondLastLine: false,
       tabSize: 2,
+      quickSuggestions: {
+        other: true,
+        comments: false,
+        strings: true,
+      },
+      suggestOnTriggerCharacters: true,
+      wordBasedSuggestions: 'off',
       readOnly: options?.readOnly ?? false,
     })
 

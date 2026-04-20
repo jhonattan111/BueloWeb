@@ -1,4 +1,4 @@
-export type TemplateMode = 'Sections' | 'Partial'
+export type TemplateMode = 'BueloDsl'
 
 export interface TemplateArtefact {
   path?: string
@@ -8,12 +8,8 @@ export interface TemplateArtefact {
 }
 
 export type TemplateFileKind =
-  | 'template'
-  | 'template-sections'
-  | 'template-partial'
   | 'data'
   | 'helper'
-  | 'schema'
   | 'file'
 
 export interface TemplateFile {
@@ -27,6 +23,7 @@ export interface Template {
   id: string
   name: string
   mode?: TemplateMode
+  outputFormat?: 'pdf' | 'excel'
   template: string
   mockData: object
   artefacts: TemplateArtefact[]

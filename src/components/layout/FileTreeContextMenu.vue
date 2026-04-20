@@ -50,7 +50,6 @@ function handleNewFile() {
 }
 
 const isFolder = () => props.node?.type === "folder";
-const isProject = () => props.node?.type === "project";
 const isGlobalArtefact = () => props.node?.type === "global-artefact";
 const isTemplateFile = () => props.node?.type === "template";
 </script>
@@ -65,18 +64,8 @@ const isTemplateFile = () => props.node?.type === "template";
       :style="{ top: `${y}px`, left: `${x}px` }"
       @keydown.escape="$emit('close')"
     >
-      <!-- Project file: Open only -->
-      <template v-if="isProject()">
-        <button
-          class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-          @click="handleOpen"
-        >
-          Open
-        </button>
-      </template>
-
       <!-- Template folder -->
-      <template v-else-if="isFolder()">
+      <template v-if="isFolder()">
         <button
           class="flex w-full items-center px-3 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
           @click="handleNewFile"

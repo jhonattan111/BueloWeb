@@ -23,6 +23,10 @@ Backend sprints (7–9) are tracked separately in `Buelo.Api/ai/TASKS.md`.
 | 15 | [sprint-15-frontend-project-file-editor.md](sprints/sprint-15-frontend-project-file-editor.md) | Visual project settings editor (page defaults, mock data, metadata) | `[x] done` | Frontend |
 | 16 | [sprint-16-frontend-file-validation-ux.md](sprints/sprint-16-frontend-file-validation-ux.md) | Per-file validation UX: squiggles per extension, status bar, problems panel | `[x] done` | Frontend |
 | 17 | [sprint-17-frontend-multi-format-export.md](sprints/sprint-17-frontend-multi-format-export.md) | Format selector (PDF/Excel), automatic download for non-PDF, format hints panel | `[x] done` | Frontend |
+| 18 | [sprint-18-frontend-inline-project-config.md](sprints/sprint-18-frontend-inline-project-config.md) | Remove project route; sidebar settings panel; output format at creation | `[x] done` | Frontend |
+| 19 | [sprint-19-frontend-project-validation.md](sprints/sprint-19-frontend-project-validation.md) | Project-wide validation UX; ProjectValidationPanel; tree badges | `[x] done` | Frontend |
+| 20 | [sprint-20-frontend-remove-obsolete.md](sprints/sprint-20-frontend-remove-obsolete.md) | Remove Sections mode UI, ZIP bundle, hardcoded .cs virtual nodes | `[x] done` | Frontend |
+| 21 | [sprint-21-frontend-bugfixes.md](sprints/sprint-21-frontend-bugfixes.md) | Fix Monaco autocomplete; fix refresh button GUID title bug | `[x] done` | Frontend |
 
 ## Dependency Chain
 ```
@@ -47,6 +51,14 @@ Sprint 1 → Sprint 2 → Sprint 3 → Sprint 4
                               Sprint 16 (File Validation UX)
                                       ↓
                               Sprint 17 (Multi-format Export)
+                                      ↓
+                 Sprint 18 (Inline @project + format at creation; sidebar settings)
+                                      ↓
+                              Sprint 19 (Project-wide Validation UX)
+                                      ↓
+                              Sprint 20 (Remove Obsolete)
+                                      ↓
+                              Sprint 21 (Bug Fixes: Autocomplete + Refresh)
 ```
 
 ## Final File Structure (after all sprints)

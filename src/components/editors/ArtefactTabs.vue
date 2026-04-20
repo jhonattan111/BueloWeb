@@ -7,7 +7,7 @@
         class="text-xs text-muted-foreground truncate max-w-[45ch]"
         :title="activeFilePath"
       >
-        {{ activeFilePath || TEMPLATE_FILE_PATH }}
+        {{ activeFilePath || templatePath }}
       </div>
 
       <div class="flex-1 min-w-2" />
@@ -21,7 +21,7 @@
       <span
         v-else-if="diagnosticState === 'error'"
         class="text-destructive text-xs"
-        :title="validationError || 'Validation errors'"
+        :title="projectValidationError || 'Validation errors'"
         >✕</span
       >
       <span
@@ -38,11 +38,12 @@
       <Button
         size="sm"
         variant="ghost"
-        :disabled="isValidating"
+        :disabled="isProjectValidating"
         class="shrink-0 text-xs px-2 h-6"
-        @click="validate"
+        @click="runProjectValidation"
       >
-        Validate
+        <span v-if="isProjectValidating">Validating...</span>
+        <span v-else>Validate Project</span>
       </Button>
 
       <Button
@@ -67,7 +68,7 @@
 
     <div class="flex-1 min-h-0 relative">
       <div
-        v-show="effectiveActivePath === TEMPLATE_FILE_PATH"
+        v-show="effectiveActivePath === templatePath"
         class="absolute inset-0"
       >
         <TemplateEditor
@@ -112,13 +113,6 @@
       {{ validationError }}
     </p>
 
-    <ValidationSummaryPanel
-      :files="summaryFiles"
-      :is-open="problemsPanelOpen"
-      @toggle="problemsPanelOpen = !problemsPanelOpen"
-      @jump-to-diagnostic="onJumpToDiagnostic"
-    />
-
     <VersionHistoryPanel
       v-if="historyOpen && templateStore.activeTemplateId"
       :template-id="templateStore.activeTemplateId"
@@ -129,31 +123,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { History } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
 import ArtefactEditorTab from "./ArtefactEditorTab.vue";
 import VersionHistoryPanel from "./VersionHistoryPanel.vue";
-import ValidationSummaryPanel from "./ValidationSummaryPanel.vue";
-import type { FileProblemEntry } from "./ValidationSummaryPanel.vue";
 import { useReportStore } from "@/stores/reportStore";
 import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
 import { useTemplateDiagnostics } from "@/composables/useTemplateDiagnostics";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
+import {
+  PROJECT_VALIDATION_KEY,
+  type UseProjectValidation,
+} from "@/composables/useProjectValidation";
 import type {
   Template,
   TemplateArtefact,
   TemplateFile,
   TemplateFileKind,
-  TemplateMode,
   FileValidationResult,
-  ValidationDiagnostic,
 } from "@/types/template";
 
-const TEMPLATE_FILE_PATH = "template.report.cs";
 const DATA_FILE_PATH = "data/mock.data.json";
 
 const templateCodeModel = defineModel<string>("templateCode", { default: "" });
@@ -163,24 +156,33 @@ const reportStore = useReportStore();
 const templateStore = useTemplateStore();
 const { files, activeFilePath, saveFile, loadFiles } = useActiveTemplate();
 const { setValidationResult } = useWorkspaceTree();
+const projectValidation = inject<UseProjectValidation | null>(
+  PROJECT_VALIDATION_KEY,
+  null,
+);
+
+const templatePath = computed(() => {
+  const name = templateStore.activeTemplate?.name ?? "template";
+  return name.endsWith(".buelo") ? name : `${name}.buelo`;
+});
 
 const nonCoreFiles = computed(() =>
   files.value.filter(
-    (file) => file.path !== TEMPLATE_FILE_PATH && file.path !== DATA_FILE_PATH,
+    (file) => file.path !== templatePath.value && file.path !== DATA_FILE_PATH,
   ),
 );
 
 const effectiveActivePath = computed(() => {
-  const current = activeFilePath.value || TEMPLATE_FILE_PATH;
+  const current = activeFilePath.value || templatePath.value;
   return files.value.some((f) => f.path === current)
     ? current
-    : TEMPLATE_FILE_PATH;
+    : templatePath.value;
 });
 
 watch(
   files,
   (nextFiles) => {
-    const templateFile = nextFiles.find((f) => f.path === TEMPLATE_FILE_PATH);
+    const templateFile = nextFiles.find((f) => f.path === templatePath.value);
     if (templateFile && templateCodeModel.value !== templateFile.content) {
       templateCodeModel.value = templateFile.content;
     }
@@ -194,7 +196,7 @@ watch(
 );
 
 watch(templateCodeModel, (value) => {
-  const idx = files.value.findIndex((f) => f.path === TEMPLATE_FILE_PATH);
+  const idx = files.value.findIndex((f) => f.path === templatePath.value);
   if (idx !== -1) {
     files.value[idx] = { ...files.value[idx], content: value };
   }
@@ -209,31 +211,34 @@ watch(jsonDataModel, (value) => {
 
 const templateEditorRef = ref<InstanceType<typeof TemplateEditor> | null>(null);
 
-const { isValidating, hasErrors, validationError, validate } =
-  useTemplateDiagnostics(
-    () => templateCodeModel.value,
-    () => templateStore.activeTemplate?.mode,
-    () => templateEditorRef.value?.getModel() ?? null,
-  );
+const { validationError } = useTemplateDiagnostics(
+  () => templateCodeModel.value,
+  () => "BueloDsl",
+  () => templateEditorRef.value?.getModel() ?? null,
+);
+
+const isProjectValidating = computed(
+  () => projectValidation?.isValidating.value ?? false,
+);
+const projectValidationError = computed(
+  () => projectValidation?.error.value ?? null,
+);
+const projectValidationResult = computed(
+  () => projectValidation?.result.value ?? null,
+);
 
 const diagnosticState = computed(() => {
-  if (isValidating.value) return "validating";
-  if (validationError.value) return "error";
-  if (hasErrors.value) return "error";
+  if (isProjectValidating.value) return "validating";
+  if (projectValidationError.value) return "error";
+  if (!projectValidationResult.value) return "idle";
+  if (!projectValidationResult.value.valid) return "error";
   return "ok";
 });
-
-// ── Problems panel ──────────────────────────────────────────────────────────
-const problemsPanelOpen = ref(false);
-const artefactValidationResults = reactive<Map<string, FileValidationResult>>(
-  new Map(),
-);
 
 function onArtefactValidationResult(
   fileId: string,
   result: FileValidationResult,
 ): void {
-  artefactValidationResults.set(fileId, result);
   // Also update the workspace tree's shared validation map
   const templateId = templateStore.activeTemplateId;
   if (templateId) {
@@ -241,27 +246,13 @@ function onArtefactValidationResult(
   }
 }
 
-// Derive summaryFiles for the panel (artefact results only — template.report.cs uses its own diagnostics)
-const summaryFiles = computed<FileProblemEntry[]>(() => {
-  const entries: FileProblemEntry[] = [];
-
-  for (const [fileId, result] of artefactValidationResults.entries()) {
-    if (result.errors.length || result.warnings.length) {
-      const fileName = fileId.split("/").at(-1) ?? fileId;
-      entries.push({ fileId, fileName, result });
-    }
-  }
-
-  return entries;
-});
-
-function onJumpToDiagnostic(fileId: string, _diag: ValidationDiagnostic): void {
-  // Switch to the file that has the error
-  activeFilePath.value = fileId;
-}
-
 // ── History / Render ────────────────────────────────────────────────────────
 const historyOpen = ref(false);
+
+async function runProjectValidation(): Promise<void> {
+  if (!projectValidation) return;
+  await projectValidation.runValidation();
+}
 
 async function onRestore(template: Template) {
   templateCodeModel.value = template.template;
@@ -270,8 +261,7 @@ async function onRestore(template: Template) {
 }
 
 function onRender() {
-  const mode = normalizeMode(templateStore.activeTemplate?.mode);
-  reportStore.render(templateCodeModel.value, jsonDataModel.value, mode);
+  reportStore.render(templateCodeModel.value, jsonDataModel.value, "BueloDsl");
 }
 
 async function onSaveArtefact(artefact: TemplateArtefact) {
@@ -300,22 +290,7 @@ function toArtefact(file: TemplateFile): TemplateArtefact {
 
 function inferFileKind(path: string): TemplateFileKind {
   if (path.endsWith(".helpers.cs")) return "helper";
-  if (path.endsWith(".schema.json")) return "schema";
   if (path.endsWith(".data.json")) return "data";
-  if (path.endsWith(".cs")) return "template";
   return "file";
-}
-
-function normalizeMode(
-  mode: TemplateMode | string | number | undefined,
-): TemplateMode {
-  if (
-    mode === "Partial" ||
-    mode === 1 ||
-    String(mode).toLowerCase() === "partial"
-  ) {
-    return "Partial";
-  }
-  return "Sections";
 }
 </script>

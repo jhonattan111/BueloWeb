@@ -75,7 +75,7 @@ function indentLevel(line: string): number {
 
 export function buildCompletionProvider(): monaco.languages.CompletionItemProvider {
   return {
-    triggerCharacters: [' ', ':', '{', '"', '@'],
+    triggerCharacters: [':', '{', '"', '@', '\n'],
 
     async provideCompletionItems(model, position) {
       const lineUntilCursor = model.getValueInRange({

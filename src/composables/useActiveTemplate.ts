@@ -2,12 +2,13 @@ import { ref, watch } from 'vue'
 import { useTemplateStore } from '@/stores/templateStore'
 import * as templateService from '@/services/templateService'
 import * as workspaceService from '@/services/workspaceService'
-import type { TemplateArtefact, TemplateFile, TemplateFileKind, TemplateMode } from '@/types/template'
+import type { Template, TemplateArtefact, TemplateFile, TemplateFileKind, TemplateMode } from '@/types/template'
 
 export const GLOBAL_ARTEFACT_PATH_PREFIX = '_global/'
+const DEFAULT_DATA_FILE_PATH = 'data/mock.data.json'
 
 const filesState = ref<TemplateFile[]>([])
-const activeFilePathState = ref<string>('template.report.cs')
+const activeFilePathState = ref<string>('')
 const isLoadingState = ref(false)
 let watcherInitialized = false
 
@@ -20,14 +21,26 @@ export function useActiveTemplate() {
 
   async function loadFiles(): Promise<void> {
     const id = templateStore.activeTemplateId
+    const activeTemplate = templateStore.activeTemplate
     if (!id) {
       files.value = []
-      activeFilePath.value = 'template.report.cs'
+      activeFilePath.value = ''
       return
     }
     isLoading.value = true
     try {
-      files.value = await templateService.listFiles(id)
+      const fetchedFiles = await templateService.listFiles(id)
+      if (activeTemplate) {
+        files.value = hydrateFiles(activeTemplate, fetchedFiles)
+        const rootPath = getTemplateRootPath(activeTemplate.name)
+        const hasActivePath = files.value.some((f) => f.path === activeFilePath.value)
+        const isGlobalPath = activeFilePath.value.startsWith(GLOBAL_ARTEFACT_PATH_PREFIX)
+        if (!activeFilePath.value || (!hasActivePath && !isGlobalPath)) {
+          activeFilePath.value = rootPath
+        }
+      } else {
+        files.value = fetchedFiles
+      }
     } catch {
       // Keep previously loaded files on error.
     } finally {
@@ -39,18 +52,31 @@ export function useActiveTemplate() {
     watch(
       () => templateStore.activeTemplateId,
       (id) => {
-        activeFilePath.value = 'template.report.cs'
-
         const activeTemplate = templateStore.activeTemplate
         if (activeTemplate) {
-          files.value = seedFilesFromTemplate(activeTemplate.template, activeTemplate.mockData, activeTemplate.mode, activeTemplate.artefacts)
+          files.value = hydrateFiles(activeTemplate)
+          activeFilePath.value = getTemplateRootPath(activeTemplate.name)
         } else {
           files.value = []
+          activeFilePath.value = ''
         }
 
         if (id) loadFiles()
       },
       { immediate: true },
+    )
+
+    watch(
+      () => templateStore.activeTemplate?.name,
+      (name, previousName) => {
+        if (!name || !previousName) return
+
+        const nextRootPath = getTemplateRootPath(name)
+        const prevRootPath = getTemplateRootPath(previousName)
+        if (activeFilePath.value === prevRootPath) {
+          activeFilePath.value = nextRootPath
+        }
+      },
     )
 
     watcherInitialized = true
@@ -77,6 +103,7 @@ export function useActiveTemplate() {
     }
 
     const id = templateStore.activeTemplateId
+    const activeTemplate = templateStore.activeTemplate
     if (!id) return
 
     const saved = await templateService.upsertFile(id, payload)
@@ -87,10 +114,9 @@ export function useActiveTemplate() {
       files.value.push(saved)
     }
 
-    if (saved.path === 'template.report.cs') {
+    if (activeTemplate && saved.path === getTemplateRootPath(activeTemplate.name)) {
       await templateStore.updateTemplate(id, {
         template: saved.content,
-        ...(saved.mode ? { mode: saved.mode } : {}),
       })
     }
   }
@@ -102,7 +128,8 @@ export function useActiveTemplate() {
     await templateService.deleteFile(id, path)
     files.value = files.value.filter((f) => f.path !== path)
     if (activeFilePath.value === path) {
-      activeFilePath.value = 'template.report.cs'
+      const activeTemplate = templateStore.activeTemplate
+      activeFilePath.value = activeTemplate ? getTemplateRootPath(activeTemplate.name) : ''
     }
   }
 
@@ -148,20 +175,21 @@ export function useActiveTemplate() {
 }
 
 function seedFilesFromTemplate(
+  templateName: string,
   templateSource: string,
   mockData: object,
-  mode: TemplateMode | undefined,
   artefacts: TemplateArtefact[],
 ): TemplateFile[] {
+  const templatePath = getTemplateRootPath(templateName)
+
   const seeded: TemplateFile[] = [
     {
-      path: 'template.report.cs',
-      kind: 'template',
-      mode: mode ?? 'Sections',
+      path: templatePath,
+      kind: 'file',
       content: templateSource,
     },
     {
-      path: 'data/mock.data.json',
+      path: DEFAULT_DATA_FILE_PATH,
       kind: 'data',
       content: JSON.stringify(mockData ?? {}, null, 2),
     },
@@ -181,8 +209,29 @@ function seedFilesFromTemplate(
 
 function inferKind(path: string): TemplateFileKind {
   if (path.endsWith('.helpers.cs')) return 'helper'
-  if (path.endsWith('.schema.json')) return 'schema'
   if (path.endsWith('.data.json')) return 'data'
-  if (path.endsWith('.cs')) return 'template'
   return 'file'
+}
+
+function hydrateFiles(activeTemplate: Template, fetchedFiles: TemplateFile[] = []): TemplateFile[] {
+  const seeded = seedFilesFromTemplate(
+    activeTemplate.name,
+    activeTemplate.template,
+    activeTemplate.mockData,
+    activeTemplate.artefacts,
+  )
+
+  const byPath = new Map<string, TemplateFile>()
+  for (const file of seeded) {
+    byPath.set(file.path, file)
+  }
+  for (const file of fetchedFiles) {
+    byPath.set(file.path, file)
+  }
+
+  return Array.from(byPath.values())
+}
+
+function getTemplateRootPath(templateName: string): string {
+  return templateName.endsWith('.buelo') ? templateName : `${templateName}.buelo`
 }

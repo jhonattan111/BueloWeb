@@ -75,7 +75,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { TemplateFileKind, TemplateMode } from "@/types/template";
+import type { TemplateFileKind } from "@/types/template";
 
 type FileTypeOption = {
   label: string;
@@ -83,27 +83,10 @@ type FileTypeOption = {
   extension: string;
   requiresName: boolean;
   fixedPath?: string;
-  mode?: TemplateMode;
   defaultContent: string;
 };
 
 const FILE_TYPES: FileTypeOption[] = [
-  {
-    label: "Template file (Sections)",
-    kind: "template-sections",
-    extension: ".sections.cs",
-    requiresName: true,
-    mode: "Sections",
-    defaultContent: 'page.Content().Text("Hello from sections file");\n',
-  },
-  {
-    label: "Template file (Partial)",
-    kind: "template-partial",
-    extension: ".partial.cs",
-    requiresName: true,
-    mode: "Partial",
-    defaultContent: '.Text("Shared partial snippet");\n',
-  },
   {
     label: "Data File (.data.json)",
     kind: "data",
@@ -117,13 +100,6 @@ const FILE_TYPES: FileTypeOption[] = [
     extension: ".helpers.cs",
     requiresName: true,
     defaultContent: "public static string Example(string value) => value;\n",
-  },
-  {
-    label: "Schema (.schema.json)",
-    kind: "schema",
-    extension: ".schema.json",
-    requiresName: true,
-    defaultContent: '{\n  "type": "object"\n}\n',
   },
   {
     label: "C# File (.cs)",
@@ -142,7 +118,6 @@ const emit = defineEmits<{
       path: string;
       content: string;
       kind: TemplateFileKind;
-      mode?: TemplateMode;
     },
   ];
 }>();
@@ -202,7 +177,6 @@ function confirm() {
     path,
     content: selectedType.value.defaultContent,
     kind: selectedType.value.kind,
-    ...(selectedType.value.mode ? { mode: selectedType.value.mode } : {}),
   });
   emit("update:open", false);
 }

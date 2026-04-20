@@ -5,7 +5,7 @@ import * as monaco from 'monaco-editor'
 import * as templateService from '@/services/templateService'
 import type { TemplateMode } from '@/types/template'
 
-const ACTIVE_MODES: TemplateMode[] = ['Sections', 'Partial']
+const ACTIVE_MODES: TemplateMode[] = ['BueloDsl']
 const MARKER_OWNER = 'buelo'
 
 export function useTemplateDiagnostics(
@@ -78,14 +78,9 @@ export function useTemplateDiagnostics(
 
 function normalizeMode(mode: TemplateMode | string | number | null | undefined): TemplateMode | null {
   if (mode === null || mode === undefined) return null
-  if (typeof mode === 'number') {
-    if (mode === 0) return 'Sections'
-    if (mode === 1) return 'Partial'
-    return null
-  }
+  if (typeof mode === 'number') return null
 
   const normalized = String(mode).trim().toLowerCase()
-  if (normalized === 'sections') return 'Sections'
-  if (normalized === 'partial') return 'Partial'
+  if (normalized === 'buelodsl') return 'BueloDsl'
   return null
 }

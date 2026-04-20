@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { renderReport, renderById, getSupportedFormats } from '@/services/reportService'
-import type { OutputFormat } from '@/services/reportService'
+import { renderReport, renderById } from '@/services/reportService'
 import type { TemplateMode } from '@/types/template'
+import { useTemplateStore } from '@/stores/templateStore'
 
 export const useReportStore = defineStore('report', () => {
   const resultBlob = ref<Blob | null>(null)
@@ -11,10 +11,8 @@ export const useReportStore = defineStore('report', () => {
   const isRendering = ref(false)
   const renderError = ref<string | null>(null)
 
-  // Format state
-  const selectedFormat = ref<string>('pdf')
-  const supportedFormats = ref<OutputFormat[]>([])
   const formatHints = ref<Record<string, string>>({})
+  const templateStore = useTemplateStore()
 
   /** True when the last render produced a PDF */
   const isPdfResult = computed(() =>
@@ -24,34 +22,12 @@ export const useReportStore = defineStore('report', () => {
   /** Backwards-compat: PDF blob only (used by external consumers that haven't been updated) */
   const pdfBlob = computed(() => (isPdfResult.value ? resultBlob.value : null))
 
-  function setFormat(format: string): void {
-    selectedFormat.value = format
-  }
-
   function setFormatHint(key: string, value: string): void {
     formatHints.value = { ...formatHints.value, [key]: value }
   }
 
-  async function loadFormats(): Promise<void> {
-    try {
-      const formats = await getSupportedFormats()
-      supportedFormats.value = formats
-      // If current selectedFormat is not in the list, reset to first
-      if (!formats.some((f) => f.format === selectedFormat.value)) {
-        selectedFormat.value = formats[0]?.format ?? 'pdf'
-      }
-    } catch {
-      // keep default
-    }
-  }
-
   async function render(template: string, rawJson: string, mode: TemplateMode): Promise<void> {
     renderError.value = null
-
-    if (mode === 'Partial') {
-      renderError.value = 'Partial templates cannot be rendered directly. Use a Sections template.'
-      return
-    }
 
     let data: object
     try {
@@ -63,8 +39,9 @@ export const useReportStore = defineStore('report', () => {
 
     isRendering.value = true
     try {
+      const format = templateStore.activeTemplate?.outputFormat ?? 'pdf'
       const result = await renderReport(template, data, mode, {
-        format: selectedFormat.value,
+        format,
         formatHints: Object.keys(formatHints.value).length ? formatHints.value : undefined,
       })
       resultBlob.value = result.blob
@@ -81,8 +58,9 @@ export const useReportStore = defineStore('report', () => {
     renderError.value = null
     isRendering.value = true
     try {
+      const activeTemplateFormat = templateStore.activeTemplate?.outputFormat
       const result = await renderById(templateId, undefined, {
-        format: selectedFormat.value,
+        ...(activeTemplateFormat ? { format: activeTemplateFormat } : {}),
         version,
         formatHints: Object.keys(formatHints.value).length ? formatHints.value : undefined,
       })
@@ -106,15 +84,10 @@ export const useReportStore = defineStore('report', () => {
     // Status
     isRendering,
     renderError,
-    // Format
-    selectedFormat,
-    supportedFormats,
     formatHints,
     // Actions
     render,
     renderTemplate,
-    loadFormats,
-    setFormat,
     setFormatHint,
   }
 })

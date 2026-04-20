@@ -139,26 +139,6 @@ export async function deleteFile(templateId: string, path: string): Promise<void
   }
 }
 
-// ── Bundle export / import ────────────────────────────────────────────────────
-
-export async function exportBundle(templateId: string): Promise<Blob> {
-  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/export`)
-  if (!response.ok) {
-    throw new Error(await readApiError(response))
-  }
-  return response.blob()
-}
-
-export async function importBundle(file: File): Promise<Template> {
-  const form = new FormData()
-  form.append('file', file)
-  const response = await fetch(`${BASE_URL}/api/templates/import`, {
-    method: 'POST',
-    body: form,
-  })
-  return handleResponse<Template>(response)
-}
-
 // ── Validate ──────────────────────────────────────────────────────────────────
 
 export async function validateTemplate(
@@ -198,8 +178,6 @@ export async function restoreVersion(templateId: string, version: number): Promi
 
 function inferKindFromPath(path: string): TemplateFileKind {
   if (path.endsWith('.helpers.cs')) return 'helper'
-  if (path.endsWith('.schema.json')) return 'schema'
   if (path.endsWith('.data.json')) return 'data'
-  if (path.endsWith('.cs')) return 'template'
   return 'file'
 }

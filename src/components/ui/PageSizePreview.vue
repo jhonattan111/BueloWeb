@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { PageSettings } from "@/services/projectService";
+
+interface PageSettings {
+  pageSize: "A4" | "A3" | "A5" | "Letter" | "Legal";
+  marginHorizontal: number;
+  marginVertical: number;
+  backgroundColor: string;
+  defaultTextColor: string;
+  defaultFontSize: number;
+  showHeader: boolean;
+  showFooter: boolean;
+  watermarkText: string | null;
+}
 
 const props = defineProps<{
   settings: PageSettings;

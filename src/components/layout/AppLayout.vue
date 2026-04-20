@@ -10,14 +10,7 @@
         class="text-xs font-semibold tracking-widest uppercase text-muted-foreground"
         >Buelo</span
       >
-      <RouterLink
-        to="/project"
-        class="inline-flex items-center justify-center size-7 rounded-none hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-        title="Project Settings"
-        aria-label="Project Settings"
-      >
-        <Settings class="size-3.5" />
-      </RouterLink>
+      <span class="text-xs text-muted-foreground">Report Studio</span>
     </header>
 
     <!-- 3-column resizable layout -->
@@ -59,8 +52,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { RouterLink } from "vue-router";
-import { Settings } from "lucide-vue-next";
 
 type DragTarget = "left" | "right";
 

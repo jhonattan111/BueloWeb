@@ -1,4 +1,5 @@
 import type { TemplateMode } from '@/types/template'
+import { getTemplate } from '@/services/templateService'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
@@ -68,7 +69,7 @@ export async function renderById(
     formatHints?: Record<string, string>
   },
 ): Promise<RenderResult> {
-  const format = options?.format ?? 'pdf'
+  const format = options?.format ?? (await getTemplateOutputFormat(templateId))
   const params = new URLSearchParams({ format })
   if (options?.version !== undefined) params.set('version', String(options.version))
 
@@ -87,6 +88,15 @@ export async function renderById(
   const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)
   return { blob, contentType, fileExtension }
+}
+
+async function getTemplateOutputFormat(templateId: string): Promise<string> {
+  try {
+    const template = await getTemplate(templateId)
+    return template.outputFormat ?? 'pdf'
+  } catch {
+    return 'pdf'
+  }
 }
 
 export async function getSupportedFormats(): Promise<OutputFormat[]> {

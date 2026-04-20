@@ -11,22 +11,6 @@
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="Import bundle"
-          @click="importFileRef?.click()"
-        >
-          <Upload class="size-4" />
-        </Button>
-        <input
-          ref="importFileRef"
-          type="file"
-          accept=".zip"
-          class="sr-only"
-          @change="onImportFile"
-        />
-
-        <Button
-          variant="ghost"
-          size="icon-sm"
           aria-label="New template"
           @click="store.createTemplate()"
         >
@@ -122,21 +106,6 @@
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="Export bundle"
-                  @click.stop="
-                    exportBundle(
-                      template.id,
-                      getTemplateDisplayName(template.name),
-                    )
-                  "
-                >
-                  <Download class="size-3" />
-                </Button>
-
                 <AlertDialog
                   v-model:open="deleteTemplateDialogOpen[template.id]"
                 >
@@ -258,16 +227,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import {
-  Download,
-  FilePlus2,
-  Pencil,
-  Plus,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-vue-next";
-import * as templateService from "@/services/templateService";
+import { FilePlus2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
@@ -294,10 +254,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTemplateStore } from "@/stores/templateStore";
 import { useActiveTemplate } from "@/composables/useActiveTemplate";
-import type { TemplateFileKind, TemplateMode } from "@/types/template";
+import type { TemplateFileKind } from "@/types/template";
 import AddArtefactDialog from "@/components/editors/AddArtefactDialog.vue";
 
-const TEMPLATE_FILE_PATH = "template.report.cs";
 const DATA_FILE_PATH = "data/mock.data.json";
 
 const store = useTemplateStore();
@@ -345,7 +304,11 @@ function fileName(path: string): string {
 
 function selectTemplate(id: string) {
   store.selectTemplate(id);
-  activeFilePath.value = TEMPLATE_FILE_PATH;
+  const activeName =
+    store.templates.find((template) => template.id === id)?.name ?? "template";
+  activeFilePath.value = activeName.endsWith(".buelo")
+    ? activeName
+    : `${activeName}.buelo`;
 }
 
 function openRename(id: string, currentName: string) {
@@ -376,7 +339,7 @@ function fileClass(path: string) {
 }
 
 function canDeleteFile(path: string): boolean {
-  return path !== TEMPLATE_FILE_PATH && path !== DATA_FILE_PATH;
+  return path !== DATA_FILE_PATH;
 }
 
 function confirmDeleteFile(path: string) {
@@ -388,7 +351,10 @@ async function executeDeleteFile() {
   const path = deletingFilePath.value;
   await removeFile(path);
   if (activeFilePath.value === path) {
-    activeFilePath.value = TEMPLATE_FILE_PATH;
+    const activeName = store.activeTemplate?.name ?? "template";
+    activeFilePath.value = activeName.endsWith(".buelo")
+      ? activeName
+      : `${activeName}.buelo`;
   }
 }
 
@@ -396,7 +362,6 @@ async function onAddFile(payload: {
   path: string;
   content: string;
   kind: TemplateFileKind;
-  mode?: TemplateMode;
 }) {
   if (!store.activeTemplateId) return;
 
@@ -404,39 +369,7 @@ async function onAddFile(payload: {
     path: payload.path,
     content: payload.content,
     kind: payload.kind,
-    ...(payload.mode ? { mode: payload.mode } : {}),
   });
   activeFilePath.value = payload.path;
-}
-
-async function exportBundle(id: string, templateName: string) {
-  try {
-    const blob = await templateService.exportBundle(id);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${templateName}.zip`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    store.error = e instanceof Error ? e.message : "Export failed";
-  }
-}
-
-const importFileRef = ref<HTMLInputElement | null>(null);
-
-async function onImportFile(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  try {
-    const imported = await templateService.importBundle(file);
-    await store.fetchTemplates();
-    store.selectTemplate(imported.id);
-  } catch (e) {
-    store.error = e instanceof Error ? e.message : "Import failed";
-  } finally {
-    input.value = "";
-  }
 }
 </script>

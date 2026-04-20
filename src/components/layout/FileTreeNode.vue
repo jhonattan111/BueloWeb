@@ -4,7 +4,6 @@ import {
   FileCode,
   Braces,
   Code,
-  Settings,
   File,
   FolderOpen,
   Folder,
@@ -51,7 +50,6 @@ const iconMap: Record<string, ReturnType<typeof Object.assign>> = {
   ".json": Braces,
   ".cs": Code,
   ".csx": Code,
-  ".bueloproject": Settings,
 };
 
 function fileIcon(ext: string) {
@@ -63,16 +61,22 @@ const iconColorMap: Record<string, string> = {
   ".json": "text-yellow-400",
   ".cs": "text-purple-400",
   ".csx": "text-purple-400",
-  ".bueloproject": "text-muted-foreground",
 };
 
 function iconColor(ext: string): string {
   return iconColorMap[ext] ?? "text-muted-foreground";
 }
 
+function normalizePath(path: string | undefined): string {
+  return (path ?? "").replace(/\\/g, "/").trim();
+}
+
 const validationBadge = computed<"error" | "warning" | null>(() => {
   if (!props.validationState) return null;
-  const res = props.validationState.get(props.node.id);
+  const pathKey = normalizePath(props.node.path);
+  const res =
+    (pathKey ? props.validationState.get(pathKey) : null) ??
+    props.validationState.get(props.node.id);
   if (!res) return null;
   if (res.errors.length > 0) return "error";
   if (res.warnings.length > 0) return "warning";
@@ -83,9 +87,15 @@ const validationBadge = computed<"error" | "warning" | null>(() => {
 const childrenBadge = computed<"error" | "warning" | null>(() => {
   if (!props.validationState || !props.node.children) return null;
   let hasWarning = false;
+  const folderPath = normalizePath(props.node.path);
+
   for (const [id, res] of props.validationState.entries()) {
-    // Check if this id belongs to a child of this folder
-    if (!id.startsWith(props.node.id + ":")) continue;
+    const inIdNamespace = id.startsWith(props.node.id + ":");
+    const inPathNamespace = folderPath
+      ? id.startsWith(`${folderPath}/`)
+      : false;
+    if (!inIdNamespace && !inPathNamespace) continue;
+
     if (res.errors.length > 0) return "error";
     if (res.warnings.length > 0) hasWarning = true;
   }

@@ -24,14 +24,19 @@ export function useWorkspaceTree(): {
   deleteFile(node: FileNode): Promise<void>
   renameTemplate(node: FileNode, newName: string): Promise<void>
   setValidationResult(nodeId: string, result: FileValidationResult): void
+  clearValidationResults(): void
 } {
   const templateStore = useTemplateStore()
 
   async function refresh(): Promise<void> {
+    const prevSelectedId = selectedNode.value?.id
     isLoading.value = true
     try {
       await templateStore.fetchTemplates()
       tree.value = await workspaceService.fetchWorkspaceTree()
+      if (prevSelectedId) {
+        selectedNode.value = findNodeById(tree.value, prevSelectedId) ?? null
+      }
     } finally {
       isLoading.value = false
     }
@@ -60,6 +65,7 @@ export function useWorkspaceTree(): {
         id: `${parentId}:${path}`,
         name: `${name}${extension}`,
         extension,
+        path,
         type: 'template',
         parentId,
       }
@@ -78,6 +84,7 @@ export function useWorkspaceTree(): {
         id: created.id,
         name: `${created.name}${created.extension}`,
         extension: created.extension,
+        path: `_global/${created.name}${created.extension}`,
         type: 'global-artefact',
       }
       selectedNode.value = newNode
@@ -112,6 +119,10 @@ export function useWorkspaceTree(): {
     validationState.set(nodeId, result)
   }
 
+  function clearValidationResults(): void {
+    validationState.clear()
+  }
+
   if (!initialized) {
     initialized = true
     refresh()
@@ -128,6 +139,7 @@ export function useWorkspaceTree(): {
     deleteFile,
     renameTemplate,
     setValidationResult,
+    clearValidationResults,
   }
 }
 
@@ -136,6 +148,17 @@ function inferKindFromExtension(
 ): import('@/types/template').TemplateFileKind {
   if (ext === '.cs' || ext === '.csx') return 'helper'
   if (ext === '.json') return 'data'
-  if (ext === '.buelo') return 'template-sections'
   return 'file'
+}
+
+function findNodeById(nodes: FileNode[], id: string): FileNode | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    if (node.children?.length) {
+      const found = findNodeById(node.children, id)
+      if (found) return found
+    }
+  }
+
+  return undefined
 }
