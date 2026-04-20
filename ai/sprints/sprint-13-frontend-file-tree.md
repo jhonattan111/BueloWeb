@@ -4,7 +4,7 @@
 Replace the flat template list sidebar with a **VSCode-style file tree** that shows all workspace files: templates (`.buelo`), data (`.json`), helpers (`.csx`/`.cs`), global artefacts, and the project file (`.bueloproject`). Opening any file in the tree opens it in an appropriate editor tab. Context menus enable CRUD operations.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
 - Sprint 13 backend complete ✅ (global artefact store + `/api/artefacts` endpoints)

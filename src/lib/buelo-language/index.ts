@@ -6,7 +6,7 @@ import { buildHoverProvider } from './hover'
 export function registerBueloLanguage(): void {
   monaco.languages.register({
     id: 'buelo',
-    extensions: ['.report.cs'],
+    extensions: ['.buelo'],
     aliases: ['Buelo', 'buelo'],
   })
 

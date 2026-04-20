@@ -1,114 +1,81 @@
 import type * as Monaco from 'monaco-editor'
+import { LAYOUT_COMPONENTS, CONTENT_COMPONENTS } from './spec'
+
+// Build alternation patterns from component name lists
+const layoutPattern = LAYOUT_COMPONENTS.map((c) => c.name.replace(/ /g, '\\s+')).join('|')
+const contentPattern = CONTENT_COMPONENTS.map((c) => c.name.replace(/ /g, '\\s+')).join('|')
 
 export function buildTokenizer(): Monaco.languages.IMonarchLanguage {
   return {
     defaultToken: '',
     tokenPostfix: '.buelo',
 
-    keywords: [
-      'var', 'string', 'int', 'bool', 'double', 'float', 'decimal',
-      'return', 'if', 'else', 'for', 'foreach', 'while', 'switch', 'case',
-      'using', 'new', 'null', 'true', 'false', 'void', 'class', 'record',
-      'public', 'private', 'protected', 'static', 'readonly', 'const',
-    ],
-
-    operators: [
-      '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=',
-      '&&', '||', '++', '--', '+', '-', '*', '/', '&', '|', '^',
-      '%', '<<', '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=',
-      '^=', '%=', '<<=', '>>=', '>>>=', '=>',
-    ],
-
-    symbols: /[=><!~?:&|+\-*\/\^%]+/,
-
     tokenizer: {
       root: [
-        // Buelo directives (must come before identifier rule)
-        [/@(import|data|settings|schema|helper)\b/, 'keyword.directive'],
+        // ── Comments ──────────────────────────────────────────────────────
+        [/^\s*#.*$/, 'comment'],
 
-        // Page section members: page.Header / page.Content / page.Footer / page.Size / page.Margin
-        [/(page)(\.)([A-Z][a-zA-Z]*)/, ['keyword.section', 'delimiter', 'keyword.section']],
+        // ── Import directive  (import { Func } from "name") ───────────────
+        [/^import\b/, 'keyword.directive', '@importLine'],
 
-        // Line comments
-        [/\/\/.*$/, 'comment'],
+        // ── @-directives ──────────────────────────────────────────────────
+        [/@(data|settings|format)\b/, 'keyword.directive'],
 
-        // Block comments
-        [/\/\*/, { token: 'comment', next: '@blockComment' }],
-
-        // Strings
-        [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
-
-        // Interpolated / verbatim strings
-        [/\$"/, { token: 'string.quote', next: '@istring' }],
-        [/@"/, { token: 'string.quote', next: '@verbatimString' }],
-
-        // Numbers
-        [/\d*\.\d+([eE][-+]?\d+)?/, 'number.float'],
-        [/0[xX][0-9a-fA-F]+/, 'number.hex'],
-        [/\d+/, 'number'],
-
-        // Identifiers and keywords
+        // ── Layout components at start of line (col 0 or after indent) ────
         [
-          /[a-zA-Z_]\w*/,
-          {
-            cases: {
-              '@keywords': 'keyword',
-              '@default': 'identifier',
-            },
-          },
+          new RegExp(`^(${layoutPattern}):`),
+          'keyword.layout',
         ],
 
-        // Brackets
-        [/[{}()\[\]]/, '@brackets'],
-        [/[<>](?!@symbols)/, '@brackets'],
-
-        // Delimiters
-        [/[;,.]/, 'delimiter'],
-
-        // Operators
+        // ── Content components (indented) ─────────────────────────────────
         [
-          /@symbols/,
-          {
-            cases: {
-              '@operators': 'operator',
-              '@default': '',
-            },
-          },
+          new RegExp(`^\\s+(${contentPattern}):`),
+          'keyword.content',
         ],
 
-        // Whitespace
+        // ── style: block opener ───────────────────────────────────────────
+        [/^\s+style:/, 'keyword.section'],
+
+        // ── Property keys (indented key:) ─────────────────────────────────
+        [/^\s+[\w][\w-]*(?=\s*:)/, 'type.property'],
+
+        // ── List items ────────────────────────────────────────────────────
+        [/^\s+-\s/, 'operator'],
+
+        // ── Template expressions {{ … }} ──────────────────────────────────
+        [/\{\{[^}]*\}\}/, 'variable.expression'],
+
+        // ── Color hex values ──────────────────────────────────────────────
+        [/#[0-9A-Fa-f]{3,8}\b/, 'string.color'],
+
+        // ── CSS-unit values ───────────────────────────────────────────────
+        [/\d+(?:px|cm|in|mm|%|pt)\b/, 'number.unit'],
+
+        // ── Boolean values ────────────────────────────────────────────────
+        [/\b(true|false)\b/, 'keyword.bool'],
+
+        // ── Numeric values ────────────────────────────────────────────────
+        [/\b\d+(?:\.\d+)?\b/, 'number'],
+
+        // ── Strings ───────────────────────────────────────────────────────
+        [/"[^"]*"/, 'string'],
+
+        // ── Whitespace ────────────────────────────────────────────────────
         [/\s+/, ''],
       ],
 
-      string: [
-        [/[^"\\]+/, 'string'],
-        [/\\./, 'string.escape.invalid'],
-        [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
-      ],
-
-      istring: [
-        [/[^"\\{]+/, 'string'],
-        [/\\./, 'string.escape'],
-        [/\{/, { token: 'string.escape', next: '@iembedded' }],
-        [/"/, { token: 'string.quote', next: '@pop' }],
-      ],
-
-      iembedded: [
-        [/\}/, { token: 'string.escape', next: '@pop' }],
-        { include: 'root' },
-      ],
-
-      verbatimString: [
-        [/[^"]+/, 'string'],
-        [/""/, 'string'],
-        [/"/, { token: 'string.quote', next: '@pop' }],
-      ],
-
-      blockComment: [
-        [/[^/*]+/, 'comment'],
-        [/\*\//, { token: 'comment', next: '@pop' }],
-        [/./, 'comment'],
+      importLine: [
+        // { Func, Func2 }
+        [/\{[^}]+\}/, 'variable.import'],
+        // from keyword
+        [/\bfrom\b/, 'keyword.directive'],
+        // string
+        [/"[^"]*"/, 'string'],
+        // end of line
+        [/$/, '', '@pop'],
+        [/./, ''],
       ],
     },
   }
 }
+

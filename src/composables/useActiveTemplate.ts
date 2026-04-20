@@ -1,7 +1,10 @@
 import { ref, watch } from 'vue'
 import { useTemplateStore } from '@/stores/templateStore'
 import * as templateService from '@/services/templateService'
+import * as workspaceService from '@/services/workspaceService'
 import type { TemplateArtefact, TemplateFile, TemplateFileKind, TemplateMode } from '@/types/template'
+
+export const GLOBAL_ARTEFACT_PATH_PREFIX = '_global/'
 
 const filesState = ref<TemplateFile[]>([])
 const activeFilePathState = ref<string>('template.report.cs')
@@ -59,6 +62,20 @@ export function useActiveTemplate() {
     kind?: TemplateFileKind
     mode?: TemplateMode
   }): Promise<void> {
+    // Global artefact virtual file: path is "_global/{id}{ext}"
+    if (payload.path.startsWith(GLOBAL_ARTEFACT_PATH_PREFIX)) {
+      const withoutPrefix = payload.path.slice(GLOBAL_ARTEFACT_PATH_PREFIX.length)
+      // withoutPrefix = "{id}{ext}" e.g. "abc-123.json"
+      const dotIdx = withoutPrefix.indexOf('.')
+      const artefactId = dotIdx > 0 ? withoutPrefix.slice(0, dotIdx) : withoutPrefix
+      await workspaceService.updateGlobalArtefact(artefactId, { content: payload.content })
+      const idx = files.value.findIndex((f) => f.path === payload.path)
+      if (idx !== -1) {
+        files.value[idx] = { ...files.value[idx], content: payload.content }
+      }
+      return
+    }
+
     const id = templateStore.activeTemplateId
     if (!id) return
 
@@ -89,6 +106,36 @@ export function useActiveTemplate() {
     }
   }
 
+  /**
+   * Opens a global artefact for editing by injecting it as a virtual file
+   * with path `_global/{id}{extension}`. This does NOT change the active template.
+   */
+  async function openGlobalArtefact(artefactId: string): Promise<void> {
+    isLoading.value = true
+    try {
+      const artefact = await workspaceService.getGlobalArtefact(artefactId)
+      const virtualPath = `${GLOBAL_ARTEFACT_PATH_PREFIX}${artefact.id}${artefact.extension}`
+
+      const virtualFile: TemplateFile = {
+        path: virtualPath,
+        kind: 'file',
+        content: artefact.content,
+      }
+
+      // Inject or replace in files list
+      const idx = files.value.findIndex((f) => f.path === virtualPath)
+      if (idx !== -1) {
+        files.value[idx] = virtualFile
+      } else {
+        files.value.push(virtualFile)
+      }
+
+      activeFilePath.value = virtualPath
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     files,
     activeFilePath,
@@ -96,6 +143,7 @@ export function useActiveTemplate() {
     loadFiles,
     saveFile,
     removeFile,
+    openGlobalArtefact,
   }
 }
 
