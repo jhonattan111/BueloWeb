@@ -18,6 +18,11 @@ Backend sprints (7–9) are tracked separately in `Buelo.Api/ai/TASKS.md`.
 | 10 | [sprint-10-frontend-buelo-language.md](sprints/sprint-10-frontend-buelo-language.md) | Buelo DSL Monaco language: tokenizer, autocomplete, hover docs | `[x] done` | Frontend |
 | 11 | [sprint-11-frontend-artefact-manager.md](sprints/sprint-11-frontend-artefact-manager.md) | Artefact tabs UI, AddArtefactDialog, bundle export/import | `[x] done` | Frontend |
 | 12 | [sprint-12-frontend-diagnostics-versioning.md](sprints/sprint-12-frontend-diagnostics-versioning.md) | Live diagnostics squiggles, version history panel, restore flow | `[x] done` | Frontend |
+| 13 | [sprint-13-frontend-file-tree.md](sprints/sprint-13-frontend-file-tree.md) | VSCode-style file tree sidebar, global artefact browsing, NewFileDialog | `[ ] pending` | Frontend |
+| 14 | [sprint-14-frontend-buelo-dsl-language.md](sprints/sprint-14-frontend-buelo-dsl-language.md) | .buelo YAML-like DSL: new tokenizer, component-aware IntelliSense, snippets | `[ ] pending` | Frontend |
+| 15 | [sprint-15-frontend-project-file-editor.md](sprints/sprint-15-frontend-project-file-editor.md) | Visual project settings editor (page defaults, mock data, metadata) | `[ ] pending` | Frontend |
+| 16 | [sprint-16-frontend-file-validation-ux.md](sprints/sprint-16-frontend-file-validation-ux.md) | Per-file validation UX: squiggles per extension, status bar, problems panel | `[ ] pending` | Frontend |
+| 17 | [sprint-17-frontend-multi-format-export.md](sprints/sprint-17-frontend-multi-format-export.md) | Format selector (PDF/Excel), automatic download for non-PDF, format hints panel | `[ ] pending` | Frontend |
 
 ## Dependency Chain
 ```
@@ -32,6 +37,16 @@ Sprint 1 → Sprint 2 → Sprint 3 → Sprint 4
                               Sprint 11 (Artefact Manager)
                                       ↓
                               Sprint 12 (Diagnostics + History)
+                                      ↓
+                    [Backend sprints 13–17 — see Buelo.Api/ai/TASKS.md]
+                                      ↓
+                 Sprint 13 (File Tree) ──── Sprint 14 (.buelo DSL Language)
+                                      ↓
+                              Sprint 15 (Project File Editor)
+                                      ↓
+                              Sprint 16 (File Validation UX)
+                                      ↓
+                              Sprint 17 (Multi-format Export)
 ```
 
 ## Final File Structure (after all sprints)
