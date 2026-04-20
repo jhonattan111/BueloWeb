@@ -1,14 +1,20 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { renderReport, renderById } from '@/services/reportService'
+import type { TemplateMode } from '@/types/template'
 
 export const useReportStore = defineStore('report', () => {
   const pdfBlob = ref<Blob | null>(null)
   const isRendering = ref(false)
   const renderError = ref<string | null>(null)
 
-  async function render(template: string, rawJson: string): Promise<void> {
+  async function render(template: string, rawJson: string, mode: TemplateMode): Promise<void> {
     renderError.value = null
+
+    if (mode === 'Partial') {
+      renderError.value = 'Partial templates cannot be rendered directly. Use a Sections template.'
+      return
+    }
 
     let data: object
     try {
@@ -20,7 +26,7 @@ export const useReportStore = defineStore('report', () => {
 
     isRendering.value = true
     try {
-      pdfBlob.value = await renderReport(template, data)
+      pdfBlob.value = await renderReport(template, data, mode)
     } catch (err) {
       renderError.value = err instanceof Error ? err.message : 'Unknown error'
     } finally {

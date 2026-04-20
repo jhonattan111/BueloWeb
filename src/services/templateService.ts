@@ -13,9 +13,21 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
   return response.json() as Promise<T>
+}
+
+async function readApiError(response: Response): Promise<string> {
+  const raw = await response.text().catch(() => '')
+  if (!raw) return response.statusText || `Request failed: ${response.status}`
+
+  try {
+    const parsed = JSON.parse(raw) as { error?: string; message?: string; title?: string }
+    return parsed.error || parsed.message || parsed.title || raw
+  } catch {
+    return raw
+  }
 }
 
 export async function listTemplates(): Promise<Template[]> {
@@ -54,7 +66,7 @@ export async function deleteTemplate(id: string): Promise<void> {
     method: 'DELETE',
   })
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
 }
 
@@ -86,7 +98,7 @@ export async function upsertArtefact(
     }),
   })
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
 }
 
@@ -95,7 +107,7 @@ export async function deleteArtefact(templateId: string, name: string): Promise<
     method: 'DELETE',
   })
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
 }
 
@@ -123,7 +135,7 @@ export async function deleteFile(templateId: string, path: string): Promise<void
   })
 
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
 }
 
@@ -132,7 +144,7 @@ export async function deleteFile(templateId: string, path: string): Promise<void
 export async function exportBundle(templateId: string): Promise<Blob> {
   const response = await fetch(`${BASE_URL}/api/templates/${templateId}/export`)
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await readApiError(response))
   }
   return response.blob()
 }

@@ -1,4 +1,4 @@
-export type TemplateMode = 'FullClass' | 'Builder' | 'Sections' | 'Partial'
+export type TemplateMode = 'Sections' | 'Partial'
 
 export interface TemplateArtefact {
   path?: string

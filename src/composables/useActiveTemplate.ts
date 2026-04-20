@@ -3,17 +3,23 @@ import { useTemplateStore } from '@/stores/templateStore'
 import * as templateService from '@/services/templateService'
 import type { TemplateArtefact, TemplateFile, TemplateFileKind, TemplateMode } from '@/types/template'
 
+const filesState = ref<TemplateFile[]>([])
+const activeFilePathState = ref<string>('template.report.cs')
+const isLoadingState = ref(false)
+let watcherInitialized = false
+
 export function useActiveTemplate() {
   const templateStore = useTemplateStore()
 
-  const files = ref<TemplateFile[]>([])
-  const activeFilePath = ref<string | null>(null)
-  const isLoading = ref(false)
+  const files = filesState
+  const activeFilePath = activeFilePathState
+  const isLoading = isLoadingState
 
   async function loadFiles(): Promise<void> {
     const id = templateStore.activeTemplateId
     if (!id) {
       files.value = []
+      activeFilePath.value = 'template.report.cs'
       return
     }
     isLoading.value = true
@@ -26,22 +32,26 @@ export function useActiveTemplate() {
     }
   }
 
-  watch(
-    () => templateStore.activeTemplateId,
-    (id) => {
-      activeFilePath.value = null
+  if (!watcherInitialized) {
+    watch(
+      () => templateStore.activeTemplateId,
+      (id) => {
+        activeFilePath.value = 'template.report.cs'
 
-      const activeTemplate = templateStore.activeTemplate
-      if (activeTemplate) {
-        files.value = seedFilesFromTemplate(activeTemplate.template, activeTemplate.mockData, activeTemplate.mode, activeTemplate.artefacts)
-      } else {
-        files.value = []
-      }
+        const activeTemplate = templateStore.activeTemplate
+        if (activeTemplate) {
+          files.value = seedFilesFromTemplate(activeTemplate.template, activeTemplate.mockData, activeTemplate.mode, activeTemplate.artefacts)
+        } else {
+          files.value = []
+        }
 
-      if (id) loadFiles()
-    },
-    { immediate: true },
-  )
+        if (id) loadFiles()
+      },
+      { immediate: true },
+    )
+
+    watcherInitialized = true
+  }
 
   async function saveFile(payload: {
     path: string
@@ -75,7 +85,7 @@ export function useActiveTemplate() {
     await templateService.deleteFile(id, path)
     files.value = files.value.filter((f) => f.path !== path)
     if (activeFilePath.value === path) {
-      activeFilePath.value = null
+      activeFilePath.value = 'template.report.cs'
     }
   }
 

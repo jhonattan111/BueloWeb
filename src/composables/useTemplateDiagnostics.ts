@@ -10,11 +10,12 @@ const MARKER_OWNER = 'buelo'
 
 export function useTemplateDiagnostics(
   templateSource: MaybeRefOrGetter<string>,
-  mode: MaybeRefOrGetter<TemplateMode | string | null | undefined>,
+  mode: MaybeRefOrGetter<TemplateMode | string | number | null | undefined>,
   monacoModel: MaybeRefOrGetter<monaco.editor.ITextModel | null>,
-): { isValidating: Ref<boolean>; hasErrors: Ref<boolean>; validate: () => Promise<void> } {
+): { isValidating: Ref<boolean>; hasErrors: Ref<boolean>; validationError: Ref<string | null>; validate: () => Promise<void> } {
   const isValidating = ref(false)
   const hasErrors = ref(false)
+  const validationError = ref<string | null>(null)
 
   function clearMarkers() {
     const model = toValue(monacoModel)
@@ -24,19 +25,21 @@ export function useTemplateDiagnostics(
 
   async function validate(): Promise<void> {
     const source = toValue(templateSource)
-    const m = toValue(mode)
+    const m = normalizeMode(toValue(mode))
     const model = toValue(monacoModel)
 
-    if (!m || !ACTIVE_MODES.includes(m as TemplateMode)) {
+    if (!m || !ACTIVE_MODES.includes(m)) {
       clearMarkers()
+      validationError.value = null
       return
     }
 
     if (!model) return
 
     isValidating.value = true
+    validationError.value = null
     try {
-      const result = await templateService.validateTemplate(source, m as TemplateMode)
+      const result = await templateService.validateTemplate(source, m)
       // Re-read model after async — it may have been disposed
       const currentModel = toValue(monacoModel)
       if (!currentModel) return
@@ -51,8 +54,8 @@ export function useTemplateDiagnostics(
       }))
       monaco.editor.setModelMarkers(currentModel, MARKER_OWNER, markers)
       hasErrors.value = markers.length > 0
-    } catch {
-      // Network/server error — leave current markers intact
+    } catch (e) {
+      validationError.value = e instanceof Error ? e.message : 'Validation failed.'
     } finally {
       isValidating.value = false
     }
@@ -70,5 +73,19 @@ export function useTemplateDiagnostics(
     clearMarkers()
   })
 
-  return { isValidating, hasErrors, validate }
+  return { isValidating, hasErrors, validationError, validate }
+}
+
+function normalizeMode(mode: TemplateMode | string | number | null | undefined): TemplateMode | null {
+  if (mode === null || mode === undefined) return null
+  if (typeof mode === 'number') {
+    if (mode === 0) return 'Sections'
+    if (mode === 1) return 'Partial'
+    return null
+  }
+
+  const normalized = String(mode).trim().toLowerCase()
+  if (normalized === 'sections') return 'Sections'
+  if (normalized === 'partial') return 'Partial'
+  return null
 }
