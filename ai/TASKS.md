@@ -41,7 +41,7 @@ Backend sprints são rastreados separadamente em `Buelo.Api/ai/TASKS.md`.
 | F2 | [sprint-2-frontend-settings.md](sprints/sprint-2-frontend-settings.md) | Report Settings Panel: page size, margins, colors, data source binding | `[x] done` | Frontend |
 | F3 | [sprint-3-frontend-gallery.md](sprints/sprint-3-frontend-gallery.md) | Template Gallery: CRUD, versionamento, export/import, tags | `[x] done` | Frontend |
 | F4 | [sprint-4-frontend-workspace.md](sprints/sprint-4-frontend-workspace.md) | Workspace integration, multi-format export, batch rendering | `[x] done` | Frontend |
-| F5 | [sprint-23-frontend-typed-intellisense-settings.md](sprints/sprint-23-frontend-typed-intellisense-settings.md) | Monaco IntelliSense for data props; localStorage settings persistence; auto-apply | `[ ] planned` | Frontend |
+| F5 | [sprint-23-frontend-typed-intellisense-settings.md](sprints/sprint-23-frontend-typed-intellisense-settings.md) | Monaco IntelliSense for data props; localStorage settings persistence; auto-apply | `[x] done` | Frontend |
 
 ## Dependency Chain
 

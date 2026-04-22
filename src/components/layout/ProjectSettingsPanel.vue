@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
 import { useReportSettings } from "@/composables/useReportSettings";
 
 const PAGE_SIZES = ["A4", "A3", "A5", "Letter", "Legal"] as const;
@@ -14,10 +13,8 @@ const {
   jsonFiles,
   canEdit,
   invalidDataSource,
-  isSaving,
   saveError,
   refreshJsonFiles,
-  apply,
 } = useReportSettings();
 
 onMounted(() => {
@@ -212,10 +209,6 @@ const dataSourceError = computed(() => {
         </div>
 
         <p v-if="saveError" class="text-xs text-destructive">{{ saveError }}</p>
-
-        <Button size="sm" class="w-full" :disabled="isSaving" @click="apply">
-          {{ isSaving ? "Saving..." : "Save Settings" }}
-        </Button>
       </template>
     </div>
   </section>

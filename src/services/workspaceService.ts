@@ -140,6 +140,27 @@ export function buildPath(parentFolderPath: string | null, fileName: string): st
   return joinPath(parentFolderPath, fileName)
 }
 
+export interface TypeDeclarationResult {
+  path: string
+  csharpDeclarations: string
+}
+
+/**
+ * Fetches inferred C# type declarations for a JSON file at the given workspace path.
+ * Returns null if the path is empty, missing, or not a .json file.
+ */
+export async function fetchTypeDeclarations(path: string): Promise<TypeDeclarationResult | null> {
+  if (!path || !path.toLowerCase().endsWith('.json')) return null
+  const query = new URLSearchParams({ path: normalizePath(path) })
+  const response = await fetch(`${BASE_URL}/api/workspace/types?${query.toString()}`)
+  if (response.status === 404) return null
+  if (!response.ok) {
+    const raw = await response.text().catch(() => '')
+    throw new Error(raw || response.statusText || `Request failed: ${response.status}`)
+  }
+  return response.json() as Promise<TypeDeclarationResult>
+}
+
 function flattenFiles(nodes: FileNode[]): FileNode[] {
   const all: FileNode[] = []
   for (const node of nodes) {

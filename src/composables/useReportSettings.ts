@@ -1,6 +1,8 @@
 import { computed, ref, watch } from 'vue'
 import { useActiveTemplate } from '@/composables/useActiveTemplate'
-import { listJsonFiles } from '@/services/workspaceService'
+import { fetchTypeDeclarations, listJsonFiles } from '@/services/workspaceService'
+import { injectDataTypeDeclarations } from '@/lib/buelo-language/csharpTypeInjector'
+import { updateDataCompletions, type DataProperty } from '@/lib/buelo-language/csharpDataCompletions'
 
 export interface ReportSettingsState {
   pageSize: string
@@ -32,12 +34,12 @@ const DEFAULT_SETTINGS: ReportSettingsState = {
   outputFormat: 'pdf',
 }
 
-// Per-file settings keyed by file path — persisted in sessionStorage for page reload resilience
+// Per-file settings keyed by file path — persisted in localStorage for page reload resilience
 const perFileSettings = ref<Map<string, ReportSettingsState>>(new Map())
 
 const STORAGE_KEY = 'buelo.reportSettings'
 try {
-  const stored = sessionStorage.getItem(STORAGE_KEY)
+  const stored = localStorage.getItem(STORAGE_KEY)
   if (stored) {
     const parsed: Record<string, ReportSettingsState> = JSON.parse(stored)
     perFileSettings.value = new Map(Object.entries(parsed))
@@ -50,7 +52,7 @@ function persistSettings(): void {
   try {
     const obj: Record<string, ReportSettingsState> = {}
     perFileSettings.value.forEach((v, k) => { obj[k] = v })
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
   } catch {
     // ignore
   }
@@ -101,6 +103,29 @@ export function parseProjectBlock(source: string): Partial<ReportSettingsState> 
   }
 }
 
+function lowerFirst(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1)
+}
+
+/**
+ * Parses top-level properties from a C# positional record declaration such as:
+ *   public record DataModel(string Name, int Age)
+ */
+function parseProperties(source: string): DataProperty[] {
+  const match = source.match(/\bpublic record DataModel\(([^)]+)\)/)
+  if (!match) return []
+  return match[1]
+    .split(',')
+    .map((param) => param.trim())
+    .filter(Boolean)
+    .map((param) => {
+      const parts = param.split(/\s+/)
+      const type = parts.slice(0, -1).join(' ')
+      const csharpName = parts[parts.length - 1]
+      return { name: lowerFirst(csharpName), csharpName, type }
+    })
+}
+
 export function useReportSettings() {
   const { activeFile } = useActiveTemplate()
 
@@ -135,18 +160,46 @@ export function useReportSettings() {
     jsonFilesState.value = await listJsonFiles()
   }
 
-  /** Saves current settings for the active file (in-memory + sessionStorage). */
-  async function apply(): Promise<void> {
-    if (!canEdit.value || !activePath.value) return
-    isSaving.value = true
-    saveError.value = null
-    try {
+  // Auto-persist settings whenever they change for the active file
+  watch(
+    [activePath, settings],
+    ([path]) => {
+      if (!path) return
       perFileSettings.value = new Map(perFileSettings.value)
-      perFileSettings.value.set(activePath.value, { ...settings.value })
+      perFileSettings.value.set(path, { ...settings.value })
       persistSettings()
-    } finally {
-      isSaving.value = false
-    }
+    },
+    { deep: true },
+  )
+
+  // Fetch and inject type declarations whenever dataSourcePath changes
+  watch(
+    () => settings.value.dataSourcePath,
+    async (dataSourcePath) => {
+      if (!dataSourcePath) {
+        injectDataTypeDeclarations(null)
+        updateDataCompletions([])
+        return
+      }
+      try {
+        const result = await fetchTypeDeclarations(dataSourcePath)
+        if (result) {
+          injectDataTypeDeclarations(result.csharpDeclarations)
+          updateDataCompletions(parseProperties(result.csharpDeclarations))
+        } else {
+          injectDataTypeDeclarations(null)
+          updateDataCompletions([])
+        }
+      } catch {
+        // silently ignore fetch errors for IntelliSense enrichment
+      }
+    },
+    { immediate: true },
+  )
+
+  /** @deprecated No-op: settings are auto-persisted by watcher. Kept for backwards compatibility. */
+  async function apply(): Promise<void> {
+    // no-op: auto-persisted by watcher
   }
 
   return {

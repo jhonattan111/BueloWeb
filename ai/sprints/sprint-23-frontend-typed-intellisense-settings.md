@@ -16,7 +16,7 @@ Two tightly related improvements delivered together:
 
 ## Status
 
-`[ ] planned`
+`[x] done`
 
 ## Dependencies
 
