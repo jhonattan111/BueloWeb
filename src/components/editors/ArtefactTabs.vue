@@ -3,34 +3,38 @@
     <div
       class="flex items-center gap-2 px-2 h-10 shrink-0 border-b border-border overflow-x-auto"
     >
-      <button
+      <div
         v-for="path in openPaths"
         :key="path"
-        type="button"
-        class="group inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs"
+        class="group inline-flex items-center rounded border text-xs"
         :class="
           activeFilePath === path
             ? 'bg-accent text-accent-foreground border-border'
             : 'bg-background/60 text-muted-foreground border-transparent hover:bg-muted'
         "
-        @click="switchToFile(path)"
       >
-        <span class="max-w-[26ch] truncate" :title="path">{{
-          fileName(path)
-        }}</span>
-        <span
-          v-if="isDirty(path)"
-          class="inline-block size-1.5 rounded-full bg-amber-500"
-          title="Unsaved"
-        />
         <button
           type="button"
-          class="opacity-0 group-hover:opacity-100 rounded p-0.5 hover:bg-muted-foreground/20"
+          class="inline-flex items-center gap-1.5 px-2 py-1"
+          @click="switchToFile(path)"
+        >
+          <span class="max-w-[26ch] truncate" :title="path">{{
+            fileName(path)
+          }}</span>
+          <span
+            v-if="isDirty(path)"
+            class="inline-block size-1.5 rounded-full bg-amber-500"
+            title="Unsaved"
+          />
+        </button>
+        <button
+          type="button"
+          class="opacity-0 group-hover:opacity-100 rounded p-0.5 mr-1 hover:bg-muted-foreground/20"
           @click.stop="closeFile(path)"
         >
           ×
         </button>
-      </button>
+      </div>
 
       <div class="flex-1 min-w-2" />
 
