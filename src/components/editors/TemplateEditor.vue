@@ -12,7 +12,7 @@ const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 const containerRef = ref<HTMLElement | null>(null);
 const { getValue, setValue, onDidChangeContent, getModel } = useMonacoEditor(
   containerRef,
-  "buelo",
+  "csharp",
   props.modelValue || "",
 );
 

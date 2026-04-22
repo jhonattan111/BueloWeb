@@ -6,7 +6,7 @@ import * as templateService from '@/services/templateService'
 import { listWorkspaceFilePaths } from '@/services/workspaceService'
 import type { TemplateMode } from '@/types/template'
 
-const ACTIVE_MODES: TemplateMode[] = ['BueloDsl']
+const ACTIVE_MODES: TemplateMode[] = ['FullClass']
 const MARKER_OWNER = 'buelo'
 
 export function useTemplateDiagnostics(
@@ -151,6 +151,6 @@ function normalizeMode(mode: TemplateMode | string | number | null | undefined):
   if (typeof mode === 'number') return null
 
   const normalized = String(mode).trim().toLowerCase()
-  if (normalized === 'buelodsl') return 'BueloDsl'
+  if (normalized === 'fullclass') return 'FullClass'
   return null
 }

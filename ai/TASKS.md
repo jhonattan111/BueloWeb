@@ -37,10 +37,10 @@ Backend sprints são rastreados separadamente em `Buelo.Api/ai/TASKS.md`.
 
 | Sprint | File | Goal | Status | Layer |
 |--------|------|------|--------|-------|
-| F1 | [sprint-1-frontend-editor.md](sprints/sprint-1-frontend-editor.md) | Monaco Editor C#; validação em tempo real; PDF preview; template gallery | `[ ] pending` | Frontend |
-| F2 | [sprint-2-frontend-settings.md](sprints/sprint-2-frontend-settings.md) | Report Settings Panel: page size, margins, colors, data source binding | `[ ] pending` | Frontend |
-| F3 | [sprint-3-frontend-gallery.md](sprints/sprint-3-frontend-gallery.md) | Template Gallery: CRUD, versionamento, export/import, tags | `[ ] pending` | Frontend |
-| F4 | [sprint-4-frontend-workspace.md](sprints/sprint-4-frontend-workspace.md) | Workspace integration, multi-format export, batch rendering | `[ ] pending` | Frontend |
+| F1 | [sprint-1-frontend-editor.md](sprints/sprint-1-frontend-editor.md) | Monaco Editor C#; validação em tempo real; PDF preview; template gallery | `[x] done` | Frontend |
+| F2 | [sprint-2-frontend-settings.md](sprints/sprint-2-frontend-settings.md) | Report Settings Panel: page size, margins, colors, data source binding | `[x] done` | Frontend |
+| F3 | [sprint-3-frontend-gallery.md](sprints/sprint-3-frontend-gallery.md) | Template Gallery: CRUD, versionamento, export/import, tags | `[x] done` | Frontend |
+| F4 | [sprint-4-frontend-workspace.md](sprints/sprint-4-frontend-workspace.md) | Workspace integration, multi-format export, batch rendering | `[x] done` | Frontend |
 
 ## Dependency Chain
 

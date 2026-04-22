@@ -20,7 +20,7 @@ watch(
       const file = await getFile(node.path);
       lastModified.value = file.lastModifiedUtc;
 
-      if (node.extension.toLowerCase() === ".buelo") {
+      if (node.extension.toLowerCase() === ".cs") {
         const parsed = parseProjectBlock(file.content);
         if (parsed.dataSourcePath) {
           resolvedDataSource.value = parsed.dataSourcePath;
@@ -93,7 +93,7 @@ const formattedLastModified = computed(() => {
           <p class="font-medium">{{ formattedLastModified }}</p>
         </div>
 
-        <div v-if="selectedNode.extension.toLowerCase() === '.buelo'">
+        <div v-if="selectedNode.extension.toLowerCase() === '.cs'">
           <p class="text-muted-foreground">Resolved Data Source</p>
           <p class="font-medium break-all">
             {{ resolvedDataSource || "none" }}

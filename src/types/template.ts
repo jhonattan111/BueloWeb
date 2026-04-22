@@ -1,4 +1,4 @@
-export type TemplateMode = 'BueloDsl'
+export type TemplateMode = 'FullClass'
 
 export interface TemplateArtefact {
   path?: string

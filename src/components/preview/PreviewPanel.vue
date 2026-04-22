@@ -8,7 +8,32 @@
         class="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
         >Preview</span
       >
-      <span class="text-[11px] text-muted-foreground uppercase"
+      <!-- Header action buttons (only when PDF is ready) -->
+      <div
+        v-if="objectUrl && store.isPdfResult"
+        class="flex items-center gap-1"
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-6"
+          title="Print"
+          @click="onPrint"
+        >
+          <Printer class="size-3.5" />
+        </Button>
+        <a :href="objectUrl" :download="downloadFilename">
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-6"
+            title="Download PDF"
+          >
+            <Download class="size-3.5" />
+          </Button>
+        </a>
+      </div>
+      <span v-else class="text-[11px] text-muted-foreground uppercase"
         >Auto format</span
       >
     </div>
@@ -76,30 +101,18 @@
       <!-- PDF iframe -->
       <iframe
         v-if="objectUrl && store.isPdfResult"
+        ref="iframeRef"
         :src="objectUrl"
         class="absolute inset-0 w-full h-full border-0"
         title="PDF Preview"
       />
     </div>
-
-    <!-- Download button (PDF only) -->
-    <a
-      v-if="objectUrl && store.isPdfResult"
-      :href="objectUrl"
-      :download="downloadFilename"
-      class="absolute top-2 right-2"
-    >
-      <Button variant="outline" size="sm">
-        <Download class="size-3.5 mr-1" />
-        Download
-      </Button>
-    </a>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from "vue";
-import { Download, FileSpreadsheet } from "lucide-vue-next";
+import { Download, FileSpreadsheet, Printer } from "lucide-vue-next";
 import { useReportStore } from "@/stores/reportStore";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -107,6 +120,7 @@ import { downloadBlob } from "@/lib/utils";
 
 const store = useReportStore();
 const objectUrl = ref<string | null>(null);
+const iframeRef = ref<HTMLIFrameElement | null>(null);
 const downloadFilename = computed(() => `report${store.resultFileExtension}`);
 
 watch(
@@ -137,5 +151,9 @@ function downloadAgain(): void {
   if (store.resultBlob) {
     downloadBlob(store.resultBlob, downloadFilename.value);
   }
+}
+
+function onPrint(): void {
+  iframeRef.value?.contentWindow?.print();
 }
 </script>

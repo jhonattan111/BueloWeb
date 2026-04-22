@@ -41,6 +41,7 @@ export async function renderReport(
     format?: string
     formatHints?: Record<string, string>
     fileName?: string
+    pageSettings?: unknown
   },
 ): Promise<RenderResult> {
   const format = options?.format ?? 'pdf'
@@ -49,6 +50,7 @@ export async function renderReport(
     FileName: options?.fileName ?? 'report',
     Data: data,
     Mode: mode,
+    ...(options?.pageSettings ? { PageSettings: options.pageSettings } : {}),
     ...(options?.formatHints ? { FormatHints: options.formatHints } : {}),
   }
 

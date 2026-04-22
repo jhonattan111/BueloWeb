@@ -22,13 +22,12 @@ interface FileTypeOption {
 
 const FILE_TYPES: FileTypeOption[] = [
   {
-    label: "Report (.buelo)",
-    extension: ".buelo",
+    label: "Report (.cs)",
+    extension: ".cs",
     defaultContent: BUELO_STARTER_TEMPLATE,
   },
   { label: "Data (.json)", extension: ".json", defaultContent: "{\n  \n}\n" },
   { label: "Helper Script (.csx)", extension: ".csx" },
-  { label: "Helper Class (.cs)", extension: ".cs" },
   { label: "Generic file", extension: "" },
 ];
 

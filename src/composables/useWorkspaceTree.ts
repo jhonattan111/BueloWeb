@@ -27,7 +27,7 @@ function extensionOf(name: string): string {
 function inferKind(extension: string): string {
   if (extension === '.json') return 'data'
   if (extension === '.cs' || extension === '.csx') return 'helper'
-  if (extension === '.buelo') return 'template'
+  if (extension === '.cs') return 'template'
   return 'file'
 }
 

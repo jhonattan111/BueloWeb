@@ -4,7 +4,6 @@ import {
   Braces,
   ChevronDown,
   ChevronRight,
-  Code,
   File,
   FileCode,
   Folder,
@@ -41,17 +40,15 @@ function onContextMenu(event: MouseEvent): void {
 
 function fileIcon(extension: string) {
   const normalized = extension.toLowerCase();
-  if (normalized === ".buelo") return FileCode;
+  if (normalized === ".cs" || normalized === ".csx") return FileCode;
   if (normalized === ".json") return Braces;
-  if (normalized === ".cs" || normalized === ".csx") return Code;
   return File;
 }
 
 function iconColor(extension: string): string {
   const normalized = extension.toLowerCase();
-  if (normalized === ".buelo") return "text-blue-400";
+  if (normalized === ".cs" || normalized === ".csx") return "text-blue-400";
   if (normalized === ".json") return "text-amber-400";
-  if (normalized === ".cs" || normalized === ".csx") return "text-sky-400";
   return "text-muted-foreground";
 }
 

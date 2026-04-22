@@ -45,7 +45,7 @@ const dataSourceError = computed(() => {
 
     <div v-if="isOpen" class="px-3 pb-3 pt-2 border-t border-border space-y-3">
       <p v-if="!canEdit" class="text-xs text-muted-foreground">
-        Select an active .buelo tab to edit report settings.
+        Select an active .cs tab to edit report settings.
       </p>
 
       <template v-else>
@@ -214,7 +214,7 @@ const dataSourceError = computed(() => {
         <p v-if="saveError" class="text-xs text-destructive">{{ saveError }}</p>
 
         <Button size="sm" class="w-full" :disabled="isSaving" @click="apply">
-          {{ isSaving ? "Applying..." : "Apply to file" }}
+          {{ isSaving ? "Saving..." : "Save Settings" }}
         </Button>
       </template>
     </div>

@@ -79,7 +79,7 @@
         :title="
           canRenderActive
             ? 'Render active file'
-            : 'Render is available only for .buelo tabs'
+            : 'Render is available only for .cs tabs'
         "
         @click="onRender"
       >
@@ -96,7 +96,7 @@
         Open a file from the tree to start editing.
       </div>
 
-      <div v-else-if="activeExtension === '.buelo'" class="absolute inset-0">
+      <div v-else-if="activeExtension === '.cs'" class="absolute inset-0">
         <TemplateEditor
           ref="templateEditorRef"
           v-model="templateCodeModel"
@@ -154,16 +154,16 @@ import type {
   TemplateFile,
   TemplateFileKind,
 } from "@/types/template";
-import {
-  parseProjectBlock,
-  readOutputFormatFromBueloSource,
-} from "@/composables/useReportSettings";
+import { useReportSettings } from "@/composables/useReportSettings";
+import { getFile } from "@/services/workspaceService";
 
 const templateCodeModel = defineModel<string>("templateCode", { default: "" });
 const jsonDataModel = defineModel<string>("jsonData", { default: "" });
 
 const reportStore = useReportStore();
+const { settings: reportSettings } = useReportSettings();
 const {
+  files,
   activeFile,
   activeFilePath,
   openPaths,
@@ -185,7 +185,7 @@ const templateEditorRef = ref<InstanceType<typeof TemplateEditor> | null>(null);
 const activeExtension = computed(() =>
   extensionOf(activeFile.value?.path ?? ""),
 );
-const canRenderActive = computed(() => activeExtension.value === ".buelo");
+const canRenderActive = computed(() => activeExtension.value === ".cs");
 
 const isProjectValidating = computed(
   () => projectValidation?.isValidating.value ?? false,
@@ -210,7 +210,7 @@ watch(
   (file) => {
     if (!file) return;
     const ext = extensionOf(file.path);
-    if (ext === ".buelo") {
+    if (ext === ".cs") {
       templateCodeModel.value = file.content;
     }
     if (ext === ".json") {
@@ -221,8 +221,7 @@ watch(
 );
 
 const debouncedSaveBuelo = useDebounceFn(async () => {
-  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".buelo")
-    return;
+  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".cs") return;
   await saveFile({
     path: activeFile.value.path,
     content: templateCodeModel.value,
@@ -241,7 +240,7 @@ const debouncedSaveJson = useDebounceFn(async () => {
 
 watch(templateCodeModel, (value) => {
   const path = activeFile.value?.path;
-  if (!path || extensionOf(path) !== ".buelo") return;
+  if (!path || extensionOf(path) !== ".cs") return;
   setFileContent(path, value);
   markDirty(path, true);
   debouncedSaveBuelo();
@@ -257,14 +256,14 @@ watch(jsonDataModel, (value) => {
 
 const { validationError } = useTemplateDiagnostics(
   () => templateCodeModel.value,
-  () => "BueloDsl",
+  () => "FullClass",
   () => templateEditorRef.value?.getModel() ?? null,
   () => activeFile.value?.path ?? "",
 );
 
 const activeArtefact = computed(() => {
   if (!activeFile.value) return null;
-  if (activeExtension.value === ".buelo" || activeExtension.value === ".json")
+  if (activeExtension.value === ".cs" || activeExtension.value === ".json")
     return null;
   return toArtefact(activeFile.value);
 });
@@ -278,15 +277,32 @@ async function onRender(): Promise<void> {
   if (!activeFile.value || !canRenderActive.value) return;
 
   const source = activeFile.value.content;
-  const parsedProject = parseProjectBlock(source);
-  const outputFormat = readOutputFormatFromBueloSource(source);
 
-  await reportStore.renderWorkspaceFile({
-    templatePath: activeFile.value.path,
-    dataSourcePath: parsedProject.dataSourcePath,
-    format: outputFormat,
-    fileName: fileName(activeFile.value.path).replace(/\.buelo$/i, ""),
-  });
+  // Use data from dataSourcePath if configured, otherwise use empty object.
+  // Check open editors first (picks up unsaved edits), then fall back to the API.
+  let jsonData = "{}";
+  const dataPath = reportSettings.value.dataSourcePath?.trim();
+  if (dataPath) {
+    const dataFile = files.value.find((f) => f.path === dataPath);
+    if (dataFile) {
+      jsonData = dataFile.content;
+    } else {
+      try {
+        const fetched = await getFile(dataPath);
+        if (fetched) jsonData = fetched.content;
+      } catch {
+        // ignore fetch error — render will proceed with empty data
+      }
+    }
+  }
+
+  const baseName = fileName(activeFile.value.path).replace(/\.cs$/i, "");
+  await reportStore.renderWithSettings(
+    source,
+    jsonData,
+    reportSettings.value,
+    baseName,
+  );
 }
 
 async function onSaveArtefact(artefact: TemplateArtefact): Promise<void> {

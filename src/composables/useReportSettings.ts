@@ -32,10 +32,36 @@ const DEFAULT_SETTINGS: ReportSettingsState = {
   outputFormat: 'pdf',
 }
 
+// Per-file settings keyed by file path — persisted in sessionStorage for page reload resilience
+const perFileSettings = ref<Map<string, ReportSettingsState>>(new Map())
+
+const STORAGE_KEY = 'buelo.reportSettings'
+try {
+  const stored = sessionStorage.getItem(STORAGE_KEY)
+  if (stored) {
+    const parsed: Record<string, ReportSettingsState> = JSON.parse(stored)
+    perFileSettings.value = new Map(Object.entries(parsed))
+  }
+} catch {
+  // ignore
+}
+
+function persistSettings(): void {
+  try {
+    const obj: Record<string, ReportSettingsState> = {}
+    perFileSettings.value.forEach((v, k) => { obj[k] = v })
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
+  } catch {
+    // ignore
+  }
+}
+
 const jsonFilesState = ref<string[]>([])
 const settings = ref<ReportSettingsState>({ ...DEFAULT_SETTINGS })
 const saveError = ref<string | null>(null)
 const isSaving = ref(false)
+
+// ── Legacy helpers kept for backward compatibility ────────────────────────────
 
 function parseBoolean(value: string | undefined): boolean | undefined {
   if (!value) return undefined
@@ -44,6 +70,7 @@ function parseBoolean(value: string | undefined): boolean | undefined {
   return undefined
 }
 
+/** @deprecated — kept for FilePropertiesPanel; @project blocks are no longer written */
 export function parseProjectBlock(source: string): Partial<ReportSettingsState> {
   const match = source.match(/@project\s*\n((?:[ \t]+.+\n?)*)/)
   if (!match) return {}
@@ -74,46 +101,11 @@ export function parseProjectBlock(source: string): Partial<ReportSettingsState> 
   }
 }
 
-export function upsertProjectBlock(source: string, block: string): string {
-  const pattern = /^@project\s*\r?\n(?:[ \t]+.*(?:\r?\n|$))*/
-  if (pattern.test(source)) {
-    return source.replace(pattern, `${block}\n`)
-  }
-  return source.trim().length > 0 ? `${block}\n\n${source}` : `${block}\n`
-}
-
-export function readOutputFormatFromBueloSource(source: string): 'pdf' | 'excel' {
-  const parsed = parseProjectBlock(source)
-  return parsed.outputFormat === 'excel' ? 'excel' : 'pdf'
-}
-
-function serializeProjectBlock(state: ReportSettingsState): string {
-  const lines = ['@project']
-  lines.push(`  pageSize: ${state.pageSize}`)
-  lines.push(`  orientation: ${state.orientation}`)
-
-  if (state.marginHorizontal != null) lines.push(`  marginHorizontal: ${state.marginHorizontal}`)
-  if (state.marginVertical != null) lines.push(`  marginVertical: ${state.marginVertical}`)
-  if (state.backgroundColor) lines.push(`  backgroundColor: "${state.backgroundColor}"`)
-  if (state.defaultTextColor) lines.push(`  defaultTextColor: "${state.defaultTextColor}"`)
-  if (state.defaultFontSize != null) lines.push(`  defaultFontSize: ${state.defaultFontSize}`)
-
-  lines.push(`  showHeader: ${state.showHeader}`)
-  lines.push(`  showFooter: ${state.showFooter}`)
-
-  if (state.watermarkText) lines.push(`  watermarkText: "${state.watermarkText}"`)
-  if (state.dataSourcePath) lines.push(`  dataSourcePath: "${state.dataSourcePath}"`)
-  lines.push(`  outputFormat: ${state.outputFormat}`)
-
-  return lines.join('\n')
-}
-
 export function useReportSettings() {
-  const { activeFile, saveFile } = useActiveTemplate()
+  const { activeFile } = useActiveTemplate()
 
-  const canEdit = computed(() => Boolean(activeFile.value?.path?.toLowerCase().endsWith('.buelo')))
-  const activeBueloPath = computed(() => (canEdit.value ? activeFile.value?.path ?? '' : ''))
-  const activeSource = computed(() => (canEdit.value ? activeFile.value?.content ?? '' : ''))
+  const canEdit = computed(() => Boolean(activeFile.value?.path?.toLowerCase().endsWith('.cs')))
+  const activePath = computed(() => (canEdit.value ? activeFile.value?.path ?? '' : ''))
 
   const invalidDataSource = computed(() => {
     const selected = settings.value.dataSourcePath?.trim()
@@ -121,16 +113,19 @@ export function useReportSettings() {
     return !jsonFilesState.value.includes(selected)
   })
 
+  // Load settings from per-file store when active file changes
   watch(
-    activeSource,
-    (source) => {
-      if (!source) {
+    activePath,
+    (path) => {
+      if (!path) {
         settings.value = { ...DEFAULT_SETTINGS }
         return
       }
-      settings.value = {
-        ...DEFAULT_SETTINGS,
-        ...parseProjectBlock(source),
+      const stored = perFileSettings.value.get(path)
+      if (stored) {
+        settings.value = { ...stored }
+      } else {
+        settings.value = { ...DEFAULT_SETTINGS }
       }
     },
     { immediate: true },
@@ -140,19 +135,15 @@ export function useReportSettings() {
     jsonFilesState.value = await listJsonFiles()
   }
 
+  /** Saves current settings for the active file (in-memory + sessionStorage). */
   async function apply(): Promise<void> {
-    if (!canEdit.value || !activeBueloPath.value) return
+    if (!canEdit.value || !activePath.value) return
     isSaving.value = true
     saveError.value = null
-
     try {
-      const nextSource = upsertProjectBlock(activeSource.value, serializeProjectBlock(settings.value))
-      await saveFile({
-        path: activeBueloPath.value,
-        content: nextSource,
-      })
-    } catch (error) {
-      saveError.value = error instanceof Error ? error.message : 'Failed to save settings.'
+      perFileSettings.value = new Map(perFileSettings.value)
+      perFileSettings.value.set(activePath.value, { ...settings.value })
+      persistSettings()
     } finally {
       isSaving.value = false
     }
