@@ -1,17 +1,17 @@
-// Showcase de primeiro acesso: relatórios de exemplo que renderizam de cara, cobrindo
-// as funcionalidades do produto (engine declarativo YAML + escape-hatch em C#/QuestPDF).
-// O conteúdo abaixo foi verificado renderizando contra a API (render-declarative / render).
+// First-run showcase: example reports that render out of the box, covering the product's
+// features (declarative YAML engine + the C#/QuestPDF escape hatch).
+// The content below was verified rendering against the API (render-declarative / render).
 
 export interface OnboardingFile {
-  /** Caminho no workspace, ex. `exemplos/fatura.report.yml`. */
+  /** Workspace path, e.g. `examples/invoice.report.yml`. */
   path: string
   content: string
 }
 
-const FATURA_REPORT = `# Fatura declarativa — cabeçalho, tabela com total agregado, formatação de moeda/CNPJ.
-# Em Report Settings, escolha "exemplos/fatura.data.json" como Data source e clique Render.
+const INVOICE_REPORT = `# Invoice report - header, items table with aggregated total, currency/tax-id formatting.
+# In Report Settings, pick "examples/invoice.data.json" as the Data source, then click Render.
 kind: report
-name: fatura
+name: invoice
 meta:
   page: { size: A4, margin: "2cm" }
 header:
@@ -19,92 +19,139 @@ header:
       items:
         - column:
             content:
-              - text: { value: "Buelo Contabilidade", style: { bold: true, size: 16, color: "#1D9E75" } }
-              - text: { value: "CNPJ 11.222.333/0001-44", style: { size: 9, color: "#666666" } }
+              - text: { value: "Buelo Accounting", style: { bold: true, size: 16, color: "#1D9E75" } }
+              - text: { value: "Tax ID 11.222.333/0001-44", style: { size: 9, color: "#666666" } }
         - column:
             content:
-              - text: { value: "FATURA #{{ data.numero }}", style: { bold: true, size: 16, align: right } }
-              - text: { value: "Emissao: {{ today }}", style: { size: 9, color: "#666666", align: right } }
+              - text: { value: "INVOICE #{{ data.number }}", style: { bold: true, size: 16, align: right } }
+              - text: { value: "Issued: {{ today }}", style: { size: 9, color: "#666666", align: right } }
   - divider: { color: "#1D9E75", thickness: 2 }
 content:
   - spacer: 8
   - text:
-      value: "Cliente: {{ data.cliente.nome }}  -  CNPJ {{ data.cliente.cnpj | cnpj }}"
+      value: "Client: {{ data.client.name }}  -  Tax ID {{ data.client.taxId | cnpj }}"
       style: { size: 11 }
   - spacer: 10
   - table:
-      data: data.itens
+      data: data.items
       rowStyle: { paddingY: 5, borderBottom: "1px #DDDDDD" }
       columns:
-        - { width: 24px, header: "#",        cell: "{{ index + 1 }}" }
-        - { width: 4*,   header: "Produto",  cell: "{{ item.nome }}" }
-        - { width: 1*,   header: "Unitario", cell: "{{ moeda(item.preco) }}", align: right }
-        - { width: 1*,   header: "Qtd",      cell: "{{ item.qtd }}", align: right }
-        - { width: 2*,   header: "Total",    cell: "{{ moeda(item.preco * item.qtd) }}", align: right }
+        - { width: 24px, header: "#",       cell: "{{ index + 1 }}" }
+        - { width: 4*,   header: "Product", cell: "{{ item.name }}" }
+        - { width: 1*,   header: "Unit",    cell: "{{ moeda(item.price) }}", align: right }
+        - { width: 1*,   header: "Qty",     cell: "{{ item.qty }}", align: right }
+        - { width: 2*,   header: "Total",   cell: "{{ moeda(item.price * item.qty) }}", align: right }
       footer:
-        - { span: 4, text: "Total da fatura", style: { bold: true, align: right } }
-        - { text: "{{ moeda(sum(data.itens, 'preco * qtd')) }}", style: { bold: true, align: right } }
+        - { span: 4, text: "Invoice total", style: { bold: true, align: right } }
+        - { text: "{{ moeda(sum(data.items, 'price * qty')) }}", style: { bold: true, align: right } }
 footer:
-  - text: { value: "Pagina {{ page }} de {{ pageCount }}", style: { align: center, size: 9, color: "#999999" } }
+  - text: { value: "Page {{ page }} of {{ pageCount }}", style: { align: center, size: 9, color: "#999999" } }
 `
 
-const FATURA_DATA = `{
-  "numero": 1042,
-  "cliente": { "nome": "Acme Comercio Ltda", "cnpj": "12345678000190" },
-  "itens": [
-    { "nome": "Consultoria contabil mensal", "preco": 350.0, "qtd": 4 },
-    { "nome": "Emissao de guias", "preco": 80.0, "qtd": 12 },
-    { "nome": "Relatorio gerencial", "preco": 220.5, "qtd": 2 }
+const INVOICE_DATA = `{
+  "number": 1042,
+  "client": { "name": "Acme Trading Co.", "taxId": "12345678000190" },
+  "items": [
+    { "name": "Monthly accounting service", "price": 350.0, "qty": 4 },
+    { "name": "Tax filing", "price": 80.0, "qty": 12 },
+    { "name": "Management report", "price": 220.5, "qty": 2 }
   ]
 }
 `
 
-const COLABORADORES_REPORT = `# Relacao de colaboradores agrupada por departamento, com subtotal por grupo (groupBy + sum).
-# Em Report Settings, escolha "exemplos/colaboradores.data.json" como Data source e clique Render.
+const EMPLOYEES_REPORT = `# Employees report - grouped by department with a per-group subtotal (groupBy + sum).
+# In Report Settings, pick "examples/employees.data.json" as the Data source, then click Render.
 kind: report
-name: colaboradores
+name: employees
 meta:
   page: { size: A4, margin: "2cm" }
 header:
-  - text: { value: "Relacao de Colaboradores", style: { bold: true, size: 18, color: "#222222" } }
+  - text: { value: "Employee List", style: { bold: true, size: 18, color: "#222222" } }
   - divider: { color: "#DDDDDD", thickness: 1 }
 content:
   - spacer: 8
   - table:
-      data: data.colaboradores
-      groupBy: departamento
+      data: data.employees
+      groupBy: department
       rowStyle: { paddingY: 4, borderBottom: "1px #EEEEEE" }
       group:
         header: { text: "{{ group.key }}", style: { bold: true, background: "#EEEEEE", size: 12 } }
-        footer: { text: "Subtotal {{ group.key }}: {{ moeda(sum(group.items, 'salario')) }}", style: { align: right, bold: true } }
+        footer: { text: "Subtotal {{ group.key }}: {{ moeda(sum(group.items, 'salary')) }}", style: { align: right, bold: true } }
       columns:
-        - { width: 3*, header: "Nome",    cell: "{{ item.nome }}" }
-        - { width: 2*, header: "Cargo",   cell: "{{ item.cargo }}" }
-        - { width: 1*, header: "Salario", cell: "{{ moeda(item.salario) }}", align: right }
+        - { width: 3*, header: "Name",   cell: "{{ item.name }}" }
+        - { width: 2*, header: "Role",   cell: "{{ item.role }}" }
+        - { width: 1*, header: "Salary", cell: "{{ moeda(item.salary) }}", align: right }
 `
 
-const COLABORADORES_DATA = `{
-  "colaboradores": [
-    { "nome": "Ana Souza",    "cargo": "Analista",     "departamento": "Contabil", "salario": 4200 },
-    { "nome": "Bruno Lima",   "cargo": "Assistente",   "departamento": "Contabil", "salario": 3100 },
-    { "nome": "Carla Dias",   "cargo": "Gerente",      "departamento": "Fiscal",   "salario": 7800 },
-    { "nome": "Diego Alves",  "cargo": "Analista",     "departamento": "Fiscal",   "salario": 4500 },
-    { "nome": "Eva Martins",  "cargo": "Coordenadora", "departamento": "RH",       "salario": 6200 }
+const EMPLOYEES_DATA = `{
+  "employees": [
+    { "name": "Ana Souza",    "role": "Analyst",     "department": "Accounting", "salary": 4200 },
+    { "name": "Bruno Lima",   "role": "Assistant",   "department": "Accounting", "salary": 3100 },
+    { "name": "Carla Dias",   "role": "Manager",     "department": "Tax",        "salary": 7800 },
+    { "name": "Diego Alves",  "role": "Analyst",     "department": "Tax",        "salary": 4500 },
+    { "name": "Eva Martins",  "role": "Coordinator", "department": "HR",         "salary": 6200 }
   ]
 }
 `
 
-const CARTA_CS = `// Relatorio via C# (QuestPDF) — o "escape hatch" de poder total do Buelo.
-// Em Report Settings, escolha "exemplos/carta.data.json" como Data source e clique Render.
+const DASHBOARD_REPORT = `# Dashboard report - card/panel KPI tiles in a row, plus markdown and a divider.
+# In Report Settings, pick "examples/dashboard.data.json" as the Data source, then click Render.
+kind: report
+name: dashboard
+meta:
+  page: { size: A4, margin: "1.5cm" }
+header:
+  - text: { value: "Monthly Dashboard", style: { bold: true, size: 18, color: "#222222" } }
+  - text: { value: "Period: {{ data.period }}", style: { size: 10, color: "#666666" } }
+  - divider: { color: "#DDDDDD", thickness: 1 }
+content:
+  - spacer: 8
+  - row:
+      spacing: 8
+      items:
+        - card:
+            style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
+            content:
+              - text: { value: "Revenue", style: { size: 9, color: "#64748B" } }
+              - text: { value: "{{ moeda(data.revenue) }}", style: { bold: true, size: 16, color: "#1D9E75" } }
+        - card:
+            style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
+            content:
+              - text: { value: "Expenses", style: { size: 9, color: "#64748B" } }
+              - text: { value: "{{ moeda(data.expenses) }}", style: { bold: true, size: 16, color: "#D85A30" } }
+        - card:
+            style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
+            content:
+              - text: { value: "Profit", style: { size: 9, color: "#64748B" } }
+              - text: { value: "{{ moeda(data.revenue - data.expenses) }}", style: { bold: true, size: 16 } }
+  - spacer: 12
+  - card:
+      style: { padding: 12, border: "1px #E2E8F0" }
+      content:
+        - text: { value: "Notes", style: { bold: true, size: 12 } }
+        - markdown: |
+            This report showcases **cards** (KPI tiles), a **row** layout, **markdown**
+            and a **divider** - all declared in YAML, rendered with QuestPDF.
+`
+
+const DASHBOARD_DATA = `{
+  "period": "March 2026",
+  "revenue": 48200.0,
+  "expenses": 31750.0
+}
+`
+
+const LETTER_CS = `// C# report (QuestPDF) - the full-power "escape hatch" of Buelo.
+// In Report Settings, pick "examples/letter.data.json" as the Data source, then click Render.
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-public class Carta : IDocument
+public class Letter : IDocument
 {
     private readonly dynamic _data;
 
-    public Carta(dynamic data) => _data = data;
+    public Letter(dynamic data) => _data = data;
 
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
@@ -114,16 +161,16 @@ public class Carta : IDocument
             page.Size(PageSizes.A4);
             page.Margin(2, Unit.Centimetre);
 
-            page.Header().Text("Buelo Contabilidade").Bold().FontSize(16);
+            page.Header().Text("Buelo Accounting").Bold().FontSize(16);
 
             page.Content().PaddingVertical(20).Column(col =>
             {
                 col.Spacing(10);
-                col.Item().Text($"Para: {_data.destinatario}");
-                col.Item().Text($"Assunto: {_data.assunto}").Bold();
-                col.Item().Text((string)_data.corpo);
-                col.Item().PaddingTop(20).Text("Atenciosamente,");
-                col.Item().Text("Equipe Buelo").Bold();
+                col.Item().Text($"To: {_data.recipient}");
+                col.Item().Text($"Subject: {_data.subject}").Bold();
+                col.Item().Text((string)_data.body);
+                col.Item().PaddingTop(20).Text("Best regards,");
+                col.Item().Text("The Buelo Team").Bold();
             });
 
             page.Footer().AlignCenter().Text(x =>
@@ -136,47 +183,48 @@ public class Carta : IDocument
 }
 `
 
-const CARTA_DATA = `{
-  "destinatario": "Acme Comercio Ltda",
-  "assunto": "Fechamento contabil do mes",
-  "corpo": "Segue em anexo o relatorio gerencial do periodo. Qualquer duvida, estamos a disposicao."
+const LETTER_DATA = `{
+  "recipient": "Acme Trading Co.",
+  "subject": "Monthly accounting close",
+  "body": "Please find attached the management report for the period. Let us know if you have any questions."
 }
 `
 
-const HELPERS_CSX = `// Script auxiliar (.csx) — funcoes C# reutilizaveis para templates.
-// Arquivo complementar de exemplo (helpers compartilhados entre relatorios C#).
+const HELPERS_CSX = `// Helper script (.csx) - reusable C# functions for templates.
+// Example complementary file (helpers shared across C# reports).
 
-static string Saudacao(string nome) => $"Ola, {nome}!";
+static string Greeting(string name) => $"Hello, {name}!";
 
-static string Moeda(decimal valor) => valor.ToString("C", new System.Globalization.CultureInfo("pt-BR"));
-
-static string Inicial(string nome) =>
-    string.IsNullOrWhiteSpace(nome) ? "?" : nome.Trim()[..1].ToUpperInvariant();
+static string Initial(string name) =>
+    string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
 `
 
-/** Pasta onde os exemplos são criados. */
-export const ONBOARDING_FOLDER = 'exemplos'
+/** Folder where the examples are created. */
+export const ONBOARDING_FOLDER = 'examples'
 
-/** Todos os arquivos do showcase (relatórios + dados + script). */
+/** All showcase files (reports + data + script). */
 export const ONBOARDING_FILES: OnboardingFile[] = [
-  { path: `${ONBOARDING_FOLDER}/fatura.report.yml`, content: FATURA_REPORT },
-  { path: `${ONBOARDING_FOLDER}/fatura.data.json`, content: FATURA_DATA },
-  { path: `${ONBOARDING_FOLDER}/colaboradores.report.yml`, content: COLABORADORES_REPORT },
-  { path: `${ONBOARDING_FOLDER}/colaboradores.data.json`, content: COLABORADORES_DATA },
-  { path: `${ONBOARDING_FOLDER}/carta.cs`, content: CARTA_CS },
-  { path: `${ONBOARDING_FOLDER}/carta.data.json`, content: CARTA_DATA },
+  { path: `${ONBOARDING_FOLDER}/invoice.report.yml`, content: INVOICE_REPORT },
+  { path: `${ONBOARDING_FOLDER}/invoice.data.json`, content: INVOICE_DATA },
+  { path: `${ONBOARDING_FOLDER}/employees.report.yml`, content: EMPLOYEES_REPORT },
+  { path: `${ONBOARDING_FOLDER}/employees.data.json`, content: EMPLOYEES_DATA },
+  { path: `${ONBOARDING_FOLDER}/dashboard.report.yml`, content: DASHBOARD_REPORT },
+  { path: `${ONBOARDING_FOLDER}/dashboard.data.json`, content: DASHBOARD_DATA },
+  { path: `${ONBOARDING_FOLDER}/letter.cs`, content: LETTER_CS },
+  { path: `${ONBOARDING_FOLDER}/letter.data.json`, content: LETTER_DATA },
   { path: `${ONBOARDING_FOLDER}/helpers.csx`, content: HELPERS_CSX },
 ]
 
 /**
- * Data source pré-configurada por relatório, para que "abrir + Render" funcione de
- * imediato sem o usuário ter que escolher o JSON na mão.
+ * Data source pre-configured per report, so that "open + Render" works immediately
+ * without the user having to pick the JSON by hand.
  */
 export const ONBOARDING_REPORT_DATA_SOURCE: Record<string, string> = {
-  [`${ONBOARDING_FOLDER}/fatura.report.yml`]: `${ONBOARDING_FOLDER}/fatura.data.json`,
-  [`${ONBOARDING_FOLDER}/colaboradores.report.yml`]: `${ONBOARDING_FOLDER}/colaboradores.data.json`,
-  [`${ONBOARDING_FOLDER}/carta.cs`]: `${ONBOARDING_FOLDER}/carta.data.json`,
+  [`${ONBOARDING_FOLDER}/invoice.report.yml`]: `${ONBOARDING_FOLDER}/invoice.data.json`,
+  [`${ONBOARDING_FOLDER}/employees.report.yml`]: `${ONBOARDING_FOLDER}/employees.data.json`,
+  [`${ONBOARDING_FOLDER}/dashboard.report.yml`]: `${ONBOARDING_FOLDER}/dashboard.data.json`,
+  [`${ONBOARDING_FOLDER}/letter.cs`]: `${ONBOARDING_FOLDER}/letter.data.json`,
 }
 
-/** Relatório aberto automaticamente após criar os exemplos. */
-export const ONBOARDING_OPEN_FIRST = `${ONBOARDING_FOLDER}/fatura.report.yml`
+/** Report opened automatically after creating the examples. */
+export const ONBOARDING_OPEN_FIRST = `${ONBOARDING_FOLDER}/invoice.report.yml`

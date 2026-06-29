@@ -6,8 +6,11 @@ import {
   ChevronRight,
   File,
   FileCode,
+  FileText,
   Folder,
   FolderOpen,
+  Layers,
+  LayoutTemplate,
 } from "lucide-vue-next";
 import type { FileNode } from "@/types/workspace";
 import type { FileValidationResult } from "@/types/template";
@@ -38,17 +41,28 @@ function onContextMenu(event: MouseEvent): void {
   emit("contextmenu", props.node, event);
 }
 
-function fileIcon(extension: string) {
-  const normalized = extension.toLowerCase();
-  if (normalized === ".cs" || normalized === ".csx") return FileCode;
-  if (normalized === ".json") return Braces;
+const MODULE_KIND_RE = /\.(styles|component|theme|formats|lib|validator)\.ya?ml$/;
+const REPORT_RE = /\.report\.ya?ml$/;
+
+function fileIcon(node: FileNode) {
+  const name = node.name.toLowerCase();
+  const ext = node.extension.toLowerCase();
+  if (REPORT_RE.test(name)) return LayoutTemplate;
+  if (MODULE_KIND_RE.test(name)) return Layers;
+  if (ext === ".cs" || ext === ".csx") return FileCode;
+  if (ext === ".json") return Braces;
+  if (ext === ".yml" || ext === ".yaml") return FileText;
   return File;
 }
 
-function iconColor(extension: string): string {
-  const normalized = extension.toLowerCase();
-  if (normalized === ".cs" || normalized === ".csx") return "text-blue-400";
-  if (normalized === ".json") return "text-amber-400";
+function iconColor(node: FileNode): string {
+  const name = node.name.toLowerCase();
+  const ext = node.extension.toLowerCase();
+  if (REPORT_RE.test(name)) return "text-emerald-400";
+  if (MODULE_KIND_RE.test(name)) return "text-purple-400";
+  if (ext === ".cs" || ext === ".csx") return "text-blue-400";
+  if (ext === ".json") return "text-amber-400";
+  if (ext === ".yml" || ext === ".yaml") return "text-teal-300";
   return "text-muted-foreground";
 }
 
@@ -112,13 +126,13 @@ const badge = computed(() => ownBadge.value ?? childrenBadge.value);
             ? expanded
               ? FolderOpen
               : Folder
-            : fileIcon(node.extension)
+            : fileIcon(node)
         "
         class="size-3.5 shrink-0"
         :class="
           node.type === 'folder'
             ? 'text-muted-foreground'
-            : iconColor(node.extension)
+            : iconColor(node)
         "
       />
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
 import { useReportSettings } from "@/composables/useReportSettings";
 
@@ -20,6 +20,12 @@ const {
 
 onMounted(() => {
   refreshJsonFiles();
+});
+
+// Refresh the JSON list whenever the panel opens, so the data source <select> has
+// the matching <option> for the saved value (otherwise it renders blank).
+watch(isOpen, (open) => {
+  if (open) refreshJsonFiles();
 });
 
 const dataSourceError = computed(() => {
@@ -72,6 +78,15 @@ const dataSourceError = computed(() => {
               @focus="refreshJsonFiles"
             >
               <option value="">None</option>
+              <option
+                v-if="
+                  settings.dataSourcePath &&
+                  !jsonFiles.includes(settings.dataSourcePath)
+                "
+                :value="settings.dataSourcePath"
+              >
+                {{ settings.dataSourcePath }}
+              </option>
               <option
                 v-for="jsonPath in jsonFiles"
                 :key="jsonPath"

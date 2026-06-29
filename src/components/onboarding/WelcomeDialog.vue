@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { Sparkles, Table2, Users, FileCode, Braces } from "lucide-vue-next";
+import {
+  Sparkles,
+  Table2,
+  Users,
+  LayoutDashboard,
+  FileCode,
+  Braces,
+} from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,23 +27,28 @@ const emit = defineEmits<{
 const items = [
   {
     icon: Table2,
-    title: "fatura.report.yml",
-    desc: "Fatura declarativa — tabela com total agregado e formatação de moeda/CNPJ.",
+    title: "invoice.report.yml",
+    desc: "Declarative invoice — items table with an aggregated total and currency/tax-id formatting.",
   },
   {
     icon: Users,
-    title: "colaboradores.report.yml",
-    desc: "Agrupamento por departamento com subtotais (groupBy + soma).",
+    title: "employees.report.yml",
+    desc: "Grouped by department with per-group subtotals (groupBy + sum).",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "dashboard.report.yml",
+    desc: "KPI cards in a row, plus markdown — showcases card / row / panel.",
   },
   {
     icon: FileCode,
-    title: "carta.cs",
-    desc: "Relatório em C# (QuestPDF) — o caminho de poder total.",
+    title: "letter.cs",
+    desc: "C# report (QuestPDF) — the full-power path.",
   },
   {
     icon: Braces,
-    title: "dados + script",
-    desc: "JSONs de dados de cada relatório e um script auxiliar (.csx).",
+    title: "data + script",
+    desc: "JSON data for each report and a helper script (.csx).",
   },
 ];
 </script>
@@ -50,17 +62,17 @@ const items = [
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
           <Sparkles class="size-4 text-primary" />
-          Bem-vindo ao Buelo
+          Welcome to Buelo
         </DialogTitle>
         <DialogDescription>
-          Quer começar com alguns relatórios de exemplo? Eles mostram os recursos do
-          produto e já renderizam — é só abrir e clicar em Render.
+          Want to start with a few example reports? They show off the product's
+          features and already render — just open one and click Render.
         </DialogDescription>
       </DialogHeader>
 
       <div class="py-1">
         <p class="text-xs text-muted-foreground mb-2">
-          Serão criados na pasta <code>exemplos/</code>:
+          They'll be created in the <code>examples/</code> folder:
         </p>
         <ul class="space-y-2.5">
           <li v-for="item in items" :key="item.title" class="flex items-start gap-2.5">
@@ -77,10 +89,10 @@ const items = [
 
       <DialogFooter>
         <Button variant="outline" :disabled="isCreating" @click="emit('dismiss')">
-          Agora não
+          Not now
         </Button>
         <Button :disabled="isCreating" @click="emit('create')">
-          {{ isCreating ? "Criando…" : "Criar exemplos" }}
+          {{ isCreating ? "Creating…" : "Create examples" }}
         </Button>
       </DialogFooter>
     </DialogContent>
