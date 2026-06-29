@@ -133,6 +133,44 @@ export async function renderWorkspaceFile(
   return { blob, contentType, fileExtension }
 }
 
+/**
+ * Renders a declarative report: the YAML definition + JSON data are sent to the
+ * engine (no Roslyn). Use format 'pdf' (default) or 'excel'. Self-contained
+ * reports only — `import:` of other modules is not wired through the editor yet.
+ */
+export async function renderDeclarative(
+  definition: string,
+  data: object,
+  options?: {
+    format?: string
+    fileName?: string
+  },
+): Promise<RenderResult> {
+  const format = options?.format ?? 'pdf'
+  const response = await fetch(
+    `${BASE_URL}/api/report/render-declarative?format=${encodeURIComponent(format)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Definition: definition,
+        Data: data,
+        FileName: options?.fileName ?? 'report',
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    const message = await readApiError(response)
+    throw new Error(message || `Request failed: ${response.status}`)
+  }
+
+  const blob = await response.blob()
+  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const fileExtension = contentTypeToExtension(contentType)
+  return { blob, contentType, fileExtension }
+}
+
 async function getTemplateOutputFormat(templateId: string): Promise<string> {
   try {
     const template = await getTemplate(templateId)

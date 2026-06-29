@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { renderReport, renderById, renderWorkspaceFile as renderWorkspaceFileApi } from '@/services/reportService'
+import { renderReport, renderById, renderWorkspaceFile as renderWorkspaceFileApi, renderDeclarative } from '@/services/reportService'
 import type { TemplateMode } from '@/types/template'
 import type { ReportSettingsState } from '@/composables/useReportSettings'
 import { useTemplateStore } from '@/stores/templateStore'
@@ -155,6 +155,42 @@ export const useReportStore = defineStore('report', () => {
     }
   }
 
+  /**
+   * Renders a declarative report (`*.report.yml`) from the editor: the YAML
+   * definition + JSON data go to the declarative engine. Only `outputFormat` is
+   * used from the settings — page layout for declarative reports comes from the
+   * YAML `meta:` block, not the Report Settings panel.
+   */
+  async function renderDeclarativeWithSettings(
+    definition: string,
+    rawJson: string,
+    reportSettings: ReportSettingsState,
+    baseName = 'report',
+  ): Promise<void> {
+    renderError.value = null
+
+    let data: object
+    try {
+      data = JSON.parse(rawJson || '{}')
+    } catch {
+      renderError.value = 'Invalid JSON data.'
+      return
+    }
+
+    isRendering.value = true
+    try {
+      const format = reportSettings.outputFormat ?? 'pdf'
+      const result = await renderDeclarative(definition, data, { format, fileName: baseName })
+      resultBlob.value = result.blob
+      resultContentType.value = result.contentType
+      resultFileExtension.value = result.fileExtension
+    } catch (err) {
+      renderError.value = err instanceof Error ? err.message : 'Unknown error'
+    } finally {
+      isRendering.value = false
+    }
+  }
+
   return {
     // Result
     resultBlob,
@@ -171,6 +207,7 @@ export const useReportStore = defineStore('report', () => {
     renderTemplate,
     renderWorkspaceFile,
     renderWithSettings,
+    renderDeclarativeWithSettings,
     setFormatHint,
   }
 })

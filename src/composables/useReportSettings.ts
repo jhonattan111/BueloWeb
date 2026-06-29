@@ -129,7 +129,14 @@ function parseProperties(source: string): DataProperty[] {
 export function useReportSettings() {
   const { activeFile } = useActiveTemplate()
 
-  const canEdit = computed(() => Boolean(activeFile.value?.path?.toLowerCase().endsWith('.cs')))
+  const isDeclarativeReport = computed(() => {
+    const path = activeFile.value?.path?.toLowerCase() ?? ''
+    return path.endsWith('.report.yml') || path.endsWith('.report.yaml')
+  })
+
+  const canEdit = computed(
+    () => Boolean(activeFile.value?.path?.toLowerCase().endsWith('.cs')) || isDeclarativeReport.value,
+  )
   const activePath = computed(() => (canEdit.value ? activeFile.value?.path ?? '' : ''))
 
   const invalidDataSource = computed(() => {
@@ -206,6 +213,7 @@ export function useReportSettings() {
     settings,
     jsonFiles: computed(() => jsonFilesState.value),
     canEdit,
+    isDeclarativeReport,
     invalidDataSource,
     isSaving,
     saveError,

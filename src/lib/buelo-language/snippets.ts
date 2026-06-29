@@ -1,3 +1,13 @@
+export const BUELO_DECLARATIVE_REPORT_STARTER = `# Relatório declarativo Buelo — escrito em YAML, sem código C#.
+# Edite e clique em Render. Para usar dados: escolha um Data source (.json)
+# em Report Settings e referencie os campos com {{ data.campo }}.
+kind: report
+name: meu-relatorio
+content:
+  - text: { value: "Olá, Buelo declarativo!", style: { bold: true, size: 18 } }
+  - text: { value: "Este relatório foi escrito em YAML, sem C#." }
+`
+
 export const BUELO_STARTER_TEMPLATE = `using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;

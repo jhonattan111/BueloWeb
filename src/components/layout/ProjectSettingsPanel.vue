@@ -12,6 +12,7 @@ const {
   settings,
   jsonFiles,
   canEdit,
+  isDeclarativeReport,
   invalidDataSource,
   saveError,
   refreshJsonFiles,
@@ -42,110 +43,12 @@ const dataSourceError = computed(() => {
 
     <div v-if="isOpen" class="px-3 pb-3 pt-2 border-t border-border space-y-3">
       <p v-if="!canEdit" class="text-xs text-muted-foreground">
-        Select an active .cs tab to edit report settings.
+        Select a .cs or .report.yml tab to edit report settings.
       </p>
 
       <template v-else>
+        <!-- Output + data source apply to both C# templates and declarative reports -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Page Size</label>
-            <select
-              v-model="settings.pageSize"
-              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            >
-              <option v-for="size in PAGE_SIZES" :key="size" :value="size">
-                {{ size }}
-              </option>
-            </select>
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Orientation</label>
-            <select
-              v-model="settings.orientation"
-              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            >
-              <option
-                v-for="orientation in ORIENTATIONS"
-                :key="orientation"
-                :value="orientation"
-              >
-                {{ orientation }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Margin H</label>
-            <input
-              v-model.number="settings.marginHorizontal"
-              type="number"
-              min="0"
-              step="0.1"
-              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            />
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Margin V</label>
-            <input
-              v-model.number="settings.marginVertical"
-              type="number"
-              min="0"
-              step="0.1"
-              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Background</label>
-            <div class="flex items-center gap-2">
-              <input
-                v-model="settings.backgroundColor"
-                type="text"
-                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-              />
-              <input
-                v-model="settings.backgroundColor"
-                type="color"
-                class="h-8 w-10 rounded-md border border-input bg-background p-1"
-              />
-            </div>
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Text Color</label>
-            <div class="flex items-center gap-2">
-              <input
-                v-model="settings.defaultTextColor"
-                type="text"
-                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-              />
-              <input
-                v-model="settings.defaultTextColor"
-                type="color"
-                class="h-8 w-10 rounded-md border border-input bg-background p-1"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground">Font Size</label>
-            <input
-              v-model.number="settings.defaultFontSize"
-              type="number"
-              min="6"
-              step="1"
-              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            />
-          </div>
-
           <div class="space-y-1">
             <label class="text-[11px] text-muted-foreground"
               >Output Format</label
@@ -158,55 +61,164 @@ const dataSourceError = computed(() => {
               <option value="excel">Excel</option>
             </select>
           </div>
-        </div>
 
-        <div class="space-y-1">
-          <label class="text-[11px] text-muted-foreground"
-            >Data source (.json)</label
-          >
-          <select
-            v-model="settings.dataSourcePath"
-            class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            @focus="refreshJsonFiles"
-          >
-            <option value="">None</option>
-            <option
-              v-for="jsonPath in jsonFiles"
-              :key="jsonPath"
-              :value="jsonPath"
+          <div class="space-y-1">
+            <label class="text-[11px] text-muted-foreground"
+              >Data source (.json)</label
             >
-              {{ jsonPath }}
-            </option>
-          </select>
-          <p v-if="dataSourceError" class="text-xs text-destructive">
-            {{ dataSourceError }}
-          </p>
+            <select
+              v-model="settings.dataSourcePath"
+              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              @focus="refreshJsonFiles"
+            >
+              <option value="">None</option>
+              <option
+                v-for="jsonPath in jsonFiles"
+                :key="jsonPath"
+                :value="jsonPath"
+              >
+                {{ jsonPath }}
+              </option>
+            </select>
+          </div>
         </div>
+        <p v-if="dataSourceError" class="text-xs text-destructive">
+          {{ dataSourceError }}
+        </p>
 
-        <div class="flex items-center gap-4">
-          <label
-            class="inline-flex items-center gap-2 text-xs text-muted-foreground"
-          >
-            <input v-model="settings.showHeader" type="checkbox" />
-            Show Header
-          </label>
-          <label
-            class="inline-flex items-center gap-2 text-xs text-muted-foreground"
-          >
-            <input v-model="settings.showFooter" type="checkbox" />
-            Show Footer
-          </label>
-        </div>
+        <p v-if="isDeclarativeReport" class="text-xs text-muted-foreground">
+          Page layout for .report.yml comes from the file's
+          <code>meta:</code> block.
+        </p>
 
-        <div class="space-y-1">
-          <label class="text-[11px] text-muted-foreground">Watermark</label>
-          <input
-            v-model="settings.watermarkText"
-            type="text"
-            class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
-            placeholder="Optional watermark"
-          />
-        </div>
+        <!-- Page layout: only used by C# templates -->
+        <template v-if="!isDeclarativeReport">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground">Page Size</label>
+              <select
+                v-model="settings.pageSize"
+                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              >
+                <option v-for="size in PAGE_SIZES" :key="size" :value="size">
+                  {{ size }}
+                </option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground"
+                >Orientation</label
+              >
+              <select
+                v-model="settings.orientation"
+                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              >
+                <option
+                  v-for="orientation in ORIENTATIONS"
+                  :key="orientation"
+                  :value="orientation"
+                >
+                  {{ orientation }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground">Margin H</label>
+              <input
+                v-model.number="settings.marginHorizontal"
+                type="number"
+                min="0"
+                step="0.1"
+                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground">Margin V</label>
+              <input
+                v-model.number="settings.marginVertical"
+                type="number"
+                min="0"
+                step="0.1"
+                class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground">Background</label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="settings.backgroundColor"
+                  type="text"
+                  class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                />
+                <input
+                  v-model="settings.backgroundColor"
+                  type="color"
+                  class="h-8 w-10 rounded-md border border-input bg-background p-1"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[11px] text-muted-foreground">Text Color</label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="settings.defaultTextColor"
+                  type="text"
+                  class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                />
+                <input
+                  v-model="settings.defaultTextColor"
+                  type="color"
+                  class="h-8 w-10 rounded-md border border-input bg-background p-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] text-muted-foreground">Font Size</label>
+            <input
+              v-model.number="settings.defaultFontSize"
+              type="number"
+              min="6"
+              step="1"
+              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+            />
+          </div>
+
+          <div class="flex items-center gap-4">
+            <label
+              class="inline-flex items-center gap-2 text-xs text-muted-foreground"
+            >
+              <input v-model="settings.showHeader" type="checkbox" />
+              Show Header
+            </label>
+            <label
+              class="inline-flex items-center gap-2 text-xs text-muted-foreground"
+            >
+              <input v-model="settings.showFooter" type="checkbox" />
+              Show Footer
+            </label>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] text-muted-foreground">Watermark</label>
+            <input
+              v-model="settings.watermarkText"
+              type="text"
+              class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+              placeholder="Optional watermark"
+            />
+          </div>
+        </template>
 
         <p v-if="saveError" class="text-xs text-destructive">{{ saveError }}</p>
       </template>

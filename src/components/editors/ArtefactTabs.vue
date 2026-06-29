@@ -79,7 +79,7 @@
         :title="
           canRenderActive
             ? 'Render active file'
-            : 'Render is available only for .cs tabs'
+            : 'Render is available for .cs and *.report.yml tabs'
         "
         @click="onRender"
       >
@@ -186,7 +186,9 @@ const templateEditorRef = ref<InstanceType<typeof TemplateEditor> | null>(null);
 const activeExtension = computed(() =>
   extensionOf(activeFile.value?.path ?? ""),
 );
-const canRenderActive = computed(() => activeExtension.value === ".cs");
+const canRenderActive = computed(
+  () => activeExtension.value === ".cs" || isReportYaml(activeFile.value?.path),
+);
 
 const isProjectValidating = computed(
   () => projectValidation?.isValidating.value ?? false,
@@ -297,6 +299,17 @@ async function onRender(): Promise<void> {
     }
   }
 
+  if (isReportYaml(activeFile.value.path)) {
+    const baseName = fileName(activeFile.value.path).replace(/\.report\.ya?ml$/i, "");
+    await reportStore.renderDeclarativeWithSettings(
+      source,
+      jsonData,
+      reportSettings.value,
+      baseName,
+    );
+    return;
+  }
+
   const baseName = fileName(activeFile.value.path).replace(/\.cs$/i, "");
   await reportStore.renderWithSettings(
     source,
@@ -344,6 +357,12 @@ function extensionOf(path: string): string {
   const name = fileName(path).toLowerCase();
   const index = name.lastIndexOf(".");
   return index >= 0 ? name.slice(index) : "";
+}
+
+function isReportYaml(path: string | undefined): boolean {
+  if (!path) return false;
+  const name = fileName(path).toLowerCase();
+  return name.endsWith(".report.yml") || name.endsWith(".report.yaml");
 }
 
 function fileName(path: string): string {

@@ -11,7 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
-import { BUELO_STARTER_TEMPLATE } from "@/lib/buelo-language/snippets";
+import {
+  BUELO_STARTER_TEMPLATE,
+  BUELO_DECLARATIVE_REPORT_STARTER,
+} from "@/lib/buelo-language/snippets";
 import type { FileNode } from "@/types/workspace";
 
 interface FileTypeOption {
@@ -22,9 +25,14 @@ interface FileTypeOption {
 
 const FILE_TYPES: FileTypeOption[] = [
   {
-    label: "Report (.cs)",
+    label: "C# report (.cs)",
     extension: ".cs",
     defaultContent: BUELO_STARTER_TEMPLATE,
+  },
+  {
+    label: "Declarative report (.report.yml)",
+    extension: ".report.yml",
+    defaultContent: BUELO_DECLARATIVE_REPORT_STARTER,
   },
   { label: "Data (.json)", extension: ".json", defaultContent: "{\n  \n}\n" },
   { label: "Helper Script (.csx)", extension: ".csx" },
