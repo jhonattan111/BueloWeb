@@ -132,11 +132,11 @@ A slide-up/overlay panel (or a bottom panel) that shows the full project validat
 ┌─ Validation Results ────────────────────────── [×] close ─┐
 │  ✓ 5 files  ·  2 errors  ·  0 warnings                     │
 │                                                             │
-│  ✕  relatorio_1/relatorio_1.buelo              2 errors    │
+│  ✕  report_1/report_1.buelo                    2 errors    │
 │     · line 12: Unknown component 'chrt'                    │
 │     · line 18: Missing required field 'columns'            │
 │                                                             │
-│  ✓  data/colaboradores.json                    0 errors    │
+│  ✓  data/employees.json                        0 errors    │
 │  ✓  helpers/formatters.csx                     0 errors    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -187,7 +187,7 @@ File: `src/components/layout/FileTreeNode.vue`
 
 The per-node validation badges already read from `useWorkspaceTree().validationState`. After
 project validation, `setValidationResult` is called for each file in the result — update the badge
-key to match the file path format returned by the backend (e.g. `"relatorio_1/relatorio_1.buelo"`).
+key to match the file path format returned by the backend (e.g. `"report_1/report_1.buelo"`).
 
 The current badge key is the node `id`. Ensure that after project validation, the node ids in the
 tree match the paths returned by `/api/validate/project`. If necessary, add a `path` field to

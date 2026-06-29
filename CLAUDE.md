@@ -79,7 +79,7 @@ components/
 - Shared state → Pinia store; reusable logic → composable in `composables/` (`MaybeRefOrGetter` input when it makes sense).
 - HTTP calls only via `services/` (`fetch`, no axios). API errors are read by `readApiError`.
 - Monaco: `csharp` mode (templates) and `yaml` (declarative definitions). The `lib/buelo-language/` folder is the **types/autocomplete layer**, not a custom language — the `.buelo` DSL was removed, don't reintroduce it.
-- **Declarative YAML:** `lib/buelo-language/yamlSchemaSetup.ts` configures `monaco-yaml` with the JSON Schemas served by the API (`GET api/schemas/{kind}`, in `services/schemaService.ts`), associated by the `*.<kind>.yml` name convention (e.g., `fatura.report.yml`). `yaml` worker registered in `vite.config.ts` (`customWorkers`).
+- **Declarative YAML:** `lib/buelo-language/yamlSchemaSetup.ts` configures `monaco-yaml` with the JSON Schemas served by the API (`GET api/schemas/{kind}`, in `services/schemaService.ts`), associated by the `*.<kind>.yml` name convention (e.g., `invoice.report.yml`). `yaml` worker registered in `vite.config.ts` (`customWorkers`).
 - **Packages:** `vite`/`@vitejs/plugin-vue` pinned to major 6/5 — vite 7/8 break the patched `vite-plugin-monaco-editor@1.1.0`. `lucide-vue-next` is deprecated (migrate to `@lucide/vue`).
 - Imports use the `@/...` alias.
 

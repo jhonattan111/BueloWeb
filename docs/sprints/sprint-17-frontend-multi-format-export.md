@@ -59,7 +59,7 @@ export interface OutputFormat {
 }
 ```
 
-`formatHints` is serialized as `?format=excel&hint.sheetName=Colaboradores` or passed in request body (TBD per backend implementation).
+`formatHints` is serialized as `?format=excel&hint.sheetName=Employees` or passed in request body (TBD per backend implementation).
 
 Return type now includes `contentType` and `fileExtension` so the caller can handle download correctly regardless of format.
 
