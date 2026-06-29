@@ -30,6 +30,8 @@ pnpm typecheck    # vue-tsc --noEmit
 
 **Após qualquer mudança, rode `pnpm typecheck` (zero erros) antes de concluir.** Para o app funcionar, a `BueloApi` precisa estar rodando em `:5238` (`dotnet run --project ../BueloApi/Buelo.Api`).
 
+**Commit & push:** com `pnpm typecheck` + `pnpm build` verdes, faça `git commit` e `git push` (não acumule trabalho local); depois bumpe o ponteiro no guarda-chuva e dê push lá também. Se algum check falhar, conserte antes de commitar/pushar. Ver [`../CLAUDE.md`](../CLAUDE.md) (§Política de commit & push).
+
 ## Configuração
 
 `.env`:
