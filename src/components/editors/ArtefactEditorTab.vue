@@ -48,6 +48,8 @@ const { getValue, setValue, onDidChangeContent, getModel } = useMonacoEditor(
   containerRef,
   lang,
   props.artefact.content,
+  // Give the model a named URI so monaco-yaml can match schemas by `*.<kind>.yml`.
+  { path: props.artefact.path ?? `${props.artefact.name}${props.artefact.extension}` },
 );
 
 const debouncedSave = useDebounceFn(() => {

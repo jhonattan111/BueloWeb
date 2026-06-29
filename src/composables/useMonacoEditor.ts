@@ -6,9 +6,12 @@ export function useMonacoEditor(
   containerRef: Ref<HTMLElement | null>,
   language: string,
   initialValue: string,
-  options?: { readOnly?: boolean },
+  options?: { readOnly?: boolean; path?: string },
 ) {
   let editor: monaco.editor.IStandaloneCodeEditor | null = null
+  // Model we explicitly created (named-URI path). The editor does not own a
+  // model passed in via `model`, so we must dispose it ourselves on unmount.
+  let ownedModel: monaco.editor.ITextModel | null = null
   const pendingChangeCallbacks: Array<() => void> = []
   const changeDisposables: monaco.IDisposable[] = []
 
@@ -17,9 +20,7 @@ export function useMonacoEditor(
 
     const normalizedLanguage = language === BUELO_LANGUAGE_ID ? BUELO_LANGUAGE_ID : language
 
-    editor = monaco.editor.create(containerRef.value, {
-      value: initialValue,
-      language: normalizedLanguage,
+    const baseOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
       theme: 'vs-dark',
       fontSize: 13,
       minimap: { enabled: false },
@@ -34,7 +35,23 @@ export function useMonacoEditor(
       suggestOnTriggerCharacters: true,
       wordBasedSuggestions: 'off',
       readOnly: options?.readOnly ?? false,
-    })
+    }
+
+    if (options?.path) {
+      // A named model URI (e.g. file:///fatura.report.yml) is what lets monaco-yaml
+      // and the JSON-schema layer bind schemas by the `*.<kind>.yml` filename
+      // convention — an anonymous `inmemory://model/N` URI never matches fileMatch.
+      const uri = monaco.Uri.file(options.path)
+      monaco.editor.getModel(uri)?.dispose()
+      ownedModel = monaco.editor.createModel(initialValue, normalizedLanguage, uri)
+      editor = monaco.editor.create(containerRef.value, { model: ownedModel, ...baseOptions })
+    } else {
+      editor = monaco.editor.create(containerRef.value, {
+        value: initialValue,
+        language: normalizedLanguage,
+        ...baseOptions,
+      })
+    }
 
     // Register callbacks queued before Monaco editor creation.
     for (const cb of pendingChangeCallbacks) {
@@ -50,6 +67,8 @@ export function useMonacoEditor(
     changeDisposables.length = 0
     editor?.dispose()
     editor = null
+    ownedModel?.dispose()
+    ownedModel = null
   })
 
   function getValue(): string {

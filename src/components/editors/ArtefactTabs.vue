@@ -110,6 +110,7 @@
 
       <div v-else-if="activeArtefact" class="absolute inset-0">
         <ArtefactEditorTab
+          :key="activeArtefact.path ?? activeArtefact.name"
           :artefact="activeArtefact"
           @save="onSaveArtefact"
           @validation-result="onArtefactValidationResult"
