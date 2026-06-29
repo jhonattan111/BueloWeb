@@ -38,12 +38,12 @@ content:
       columns:
         - { width: 24px, header: "#",       cell: "{{ index + 1 }}" }
         - { width: 4*,   header: "Product", cell: "{{ item.name }}" }
-        - { width: 1*,   header: "Unit",    cell: "{{ moeda(item.price) }}", align: right }
+        - { width: 1*,   header: "Unit",    cell: "{{ currency(item.price) }}", align: right }
         - { width: 1*,   header: "Qty",     cell: "{{ item.qty }}", align: right }
-        - { width: 2*,   header: "Total",   cell: "{{ moeda(item.price * item.qty) }}", align: right }
+        - { width: 2*,   header: "Total",   cell: "{{ currency(item.price * item.qty) }}", align: right }
       footer:
         - { span: 4, text: "Invoice total", style: { bold: true, align: right } }
-        - { text: "{{ moeda(sum(data.items, 'price * qty')) }}", style: { bold: true, align: right } }
+        - { text: "{{ currency(sum(data.items, 'price * qty')) }}", style: { bold: true, align: right } }
 footer:
   - text: { value: "Page {{ page }} of {{ pageCount }}", style: { align: center, size: 9, color: "#999999" } }
 `
@@ -76,11 +76,11 @@ content:
       rowStyle: { paddingY: 4, borderBottom: "1px #EEEEEE" }
       group:
         header: { text: "{{ group.key }}", style: { bold: true, background: "#EEEEEE", size: 12 } }
-        footer: { text: "Subtotal {{ group.key }}: {{ moeda(sum(group.items, 'salary')) }}", style: { align: right, bold: true } }
+        footer: { text: "Subtotal {{ group.key }}: {{ currency(sum(group.items, 'salary')) }}", style: { align: right, bold: true } }
       columns:
         - { width: 3*, header: "Name",   cell: "{{ item.name }}" }
         - { width: 2*, header: "Role",   cell: "{{ item.role }}" }
-        - { width: 1*, header: "Salary", cell: "{{ moeda(item.salary) }}", align: right }
+        - { width: 1*, header: "Salary", cell: "{{ currency(item.salary) }}", align: right }
 `
 
 const EMPLOYEES_DATA = `{
@@ -113,17 +113,17 @@ content:
             style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
             content:
               - text: { value: "Revenue", style: { size: 9, color: "#64748B" } }
-              - text: { value: "{{ moeda(data.revenue) }}", style: { bold: true, size: 16, color: "#1D9E75" } }
+              - text: { value: "{{ currency(data.revenue) }}", style: { bold: true, size: 16, color: "#1D9E75" } }
         - card:
             style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
             content:
               - text: { value: "Expenses", style: { size: 9, color: "#64748B" } }
-              - text: { value: "{{ moeda(data.expenses) }}", style: { bold: true, size: 16, color: "#D85A30" } }
+              - text: { value: "{{ currency(data.expenses) }}", style: { bold: true, size: 16, color: "#D85A30" } }
         - card:
             style: { background: "#F1F5F9", padding: 10, border: "1px #E2E8F0" }
             content:
               - text: { value: "Profit", style: { size: 9, color: "#64748B" } }
-              - text: { value: "{{ moeda(data.revenue - data.expenses) }}", style: { bold: true, size: 16 } }
+              - text: { value: "{{ currency(data.revenue - data.expenses) }}", style: { bold: true, size: 16 } }
   - spacer: 12
   - card:
       style: { padding: 12, border: "1px #E2E8F0" }
