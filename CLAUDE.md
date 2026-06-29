@@ -1,24 +1,24 @@
 # CLAUDE.md — BueloWeb
 
-Guia para agentes de IA (Claude Code) neste repositório. É o **documento canônico** do front; em caso de divergência com docs em `docs/`, este arquivo vence.
+Guide for AI agents (Claude Code) in this repository. It is the **canonical document** of the frontend; in case of divergence with docs in `docs/`, this file wins.
 
-## O que é
+## What it is
 
-`BueloWeb` é o **frontend** do produto Buelo: um editor de relatórios estilo **workspace (VS Code-like)**. O usuário escreve templates **C#** (classes `IDocument` do QuestPDF) num editor Monaco, configura página/dados e pré-visualiza o **PDF/Excel** renderizado pela API.
+`BueloWeb` is the **frontend** of the Buelo product: a report editor in the **workspace (VS Code-like)** style. The user writes **C#** templates (QuestPDF `IDocument` classes) in a Monaco editor, configures page/data, and previews the **PDF/Excel** rendered by the API.
 
-> Consome a API [`BueloApi`](../BueloApi) em `http://localhost:5238`. Repo guarda-chuva: [`Buelo`](..) (submodules).
+> Consumes the [`BueloApi`](../BueloApi) API at `http://localhost:5238`. Umbrella repo: [`Buelo`](..) (submodules).
 
 ## Stack
 
-- **Vue 3.5** — Composition API, **sempre** `<script setup lang="ts">`
+- **Vue 3.5** — Composition API, **always** `<script setup lang="ts">`
 - **TypeScript** + **Vite 6**
-- **Pinia 3** (estado) · **Vue Router 5** (uma rota: `/`)
-- **Monaco Editor** via `vite-plugin-monaco-editor` (patched): modo `csharp` (templates) **e** `yaml` (definições declarativas, via `monaco-yaml` + JSON Schemas da API)
+- **Pinia 3** (state) · **Vue Router 5** (one route: `/`)
+- **Monaco Editor** via `vite-plugin-monaco-editor` (patched): `csharp` mode (templates) **and** `yaml` (declarative definitions, via `monaco-yaml` + API JSON Schemas)
 - **Tailwind CSS v4** (`@tailwindcss/vite`) + **shadcn-vue** / **reka-ui** (`components/ui/`)
 - `@vueuse/core`, `lucide-vue-next`
-- Gerenciador: **pnpm** (workspace) · alias `@` → `src`
+- Package manager: **pnpm** (workspace) · alias `@` → `src`
 
-## Comandos
+## Commands
 
 ```bash
 pnpm install
@@ -28,37 +28,37 @@ pnpm preview
 pnpm typecheck    # vue-tsc --noEmit
 ```
 
-**Após qualquer mudança, rode `pnpm typecheck` (zero erros) antes de concluir.** Para o app funcionar, a `BueloApi` precisa estar rodando em `:5238` (`dotnet run --project ../BueloApi/Buelo.Api`).
+**After any change, run `pnpm typecheck` (zero errors) before finishing.** For the app to work, `BueloApi` must be running on `:5238` (`dotnet run --project ../BueloApi/Buelo.Api`).
 
-**Commit & push:** com `pnpm typecheck` + `pnpm build` verdes, faça `git commit` e `git push` (não acumule trabalho local); depois bumpe o ponteiro no guarda-chuva e dê push lá também. Se algum check falhar, conserte antes de commitar/pushar. Ver [`../CLAUDE.md`](../CLAUDE.md) (§Política de commit & push).
+**Commit & push:** with `pnpm typecheck` + `pnpm build` green, do `git commit` and `git push` (don't accumulate local work); then bump the pointer in the umbrella repo and push there too. If any check fails, fix it before committing/pushing. See [`../CLAUDE.md`](../CLAUDE.md) (§Commit & push policy).
 
-## Configuração
+## Configuration
 
 `.env`:
 ```
 VITE_API_BASE_URL=http://localhost:5238
 ```
-Todo service lê `import.meta.env.VITE_API_BASE_URL`. A API libera CORS só para `http://localhost:5173`.
+Every service reads `import.meta.env.VITE_API_BASE_URL`. The API enables CORS only for `http://localhost:5173`.
 
-## Estrutura (`src/`)
+## Structure (`src/`)
 
 ```
-pages/ReportEditor/Index.vue   ← única tela: shell de 3 painéis (árvore · editor · preview)
-router/index.ts                ← rota '/' → ReportEditor
-services/                      ← fetch contra a API (sem axios)
+pages/ReportEditor/Index.vue   ← single screen: 3-panel shell (tree · editor · preview)
+router/index.ts                ← route '/' → ReportEditor
+services/                      ← fetch against the API (no axios)
   reportService.ts             ← render, renderById, renderWorkspaceFile, getSupportedFormats
-  templateService.ts           ← CRUD de templates
-  validateService.ts           ← validação de arquivo/projeto
-  workspaceService.ts          ← árvore de arquivos, conteúdo, tipos
+  templateService.ts           ← template CRUD
+  validateService.ts           ← file/project validation
+  workspaceService.ts          ← file tree, content, types
 stores/                        ← Pinia: reportStore, templateStore
 composables/                   ← useActiveTemplate, useMonacoEditor, useOpenEditors,
                                  useFileValidation, useProjectValidation, useReportSettings,
                                  useTemplateDiagnostics, useWorkspaceTree
 lib/
-  buelo-language/              ← IntelliSense C# do Monaco (NÃO é a DSL antiga)
+  buelo-language/              ← Monaco C# IntelliSense (NOT the old DSL)
     index.ts                   ← registerBueloLanguage() — BUELO_LANGUAGE_ID = 'csharp'
-    csharpDataCompletions.ts   ← autocomplete das props do data
-    csharpTypeInjector.ts      ← injeta tipos C# inferidos do JSON
+    csharpDataCompletions.ts   ← autocomplete for the data props
+    csharpTypeInjector.ts      ← injects C# types inferred from the JSON
     snippets.ts
   utils.ts                     ← cn() (clsx + tailwind-merge)
 types/                         ← template.ts, workspace.ts, globalArtefact.ts
@@ -68,25 +68,25 @@ components/
   editors/   CodeEditorPanel, TemplateEditor, JsonEditor, ArtefactTabs, AddArtefactDialog,
              NewFileDialog, EditorStatusBar, ValidationSummaryPanel, ProjectValidationPanel,
              VersionHistoryPanel
-  preview/   PreviewPanel  (iframe de PDF / download)
-  ui/        primitivos shadcn-vue (button, dialog, tabs, input, alert, scroll-area, ...)
+  preview/   PreviewPanel  (PDF iframe / download)
+  ui/        shadcn-vue primitives (button, dialog, tabs, input, alert, scroll-area, ...)
 ```
 
-## Convenções
+## Conventions
 
-- **Composition API + `<script setup lang="ts">`** em todo componente. Tipar props/emits.
-- Componentes de UI vêm do shadcn-vue em `components/ui/` (config em `components.json`); reuse antes de criar novos.
-- Estado compartilhado → store Pinia; lógica reutilizável → composable em `composables/` (input `MaybeRefOrGetter` quando fizer sentido).
-- Chamadas HTTP só via `services/` (`fetch`, sem axios). Erros da API são lidos por `readApiError`.
-- Monaco: modo `csharp` (templates) e `yaml` (definições declarativas). A pasta `lib/buelo-language/` é a **camada de tipos/autocomplete**, não uma linguagem custom — a DSL `.buelo` foi removida, não reintroduza.
-- **YAML declarativo:** `lib/buelo-language/yamlSchemaSetup.ts` configura o `monaco-yaml` com os JSON Schemas servidos pela API (`GET api/schemas/{kind}`, em `services/schemaService.ts`), associados por convenção de nome `*.<kind>.yml` (ex.: `fatura.report.yml`). Worker `yaml` registrado em `vite.config.ts` (`customWorkers`).
-- **Pacotes:** `vite`/`@vitejs/plugin-vue` presos no major 6/5 — vite 7/8 quebram o `vite-plugin-monaco-editor@1.1.0` patchado. `lucide-vue-next` está deprecado (migrar p/ `@lucide/vue`).
-- Imports usam o alias `@/...`.
+- **Composition API + `<script setup lang="ts">`** in every component. Type props/emits.
+- UI components come from shadcn-vue in `components/ui/` (config in `components.json`); reuse before creating new ones.
+- Shared state → Pinia store; reusable logic → composable in `composables/` (`MaybeRefOrGetter` input when it makes sense).
+- HTTP calls only via `services/` (`fetch`, no axios). API errors are read by `readApiError`.
+- Monaco: `csharp` mode (templates) and `yaml` (declarative definitions). The `lib/buelo-language/` folder is the **types/autocomplete layer**, not a custom language — the `.buelo` DSL was removed, don't reintroduce it.
+- **Declarative YAML:** `lib/buelo-language/yamlSchemaSetup.ts` configures `monaco-yaml` with the JSON Schemas served by the API (`GET api/schemas/{kind}`, in `services/schemaService.ts`), associated by the `*.<kind>.yml` name convention (e.g., `fatura.report.yml`). `yaml` worker registered in `vite.config.ts` (`customWorkers`).
+- **Packages:** `vite`/`@vitejs/plugin-vue` pinned to major 6/5 — vite 7/8 break the patched `vite-plugin-monaco-editor@1.1.0`. `lucide-vue-next` is deprecated (migrate to `@lucide/vue`).
+- Imports use the `@/...` alias.
 
-## Modelo mental do produto
+## Product mental model
 
-Templates = classes C# `IDocument` (compiladas pela API com Roslyn). O front edita o código + dados (JSON), valida (squiggles por arquivo), e renderiza PDF/Excel via `api/report/*`. Detalhe da API: ver [`../BueloApi/CLAUDE.md`](../BueloApi/CLAUDE.md).
+Templates = C# `IDocument` classes (compiled by the API with Roslyn). The frontend edits the code + data (JSON), validates (per-file squiggles), and renders PDF/Excel via `api/report/*`. API detail: see [`../BueloApi/CLAUDE.md`](../BueloApi/CLAUDE.md).
 
-## Histórico
+## History
 
-`docs/` guarda o índice e histórico de sprints (era DSL `.buelo` → era C#/QuestPDF) — referência, não estado atual.
+`docs/` keeps the index and sprint history (`.buelo` DSL era → C#/QuestPDF era) — reference, not current state.

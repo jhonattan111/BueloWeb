@@ -3,13 +3,13 @@
 ## Overview
 Source of truth for **frontend** sprint planning. Each sprint has its own file in `ai/sprints/`.
 
-Backend sprints são rastreados separadamente em `Buelo.Api/ai/TASKS.md`.
+Backend sprints are tracked separately in `Buelo.Api/ai/TASKS.md`.
 
-> **Arquitetura atual**: Editor Monaco para C# templates; Report Settings Panel configurável; PDF preview nativo. A linguagem `.buelo` e seu suporte Monaco foram removidos. Consulte `ARCHITECTURE.md` na raiz para a visão completa.
+> **Current architecture**: Monaco editor for C# templates; configurable Report Settings Panel; native PDF preview. The `.buelo` language and its Monaco support were removed. See `ARCHITECTURE.md` at the root for the complete picture.
 
 ## Sprint Index
 
-### ✅ Sprints Arquivadas (DSL era — removida)
+### ✅ Archived Sprints (DSL era — removed)
 
 | Sprint | File | Goal | Status | Layer |
 |--------|------|------|--------|-------|
@@ -33,13 +33,13 @@ Backend sprints são rastreados separadamente em `Buelo.Api/ai/TASKS.md`.
 | 21 | [sprint-21-frontend-bugfixes.md](sprints/sprint-21-frontend-bugfixes.md) | Fix Monaco autocomplete; fix refresh button GUID title bug | `[x] done` | Frontend |
 | 22 | [sprint-22-frontend-workspace-vscode-ux.md](sprints/sprint-22-frontend-workspace-vscode-ux.md) | VS Code-like folder/file tree, multi-tabs, .json data source assignment, import UX | `[x] done` | Frontend |
 
-### 🚀 Sprints Ativas (QuestPDF C# era)
+### 🚀 Active Sprints (QuestPDF C# era)
 
 | Sprint | File | Goal | Status | Layer |
 |--------|------|------|--------|-------|
-| F1 | [sprint-1-frontend-editor.md](sprints/sprint-1-frontend-editor.md) | Monaco Editor C#; validação em tempo real; PDF preview; template gallery | `[x] done` | Frontend |
+| F1 | [sprint-1-frontend-editor.md](sprints/sprint-1-frontend-editor.md) | Monaco Editor C#; real-time validation; PDF preview; template gallery | `[x] done` | Frontend |
 | F2 | [sprint-2-frontend-settings.md](sprints/sprint-2-frontend-settings.md) | Report Settings Panel: page size, margins, colors, data source binding | `[x] done` | Frontend |
-| F3 | [sprint-3-frontend-gallery.md](sprints/sprint-3-frontend-gallery.md) | Template Gallery: CRUD, versionamento, export/import, tags | `[x] done` | Frontend |
+| F3 | [sprint-3-frontend-gallery.md](sprints/sprint-3-frontend-gallery.md) | Template Gallery: CRUD, versioning, export/import, tags | `[x] done` | Frontend |
 | F4 | [sprint-4-frontend-workspace.md](sprints/sprint-4-frontend-workspace.md) | Workspace integration, multi-format export, batch rendering | `[x] done` | Frontend |
 | F5 | [sprint-23-frontend-typed-intellisense-settings.md](sprints/sprint-23-frontend-typed-intellisense-settings.md) | Monaco IntelliSense for data props; localStorage settings persistence; auto-apply | `[x] done` | Frontend |
 
@@ -116,7 +116,7 @@ src/
 
 ## Conventions
 
-- Todos os templates são C# (`TemplateMode.FullClass`) — nenhum arquivo `.buelo` é exibido
-- Monaco Editor usa modo `csharp` nativo do VS Code
-- Report Settings mapeiam diretamente para `PageSettings` do backend
-- Após cada sprint, validar contra backend com `dotnet run` + testes de integração manuais
+- All templates are C# (`TemplateMode.FullClass`) — no `.buelo` file is displayed
+- Monaco Editor uses VS Code's native `csharp` mode
+- Report Settings map directly to the backend's `PageSettings`
+- After each sprint, validate against the backend with `dotnet run` + manual integration tests

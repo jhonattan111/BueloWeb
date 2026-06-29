@@ -1,6 +1,6 @@
 # BueloWeb
 
-Frontend Vue 3 para edição e renderização de projetos Buelo no estilo workspace.
+Vue 3 frontend for editing and rendering Buelo projects in the workspace style.
 
 ## Stack
 
@@ -11,15 +11,15 @@ Frontend Vue 3 para edição e renderização de projetos Buelo no estilo worksp
 - Monaco Editor
 - Tailwind CSS v4
 
-## Configuração
+## Configuration
 
-Arquivo `.env`:
+`.env` file:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5238
 ```
 
-## Comandos
+## Commands
 
 ```bash
 pnpm install
@@ -29,26 +29,26 @@ pnpm preview
 pnpm typecheck
 ```
 
-## Funcionalidades principais
+## Main features
 
-- Árvore de arquivos (`api/workspace/*`)
-- Edição de `.buelo`, `.json` e arquivos auxiliares
-- Abas múltiplas de editor
-- Renderização por arquivo ativo
-- Validação de arquivo e de projeto
-- Seleção de formato de saída (PDF/Excel)
+- File tree (`api/workspace/*`)
+- Editing of `.buelo`, `.json`, and auxiliary files
+- Multiple editor tabs
+- Rendering by active file
+- File and project validation
+- Output format selection (PDF/Excel)
 
-## Integração com backend
+## Backend integration
 
-Serviços em `src/services` consomem:
+Services in `src/services` consume:
 
 - `reportService.ts`
 - `workspaceService.ts`
 - `templateService.ts`
 - `validateService.ts`
 
-## Desenvolvimento local completo
+## Full local development
 
-1. Suba a API (`dotnet run --project ../Buelo.Api`).
-2. Rode `pnpm dev` neste diretório.
-3. Acesse `http://localhost:5173`.
+1. Start the API (`dotnet run --project ../Buelo.Api`).
+2. Run `pnpm dev` in this directory.
+3. Open `http://localhost:5173`.
