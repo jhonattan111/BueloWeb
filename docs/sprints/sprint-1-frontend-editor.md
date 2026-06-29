@@ -1,40 +1,40 @@
 # Sprint F1: Report Editor & Template Management
 
-## 🎯 Objetivo
-Criar interface de editor de relatórios com suporte a C# templates, preview em tempo real, e gerenciamento de templates.
+## 🎯 Objective
+Create a report editor interface with support for C# templates, real-time preview, and template management.
 
-## ✅ Tarefas
+## ✅ Tasks
 
 ### Frontend
 
 #### 1. Report Editor Layout
 - [ ] 3-pane layout: Editor | Preview | Settings
-- [ ] Resizable panels com drag dividers
-- [ ] Monaco Editor com C# syntax highlighting
-- [ ] Toolbar com ações: Save, Validate, Preview, Export
+- [ ] Resizable panels with drag dividers
+- [ ] Monaco Editor with C# syntax highlighting
+- [ ] Toolbar with actions: Save, Validate, Preview, Export
 
 #### 2. Monaco Editor Setup
-- [ ] Configurar para linguagem C#
-- [ ] Syntax highlighting para QuestPDF
-- [ ] IntelliSense básico (autocomplete)
-- [ ] Go-to-definition (futuro)
+- [ ] Configure for the C# language
+- [ ] Syntax highlighting for QuestPDF
+- [ ] Basic IntelliSense (autocomplete)
+- [ ] Go-to-definition (future)
 - [ ] Theme selector (light/dark)
 
 #### 3. Template Validation
 - [ ] Real-time validation on keystroke
-- [ ] Mostrar erros em problema panel
-- [ ] Line number highlighting para erros
-- [ ] Disable preview se template inválido
+- [ ] Show errors in a problems panel
+- [ ] Line number highlighting for errors
+- [ ] Disable preview if template is invalid
 
 #### 4. Live Preview
 - [ ] Embed PDF viewer (pdfjs)
-- [ ] Atualizar preview ao clicar "Preview"
-- [ ] Mostrar loading state
-- [ ] Tratamento de erros de rendering
+- [ ] Update preview when clicking "Preview"
+- [ ] Show loading state
+- [ ] Rendering error handling
 
 #### 5. Template Gallery
-- [ ] Listar templates existentes
-- [ ] Nova template com template
+- [ ] List existing templates
+- [ ] New template from a template
 - [ ] Rename/Delete
 - [ ] Duplicate template
 - [ ] Share template URL
@@ -49,8 +49,8 @@ Criar interface de editor de relatórios com suporte a C# templates, preview em 
 - [ ] DELETE /api/templates/{id} - delete
 
 #### 2. Validation Endpoint
-- [ ] POST /api/report/validate - já existe
-- [ ] Retornar lista de erros
+- [ ] POST /api/report/validate - already exists
+- [ ] Return a list of errors
 
 ## 📋 Template Structure (Example)
 ```csharp
@@ -86,5 +86,5 @@ public class SalesReportDocument : IDocument
 }
 ```
 
-## 🚀 Próximo Sprint
+## 🚀 Next Sprint
 Sprint F2: Report Settings Panel (configuration UI)

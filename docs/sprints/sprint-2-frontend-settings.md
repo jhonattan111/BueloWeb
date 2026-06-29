@@ -1,16 +1,16 @@
 # Sprint F2: Report Settings Panel
 
-## 🎯 Objetivo
-Implementar painel de configurações para ajustar propriedades de página (tamanho, margens, cores, fonte) e fonte de dados, sem precisar editar código.
+## 🎯 Objective
+Implement a settings panel to adjust page properties (size, margins, colors, font) and the data source, without needing to edit code.
 
-## ✅ Tarefas
+## ✅ Tasks
 
 ### Frontend
 
 #### 1. Settings Panel UI
-- [ ] Separado em abas:
-  - Page (tamanho, margens, orientação)
-  - Style (cores, tipografia)
+- [ ] Split into tabs:
+  - Page (size, margins, orientation)
+  - Style (colors, typography)
   - Data (data source, mock data)
   - Advanced (watermark, headers/footers)
 
@@ -23,7 +23,7 @@ Implementar painel de configurações para ajustar propriedades de página (tama
 - [ ] Orientation: Portrait/Landscape radio
 - [ ] Margins (cm/in selector):
   - Top, Right, Bottom, Left spinners
-  - Preset presets (Normal, Narrow, Wide)
+  - Presets (Normal, Narrow, Wide)
   - Show margin preview
 
 #### 3. Style Settings Tab
@@ -31,12 +31,12 @@ Implementar painel de configurações para ajustar propriedades de página (tama
 - [ ] Default text color picker
 - [ ] Default font size (8-72pt)
 - [ ] Font family selector
-- [ ] Preview pane mostrando resultado
+- [ ] Preview pane showing the result
 
 #### 4. Data Source Tab
 - [ ] Global Artefacts selector (dropdown)
-- [ ] JSON editor inline
-- [ ] Validar JSON
+- [ ] Inline JSON editor
+- [ ] Validate JSON
 - [ ] Test data button
 - [ ] MockData editor
 
@@ -47,18 +47,18 @@ Implementar painel de configurações para ajustar propriedades de página (tama
   - Opacity slider
   - Font size
 - [ ] Header/Footer toggle
-- [ ] Custom CSS (futuro)
+- [ ] Custom CSS (future)
 
 ### Backend
 
 #### 1. PageSettings Serialization
-- [ ] Garantir que PageSettings salva/carrega corretamente
-- [ ] Aplicar PageSettings no rendering
+- [ ] Ensure PageSettings saves/loads correctly
+- [ ] Apply PageSettings during rendering
 
 #### 2. ReportController Updates
-- [ ] Aceitar PageSettings na requisição
-- [ ] Validar PageSettings values
-- [ ] Usar nas renderizações
+- [ ] Accept PageSettings in the request
+- [ ] Validate PageSettings values
+- [ ] Use them in renderings
 
 ## 🎨 PageSettings Structure Reference
 ```csharp
@@ -91,10 +91,10 @@ User edits Settings
 ```
 
 ## ✅ Sprint Completion
-- [ ] Todos os settings funcionam
-- [ ] Preview atualiza em tempo real
-- [ ] Settings persistem em template
-- [ ] Validação de valores
+- [ ] All settings work
+- [ ] Preview updates in real time
+- [ ] Settings persist in the template
+- [ ] Value validation
 
-## 🚀 Próximo Sprint
+## 🚀 Next Sprint
 Sprint F3: Template Gallery & Organization

@@ -1,63 +1,63 @@
 # Sprint F4: Workspace Integration & Export
 
-## 🎯 Objetivo
-Integrar o sistema de relatórios com workspace (file tree), permitir exportação de relatórios finalizados para PDF/Excel, e organização de arquivos.
+## 🎯 Objective
+Integrate the report system with the workspace (file tree), allow exporting finished reports to PDF/Excel, and organize files.
 
-## ✅ Tarefas
+## ✅ Tasks
 
 ### Frontend
 
 #### 1. Workspace File Tree
-- [ ] Expandir file tree para mostrar Templates
-- [ ] Criar pasta Templates se não existir
-- [ ] Arrastar templates entre pastas
+- [ ] Expand the file tree to show Templates
+- [ ] Create a Templates folder if it doesn't exist
+- [ ] Drag templates between folders
 - [ ] Right-click context menu (new, rename, delete)
-- [ ] Template icons diferentes por tipo
+- [ ] Different template icons by type
 
 #### 2. Export Functionality
 - [ ] Export as PDF button
 - [ ] Export as Excel button
 - [ ] Export with current settings
-- [ ] Batch export (múltiplos templates)
+- [ ] Batch export (multiple templates)
 - [ ] Download to local machine
 
 #### 3. Render Results Preview
-- [ ] Mostrar relatório renderizado em viewer
-- [ ] Download button para resultado
+- [ ] Show the rendered report in a viewer
+- [ ] Download button for the result
 - [ ] Print button (via browser)
-- [ ] Copy to clipboard (para sharing)
+- [ ] Copy to clipboard (for sharing)
 
 #### 4. Recent Exports
-- [ ] Histórico de relatórios exportados
-- [ ] Re-export com mesmos dados/settings
+- [ ] History of exported reports
+- [ ] Re-export with the same data/settings
 - [ ] Archive exports (local storage)
 
 ### Backend
 
 #### 1. Workspace Integration
-- [ ] GET /api/workspace/templates - listar templates do workspace
-- [ ] POST /api/workspace/templates - criar template no workspace
-- [ ] PUT /api/workspace/templates/{path} - atualizar no filesystem
+- [ ] GET /api/workspace/templates - list workspace templates
+- [ ] POST /api/workspace/templates - create a template in the workspace
+- [ ] PUT /api/workspace/templates/{path} - update on the filesystem
 
 #### 2. Batch Rendering
-- [ ] POST /api/report/batch-render - render múltiplos templates
-- [ ] Return array de PDFs/ExcelsMeeting de progresso para operações longas
+- [ ] POST /api/report/batch-render - render multiple templates
+- [ ] Return an array of PDFs/Excels; progress reporting for long-running operations
 
 #### 3. Export Endpoint
-- [ ] GET /api/report/export - exportar resultado final
-- [ ] Content-Disposition headers corretos
-- [ ] Filename com timestamp
+- [ ] GET /api/report/export - export the final result
+- [ ] Correct Content-Disposition headers
+- [ ] Filename with timestamp
 
 ## 🔄 Complete Workflow
 ```
-1. User cria novo template
-2. Edita em Monaco Editor
-3. Configura Settings (PageSize, Margins, etc)
-4. Configura Data Source (Global Artefact)
-5. Preview em PDF viewer
+1. User creates a new template
+2. Edits it in Monaco Editor
+3. Configures Settings (PageSize, Margins, etc)
+4. Configures Data Source (Global Artefact)
+5. Preview in PDF viewer
 6. Click "Export as PDF"
-7. File downloaded com nome correto
-8. Template salvo no workspace
+7. File downloaded with the correct name
+8. Template saved in the workspace
 ```
 
 ## 📊 Final Architecture
@@ -84,22 +84,22 @@ Buelo.Engine/
 ```
 
 ## ✅ Sprint Completion
-- [ ] Workspace file tree mostra templates
-- [ ] Export PDF/Excel funcionando
-- [ ] Batch operations suportadas
-- [ ] Workflow completo funcional
-- [ ] Persistência de templates
+- [ ] Workspace file tree shows templates
+- [ ] Export PDF/Excel working
+- [ ] Batch operations supported
+- [ ] Complete workflow functional
+- [ ] Template persistence
 
 ## 🎉 Project Completion
-Após este sprint, Buelo estará pronto para:
-- ✅ Criar relatórios em C# puro
-- ✅ Configurar layout via UI
-- ✅ Usar dados JSON como fonte
-- ✅ Exportar para PDF/Excel
-- ✅ Gerenciar templates versioning
-- ✅ Integração com workspace
+After this sprint, Buelo will be ready to:
+- ✅ Create reports in pure C#
+- ✅ Configure layout via UI
+- ✅ Use JSON data as a source
+- ✅ Export to PDF/Excel
+- ✅ Manage template versioning
+- ✅ Integrate with the workspace
 
-## 📋 Roadmap Futuro
+## 📋 Future Roadmap
 - Performance: Caching, async rendering
 - Advanced: Scheduled reports, email triggers
 - Analytics: Template usage stats
