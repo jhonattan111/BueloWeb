@@ -58,6 +58,19 @@ function persistSettings(): void {
   }
 }
 
+/**
+ * Pre-populates the per-file report settings for a given workspace path. Used by the
+ * onboarding showcase so example reports render immediately (data source already set),
+ * without the user having to pick the JSON by hand.
+ */
+export function presetFileSettings(path: string, partial: Partial<ReportSettingsState>): void {
+  const next = new Map(perFileSettings.value)
+  const existing = next.get(path) ?? { ...DEFAULT_SETTINGS }
+  next.set(path, { ...existing, ...partial })
+  perFileSettings.value = next
+  persistSettings()
+}
+
 const jsonFilesState = ref<string[]>([])
 const settings = ref<ReportSettingsState>({ ...DEFAULT_SETTINGS })
 const saveError = ref<string | null>(null)

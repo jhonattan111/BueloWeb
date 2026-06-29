@@ -67,12 +67,21 @@
       </div>
     </template>
   </AppLayout>
+
+  <WelcomeDialog
+    :open="showWelcome"
+    :is-creating="isCreatingExamples"
+    :error="onboardingError"
+    @create="onCreateExamples"
+    @dismiss="dismissWelcome"
+  />
 </template>
 
 <script setup lang="ts">
-import { provide, ref } from "vue";
+import { onMounted, provide, ref } from "vue";
 import { FolderOpen, LayoutTemplate } from "lucide-vue-next";
 import AppLayout from "@/components/layout/AppLayout.vue";
+import WelcomeDialog from "@/components/onboarding/WelcomeDialog.vue";
 import FileTreePanel from "@/components/layout/FileTreePanel.vue";
 import SidebarTemplates from "@/components/layout/SidebarTemplates.vue";
 import ProjectSettingsPanel from "@/components/layout/ProjectSettingsPanel.vue";
@@ -86,18 +95,39 @@ import {
   useProjectValidation,
 } from "@/composables/useProjectValidation";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
+import { useOnboarding } from "@/composables/useOnboarding";
 import { useTemplateStore } from "@/stores/templateStore";
 import type { FileNode } from "@/types/workspace";
 
 const { openFile } = useActiveTemplate();
-const { tree, selectNode } = useWorkspaceTree();
+const { tree, selectNode, refresh } = useWorkspaceTree();
 const projectValidation = useProjectValidation();
 const templateStore = useTemplateStore();
+
+const {
+  showWelcome,
+  isCreating: isCreatingExamples,
+  error: onboardingError,
+  maybeShow,
+  dismiss: dismissWelcome,
+  createExamples,
+} = useOnboarding();
 
 provide(PROJECT_VALIDATION_KEY, projectValidation);
 
 // Load templates on mount
 templateStore.fetchTemplates();
+
+// First-run: offer the example showcase
+onMounted(maybeShow);
+
+async function onCreateExamples(): Promise<void> {
+  const firstPath = await createExamples();
+  await refresh();
+  if (!firstPath) return;
+  const node = findNodeByPath(firstPath, tree.value);
+  if (node) await onOpenFile(node);
+}
 
 const templateCode = ref("");
 const jsonData = ref("");
