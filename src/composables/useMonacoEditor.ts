@@ -2,6 +2,12 @@ import * as monaco from 'monaco-editor'
 import { onMounted, onUnmounted, type Ref } from 'vue'
 import { BUELO_LANGUAGE_ID } from '@/lib/buelo-language'
 
+// Monotonic id so each editor instance gets a distinct model URI. The app renders
+// the editor twice (AppLayout's desktop + mobile <main>s), so two instances of the
+// same file must not share one named model URI — otherwise they clobber each other's
+// model and one editor ends up blank.
+let modelUriSeq = 0
+
 export function useMonacoEditor(
   containerRef: Ref<HTMLElement | null>,
   language: string,
@@ -12,6 +18,8 @@ export function useMonacoEditor(
   // Model we explicitly created (named-URI path). The editor does not own a
   // model passed in via `model`, so we must dispose it ourselves on unmount.
   let ownedModel: monaco.editor.ITextModel | null = null
+  let resizeObserver: ResizeObserver | null = null
+  const layoutTimers: number[] = []
   const pendingChangeCallbacks: Array<() => void> = []
   const changeDisposables: monaco.IDisposable[] = []
 
@@ -38,11 +46,12 @@ export function useMonacoEditor(
     }
 
     if (options?.path) {
-      // A named model URI (e.g. file:///fatura.report.yml) is what lets monaco-yaml
-      // and the JSON-schema layer bind schemas by the `*.<kind>.yml` filename
-      // convention — an anonymous `inmemory://model/N` URI never matches fileMatch.
-      const uri = monaco.Uri.file(options.path)
-      monaco.editor.getModel(uri)?.dispose()
+      // A named model URI is what lets monaco-yaml bind schemas by the `*.<kind>.yml`
+      // filename convention — an anonymous `inmemory://model/N` URI never matches
+      // fileMatch. The unique `buelo-<n>` segment keeps each editor instance's URI
+      // distinct while preserving the real filename as the basename (so fileMatch
+      // still matches): e.g. file:///buelo-3/fatura.report.yml.
+      const uri = monaco.Uri.file(`/buelo-${modelUriSeq++}/${options.path}`)
       ownedModel = monaco.editor.createModel(initialValue, normalizedLanguage, uri)
       editor = monaco.editor.create(containerRef.value, { model: ownedModel, ...baseOptions })
     } else {
@@ -58,9 +67,29 @@ export function useMonacoEditor(
       changeDisposables.push(editor.onDidChangeModelContent(cb))
     }
     pendingChangeCallbacks.length = 0
+
+    // Monaco can render blank when created in a momentarily 0-sized container.
+    // This editor is mounted twice (AppLayout's desktop + mobile <main>s, one
+    // hidden), and `automaticLayout` doesn't reliably repaint on the 0->N size
+    // transition — leaving the visible editor empty. Force a relayout whenever the
+    // container actually has size.
+    const relayout = (): void => {
+      const el = containerRef.value
+      if (editor && el && el.clientHeight > 0 && el.clientWidth > 0) editor.layout()
+    }
+    // Nudge a few times after creation: a single early layout() lands before Monaco
+    // finishes initializing and is a no-op, so the content stays blank.
+    requestAnimationFrame(relayout)
+    for (const delay of [0, 120, 360]) layoutTimers.push(window.setTimeout(relayout, delay))
+    resizeObserver = new ResizeObserver(relayout)
+    resizeObserver.observe(containerRef.value)
   })
 
   onUnmounted(() => {
+    resizeObserver?.disconnect()
+    resizeObserver = null
+    for (const id of layoutTimers) clearTimeout(id)
+    layoutTimers.length = 0
     for (const disposable of changeDisposables) {
       disposable.dispose()
     }
