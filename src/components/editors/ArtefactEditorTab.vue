@@ -38,7 +38,7 @@ const lineCount = ref(1);
 function resolveLanguage(extension: string): string {
   if (extension.endsWith(".cs")) return "csharp";
   if (extension.endsWith(".json")) return "json";
-  if (extension.endsWith(".cs")) return "csharp";
+  if (extension.endsWith(".yml") || extension.endsWith(".yaml")) return "yaml";
   return "plaintext";
 }
 

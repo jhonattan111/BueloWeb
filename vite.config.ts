@@ -11,7 +11,11 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
-    monacoEditorPlugin({ languageWorkers: ['editorWorkerService', 'json', 'typescript'] }),
+    monacoEditorPlugin({
+      languageWorkers: ['editorWorkerService', 'json', 'typescript'],
+      // monaco-yaml ships its own web worker; register it as a custom worker.
+      customWorkers: [{ label: 'yaml', entry: 'monaco-yaml/yaml.worker' }],
+    }),
   ],
   resolve: {
     alias: {

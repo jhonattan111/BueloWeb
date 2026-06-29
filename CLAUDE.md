@@ -13,7 +13,7 @@ Guia para agentes de IA (Claude Code) neste repositório. É o **documento canô
 - **Vue 3.5** — Composition API, **sempre** `<script setup lang="ts">`
 - **TypeScript** + **Vite 6**
 - **Pinia 3** (estado) · **Vue Router 5** (uma rota: `/`)
-- **Monaco Editor** (modo `csharp` nativo) via `vite-plugin-monaco-editor` (patched)
+- **Monaco Editor** via `vite-plugin-monaco-editor` (patched): modo `csharp` (templates) **e** `yaml` (definições declarativas, via `monaco-yaml` + JSON Schemas da API)
 - **Tailwind CSS v4** (`@tailwindcss/vite`) + **shadcn-vue** / **reka-ui** (`components/ui/`)
 - `@vueuse/core`, `lucide-vue-next`
 - Gerenciador: **pnpm** (workspace) · alias `@` → `src`
@@ -76,7 +76,9 @@ components/
 - Componentes de UI vêm do shadcn-vue em `components/ui/` (config em `components.json`); reuse antes de criar novos.
 - Estado compartilhado → store Pinia; lógica reutilizável → composable em `composables/` (input `MaybeRefOrGetter` quando fizer sentido).
 - Chamadas HTTP só via `services/` (`fetch`, sem axios). Erros da API são lidos por `readApiError`.
-- Monaco: modo `csharp` nativo. A pasta `lib/buelo-language/` é a **camada de tipos/autocomplete de dados**, não uma linguagem custom — a DSL `.buelo` foi removida, não reintroduza.
+- Monaco: modo `csharp` (templates) e `yaml` (definições declarativas). A pasta `lib/buelo-language/` é a **camada de tipos/autocomplete**, não uma linguagem custom — a DSL `.buelo` foi removida, não reintroduza.
+- **YAML declarativo:** `lib/buelo-language/yamlSchemaSetup.ts` configura o `monaco-yaml` com os JSON Schemas servidos pela API (`GET api/schemas/{kind}`, em `services/schemaService.ts`), associados por convenção de nome `*.<kind>.yml` (ex.: `fatura.report.yml`). Worker `yaml` registrado em `vite.config.ts` (`customWorkers`).
+- **Pacotes:** `vite`/`@vitejs/plugin-vue` presos no major 6/5 — vite 7/8 quebram o `vite-plugin-monaco-editor@1.1.0` patchado. `lucide-vue-next` está deprecado (migrar p/ `@lucide/vue`).
 - Imports usam o alias `@/...`.
 
 ## Modelo mental do produto
