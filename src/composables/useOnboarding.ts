@@ -5,7 +5,7 @@ import {
   ONBOARDING_FILES,
   ONBOARDING_FOLDER,
   ONBOARDING_OPEN_FIRST,
-  ONBOARDING_REPORT_DATA_SOURCE,
+  ONBOARDING_REPORT_SETTINGS,
 } from '@/lib/onboardingExamples'
 
 const STORAGE_KEY = 'buelo.onboarded'
@@ -61,8 +61,8 @@ export function useOnboarding() {
       for (const file of ONBOARDING_FILES) {
         await createFile(file.path, file.content, true)
       }
-      for (const [reportPath, dataSourcePath] of Object.entries(ONBOARDING_REPORT_DATA_SOURCE)) {
-        presetFileSettings(reportPath, { dataSourcePath })
+      for (const [reportPath, reportSettings] of Object.entries(ONBOARDING_REPORT_SETTINGS)) {
+        presetFileSettings(reportPath, reportSettings)
       }
       markSeen()
       showWelcome.value = false

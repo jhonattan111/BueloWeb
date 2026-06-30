@@ -4,6 +4,8 @@ import {
   Table2,
   Users,
   LayoutDashboard,
+  FileSpreadsheet,
+  Layers,
   FileCode,
   Braces,
 } from "lucide-vue-next";
@@ -39,6 +41,16 @@ const items = [
     icon: LayoutDashboard,
     title: "dashboard.report.yml",
     desc: "KPI cards in a row, plus markdown — showcases card / row / panel.",
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "sales.report.yml",
+    desc: "Tabular report exported to Excel (.xlsx) — output format preset to Excel.",
+  },
+  {
+    icon: Layers,
+    title: "statement.report.yml",
+    desc: "Imports an external layout (letterhead.component.yml) via import / use / with.",
   },
   {
     icon: FileCode,

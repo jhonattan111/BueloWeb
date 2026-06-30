@@ -199,10 +199,105 @@ static string Initial(string name) =>
     string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
 `
 
+const SALES_REPORT = `# Sales report - a tabular report exported to EXCEL (.xlsx via ClosedXML).
+# This file's Output Format is preset to Excel in Report Settings - just click Render to get the .xlsx.
+# (The same declarative report can also render to PDF - switch Output Format to try it.)
+kind: report
+name: sales
+meta:
+  page: { size: A4, margin: "2cm" }
+header:
+  - text: { value: "Sales by Region", style: { bold: true, size: 16 } }
+content:
+  - table:
+      data: data.rows
+      rowStyle: { paddingY: 4, borderBottom: "1px #DDDDDD" }
+      columns:
+        - { width: 3*, header: "Region",  cell: "{{ item.region }}" }
+        - { width: 1*, header: "Units",   cell: "{{ item.units }}", align: right }
+        - { width: 2*, header: "Revenue", cell: "{{ currency(item.revenue) }}", align: right }
+      footer:
+        - { span: 2, text: "Total", style: { bold: true, align: right } }
+        - { text: "{{ currency(sum(data.rows, 'revenue')) }}", style: { bold: true, align: right } }
+`
+
+const SALES_DATA = `{
+  "rows": [
+    { "region": "North", "units": 320, "revenue": 18400.0 },
+    { "region": "South", "units": 540, "revenue": 29750.5 },
+    { "region": "East",  "units": 410, "revenue": 22300.0 },
+    { "region": "West",  "units": 280, "revenue": 15990.0 }
+  ]
+}
+`
+
+const LETTERHEAD_COMPONENT = `# Reusable layout COMPONENT - a branded letterhead with a "content" slot.
+# It is imported by statement.report.yml (kind: component, referenced by its name "letterhead").
+# This is the external layout/header that other reports reuse.
+kind: component
+name: letterhead
+params:
+  title:   { type: string }
+  company: { type: string, default: "Buelo Accounting" }
+slots: [content]
+body:
+  - row:
+      items:
+        - column:
+            content:
+              - text: { value: "{{ company }}", style: { bold: true, size: 16, color: "#1D9E75" } }
+              - text: { value: "{{ title }}", style: { size: 11, color: "#666666" } }
+        - column:
+            content:
+              - text: { value: "Issued: {{ today }}", style: { size: 9, color: "#999999", align: right } }
+  - divider: { color: "#1D9E75", thickness: 2 }
+  - spacer: 10
+  - slot: content
+`
+
+const STATEMENT_REPORT = `# Modular report - IMPORTS an external layout (letterhead.component.yml) and injects its
+# content into the component's slot. Shows import: + use: + with: (reuse a header/layout
+# across reports). When you Render, the editor sends the workspace's module files along.
+# In Report Settings, pick "examples/statement.data.json" as the Data source, then click Render.
+kind: report
+name: statement
+meta:
+  page: { size: A4, margin: "2cm" }
+import:
+  - component: letterhead
+use: letterhead
+with:
+  title: "Account Statement"
+content:
+  - text: { value: "Client: {{ data.client }}", style: { size: 11, bold: true } }
+  - spacer: 8
+  - table:
+      data: data.entries
+      rowStyle: { paddingY: 4, borderBottom: "1px #EEEEEE" }
+      columns:
+        - { width: 2*, header: "Date",        cell: "{{ item.date }}" }
+        - { width: 4*, header: "Description", cell: "{{ item.description }}" }
+        - { width: 2*, header: "Amount",      cell: "{{ currency(item.amount) }}", align: right }
+      footer:
+        - { span: 2, text: "Balance", style: { bold: true, align: right } }
+        - { text: "{{ currency(sum(data.entries, 'amount')) }}", style: { bold: true, align: right } }
+`
+
+const STATEMENT_DATA = `{
+  "client": "Acme Trading Co.",
+  "entries": [
+    { "date": "2026-03-01", "description": "Opening balance",  "amount": 1200.0 },
+    { "date": "2026-03-08", "description": "Invoice #1042",     "amount": -350.0 },
+    { "date": "2026-03-15", "description": "Payment received",  "amount": 800.0 },
+    { "date": "2026-03-22", "description": "Service fee",       "amount": -120.5 }
+  ]
+}
+`
+
 /** Folder where the examples are created. */
 export const ONBOARDING_FOLDER = 'examples'
 
-/** All showcase files (reports + data + script). */
+/** All showcase files (reports + data + module + script). */
 export const ONBOARDING_FILES: OnboardingFile[] = [
   { path: `${ONBOARDING_FOLDER}/invoice.report.yml`, content: INVOICE_REPORT },
   { path: `${ONBOARDING_FOLDER}/invoice.data.json`, content: INVOICE_DATA },
@@ -210,20 +305,33 @@ export const ONBOARDING_FILES: OnboardingFile[] = [
   { path: `${ONBOARDING_FOLDER}/employees.data.json`, content: EMPLOYEES_DATA },
   { path: `${ONBOARDING_FOLDER}/dashboard.report.yml`, content: DASHBOARD_REPORT },
   { path: `${ONBOARDING_FOLDER}/dashboard.data.json`, content: DASHBOARD_DATA },
+  { path: `${ONBOARDING_FOLDER}/sales.report.yml`, content: SALES_REPORT },
+  { path: `${ONBOARDING_FOLDER}/sales.data.json`, content: SALES_DATA },
+  { path: `${ONBOARDING_FOLDER}/letterhead.component.yml`, content: LETTERHEAD_COMPONENT },
+  { path: `${ONBOARDING_FOLDER}/statement.report.yml`, content: STATEMENT_REPORT },
+  { path: `${ONBOARDING_FOLDER}/statement.data.json`, content: STATEMENT_DATA },
   { path: `${ONBOARDING_FOLDER}/letter.cs`, content: LETTER_CS },
   { path: `${ONBOARDING_FOLDER}/letter.data.json`, content: LETTER_DATA },
   { path: `${ONBOARDING_FOLDER}/helpers.csx`, content: HELPERS_CSX },
 ]
 
+export interface OnboardingReportSettings {
+  dataSourcePath: string
+  outputFormat?: 'pdf' | 'excel'
+}
+
 /**
- * Data source pre-configured per report, so that "open + Render" works immediately
- * without the user having to pick the JSON by hand.
+ * Report settings pre-configured per file, so that "open + Render" works immediately:
+ * the data source is set (no need to pick the JSON by hand) and, for the Excel example,
+ * the output format is set to Excel.
  */
-export const ONBOARDING_REPORT_DATA_SOURCE: Record<string, string> = {
-  [`${ONBOARDING_FOLDER}/invoice.report.yml`]: `${ONBOARDING_FOLDER}/invoice.data.json`,
-  [`${ONBOARDING_FOLDER}/employees.report.yml`]: `${ONBOARDING_FOLDER}/employees.data.json`,
-  [`${ONBOARDING_FOLDER}/dashboard.report.yml`]: `${ONBOARDING_FOLDER}/dashboard.data.json`,
-  [`${ONBOARDING_FOLDER}/letter.cs`]: `${ONBOARDING_FOLDER}/letter.data.json`,
+export const ONBOARDING_REPORT_SETTINGS: Record<string, OnboardingReportSettings> = {
+  [`${ONBOARDING_FOLDER}/invoice.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/invoice.data.json` },
+  [`${ONBOARDING_FOLDER}/employees.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/employees.data.json` },
+  [`${ONBOARDING_FOLDER}/dashboard.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/dashboard.data.json` },
+  [`${ONBOARDING_FOLDER}/sales.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/sales.data.json`, outputFormat: 'excel' },
+  [`${ONBOARDING_FOLDER}/statement.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/statement.data.json` },
+  [`${ONBOARDING_FOLDER}/letter.cs`]: { dataSourcePath: `${ONBOARDING_FOLDER}/letter.data.json` },
 }
 
 /** Report opened automatically after creating the examples. */
