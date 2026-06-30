@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { FolderPlus, Plus, RefreshCw } from "lucide-vue-next";
+import { FolderPlus, Loader2, Plus, RefreshCw, Sparkles } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -28,8 +28,17 @@ import NewFileDialog from "@/components/editors/NewFileDialog.vue";
 import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
 import type { FileNode } from "@/types/workspace";
 
+withDefaults(
+  defineProps<{
+    /** True while the example showcase is being created (disables the empty-state button). */
+    creatingExamples?: boolean;
+  }>(),
+  { creatingExamples: false },
+);
+
 const emit = defineEmits<{
   openFile: [node: FileNode];
+  loadExamples: [];
 }>();
 
 const {
@@ -197,11 +206,30 @@ async function confirmRename(): Promise<void> {
             <p class="text-xs text-muted-foreground mb-2">
               Workspace is empty.
             </p>
-            <div class="flex items-center justify-center gap-2">
-              <Button size="sm" variant="outline" @click="openNewFolder(null)"
-                >New folder</Button
+            <div class="flex flex-col items-center gap-2">
+              <Button
+                size="sm"
+                :disabled="creatingExamples"
+                @click="emit('loadExamples')"
               >
-              <Button size="sm" @click="openNewFile(null)">New file</Button>
+                <Loader2
+                  v-if="creatingExamples"
+                  class="size-3.5 mr-1 animate-spin"
+                />
+                <Sparkles v-else class="size-3.5 mr-1" />
+                Load examples
+              </Button>
+              <div class="flex items-center justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="openNewFolder(null)"
+                  >New folder</Button
+                >
+                <Button size="sm" variant="outline" @click="openNewFile(null)"
+                  >New file</Button
+                >
+              </div>
             </div>
           </div>
         </template>

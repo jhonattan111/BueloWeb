@@ -25,7 +25,12 @@
           v-show="activeSidebarTab === 'explorer'"
           class="flex flex-col flex-1 min-h-0"
         >
-          <FileTreePanel class="flex-1 min-h-0" @open-file="onOpenFile" />
+          <FileTreePanel
+            class="flex-1 min-h-0"
+            :creating-examples="isCreatingExamples"
+            @open-file="onOpenFile"
+            @load-examples="onCreateExamples"
+          />
           <ProjectSettingsPanel />
         </div>
 

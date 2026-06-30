@@ -68,7 +68,7 @@ export function useOnboarding() {
       showWelcome.value = false
       return ONBOARDING_OPEN_FIRST
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Falha ao criar os exemplos.'
+      error.value = err instanceof Error ? err.message : 'Failed to create the examples.'
       return null
     } finally {
       isCreating.value = false
