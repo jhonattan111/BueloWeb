@@ -1,8 +1,10 @@
 <template>
   <div class="flex flex-col h-full min-h-0 bg-muted/30">
     <div
-      class="flex items-center gap-2 px-2 h-10 shrink-0 border-b border-border overflow-x-auto"
+      class="flex items-start gap-2 px-2 py-1 shrink-0 border-b border-border"
     >
+      <!-- Tab strip wraps onto new rows (VS-style) instead of scrolling horizontally. -->
+      <div class="flex flex-wrap items-center gap-1 flex-1 min-w-0 max-h-32 overflow-y-auto">
       <div
         v-for="path in openPaths"
         :key="path"
@@ -12,6 +14,7 @@
             ? 'bg-accent text-accent-foreground border-border'
             : 'bg-background/60 text-muted-foreground border-transparent hover:bg-muted'
         "
+        @mousedown.middle.prevent="requestClose(path)"
       >
         <button
           type="button"
@@ -36,7 +39,9 @@
         </button>
       </div>
 
-      <div class="flex-1 min-w-2" />
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
 
       <span
         v-if="diagnosticState === 'validating'"
@@ -86,6 +91,7 @@
         <span v-if="reportStore.isRendering">Rendering...</span>
         <span v-else>Render</span>
       </Button>
+      </div>
     </div>
 
     <div class="flex-1 min-h-0 relative">
