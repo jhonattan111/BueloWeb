@@ -46,10 +46,10 @@ Every service reads `import.meta.env.VITE_API_BASE_URL`. The API enables CORS on
 pages/ReportEditor/Index.vue   ← single screen: 3-panel shell (tree · editor · preview)
 router/index.ts                ← route '/' → ReportEditor
 services/                      ← fetch against the API (no axios)
-  reportService.ts             ← render, renderById, renderWorkspaceFile, getSupportedFormats
+  reportService.ts             ← render, renderById, renderWorkspaceFile, renderDeclarative, getSupportedFormats
   templateService.ts           ← template CRUD
   validateService.ts           ← file/project validation
-  workspaceService.ts          ← file tree, content, types
+  workspaceService.ts          ← file tree, content, types, listModuleDefinitions (declarative imports)
 stores/                        ← Pinia: reportStore, templateStore
 composables/                   ← useActiveTemplate, useMonacoEditor, useOpenEditors,
                                  useFileValidation, useProjectValidation, useReportSettings,

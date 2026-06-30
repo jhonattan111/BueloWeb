@@ -1,4 +1,8 @@
 node_modules
 dist/
-# Claude Code — settings pessoais
+
+# TypeScript incremental build cache (machine-local build output)
+*.tsbuildinfo
+
+# Claude Code — personal settings
 .claude/settings.local.json

@@ -135,8 +135,9 @@ export async function renderWorkspaceFile(
 
 /**
  * Renders a declarative report: the YAML definition + JSON data are sent to the
- * engine (no Roslyn). Use format 'pdf' (default) or 'excel'. Self-contained
- * reports only — `import:` of other modules is not wired through the editor yet.
+ * engine (no Roslyn). Use format 'pdf' (default) or 'excel'. Pass `modules` (the
+ * workspace's styles/component/theme/... YAML definitions) so the report's
+ * `import:`/`use:`/`class:` directives resolve.
  */
 export async function renderDeclarative(
   definition: string,
@@ -144,6 +145,7 @@ export async function renderDeclarative(
   options?: {
     format?: string
     fileName?: string
+    modules?: string[]
   },
 ): Promise<RenderResult> {
   const format = options?.format ?? 'pdf'
@@ -156,6 +158,7 @@ export async function renderDeclarative(
         Definition: definition,
         Data: data,
         FileName: options?.fileName ?? 'report',
+        ...(options?.modules?.length ? { Modules: options.modules } : {}),
       }),
     },
   )

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { renderReport, renderById, renderWorkspaceFile as renderWorkspaceFileApi, renderDeclarative } from '@/services/reportService'
+import { listModuleDefinitions } from '@/services/workspaceService'
 import type { TemplateMode } from '@/types/template'
 import type { ReportSettingsState } from '@/composables/useReportSettings'
 import { useTemplateStore } from '@/stores/templateStore'
@@ -159,7 +160,8 @@ export const useReportStore = defineStore('report', () => {
    * Renders a declarative report (`*.report.yml`) from the editor: the YAML
    * definition + JSON data go to the declarative engine. Only `outputFormat` is
    * used from the settings — page layout for declarative reports comes from the
-   * YAML `meta:` block, not the Report Settings panel.
+   * YAML `meta:` block, not the Report Settings panel. When the report `import:`s
+   * modules, the workspace's module definitions are gathered and sent along.
    */
   async function renderDeclarativeWithSettings(
     definition: string,
@@ -180,7 +182,12 @@ export const useReportStore = defineStore('report', () => {
     isRendering.value = true
     try {
       const format = reportSettings.outputFormat ?? 'pdf'
-      const result = await renderDeclarative(definition, data, { format, fileName: baseName })
+      // Only fetch workspace modules when the report actually imports them — keeps
+      // self-contained reports a single request and unaffected by unrelated modules.
+      const modules = /(^|\n)\s*import\s*:/.test(definition)
+        ? await listModuleDefinitions().catch(() => [])
+        : undefined
+      const result = await renderDeclarative(definition, data, { format, fileName: baseName, modules })
       resultBlob.value = result.blob
       resultContentType.value = result.contentType
       resultFileExtension.value = result.fileExtension

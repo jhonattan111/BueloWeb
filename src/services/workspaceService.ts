@@ -136,6 +136,29 @@ export async function listJsonFiles(): Promise<string[]> {
   return paths.filter((path) => path.toLowerCase().endsWith('.json'))
 }
 
+/** Declarative module kinds (everything except the renderable `report`). */
+const MODULE_KIND_RE = /\.(component|styles|theme|formats|lib|validator)\.ya?ml$/i
+
+/**
+ * Reads every declarative module definition in the workspace (styles/component/theme/formats/lib/
+ * validator, by the `*.<kind>.yml` name convention) and returns their YAML contents — to feed the
+ * declarative render's `Modules` so a report's `import:`/`use:`/`class:` resolve.
+ */
+export async function listModuleDefinitions(): Promise<string[]> {
+  const tree = await fetchWorkspaceTree()
+  const moduleFiles = flattenFiles(tree).filter((node) => MODULE_KIND_RE.test(node.name))
+  const contents = await Promise.all(
+    moduleFiles.map(async (node) => {
+      try {
+        return (await getFile(node.path)).content
+      } catch {
+        return null
+      }
+    }),
+  )
+  return contents.filter((content): content is string => !!content && content.trim().length > 0)
+}
+
 export function buildPath(parentFolderPath: string | null, fileName: string): string {
   return joinPath(parentFolderPath, fileName)
 }
