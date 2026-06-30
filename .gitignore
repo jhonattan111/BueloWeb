@@ -1,6 +1,9 @@
 node_modules
 dist/
 
+# Test coverage output
+coverage/
+
 # TypeScript incremental build cache (machine-local build output)
 *.tsbuildinfo
 

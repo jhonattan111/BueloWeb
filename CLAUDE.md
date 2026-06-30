@@ -26,7 +26,14 @@ pnpm dev          # http://localhost:5173
 pnpm build        # vue-tsc -b && vite build
 pnpm preview
 pnpm typecheck    # vue-tsc --noEmit
+pnpm test         # vitest (watch)
+pnpm test:run     # vitest run (CI)
+pnpm test:coverage # vitest run --coverage (v8; config in vitest.config.ts)
 ```
+
+Tests: **Vitest + @vue/test-utils** (happy-dom), files `src/**/*.test.ts`. CI runs typecheck +
+build + test + coverage on push/PR to `master` (`.github/workflows/ci.yml`). Monaco-coupled files
+are excluded from coverage (need the editor runtime).
 
 **After any change, run `pnpm typecheck` (zero errors) before finishing.** For the app to work, `BueloApi` must be running on `:5238` (`dotnet run --project ../BueloApi/Buelo.Api`).
 
