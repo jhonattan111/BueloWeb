@@ -4,10 +4,23 @@ import type { TemplateFile, TemplateFileKind } from '@/types/template'
 import { useOpenEditors } from '@/composables/useOpenEditors'
 
 const filesState = ref<TemplateFile[]>([])
+// Last-saved (baseline) content per open path. A file is "dirty" when its live editor
+// content differs from this baseline — derived, never set by hand, so it can't drift.
+const savedContentState = ref<Record<string, string>>({})
 const isLoadingState = ref(false)
 
 function normalizePath(path: string): string {
   return path.replace(/\\/g, '/').trim()
+}
+
+function setBaseline(path: string, content: string): void {
+  savedContentState.value = { ...savedContentState.value, [path]: content }
+}
+
+function clearBaseline(path: string): void {
+  const next = { ...savedContentState.value }
+  delete next[path]
+  savedContentState.value = next
 }
 
 function inferKindFromExtension(path: string): TemplateFileKind {
@@ -39,6 +52,17 @@ export function useActiveTemplate() {
     filesState.value.find((entry) => entry.path === activeFilePath.value) ?? null,
   )
 
+  /** A file has unsaved edits when its live content differs from the saved baseline. */
+  function isDirty(path: string): boolean {
+    const normalizedPath = normalizePath(path)
+    const file = filesState.value.find((entry) => entry.path === normalizedPath)
+    if (!file) return false
+    const baseline = savedContentState.value[normalizedPath]
+    return baseline !== undefined && file.content !== baseline
+  }
+
+  const hasUnsaved = computed(() => editors.openPaths.value.some((p) => isDirty(p)))
+
   async function openFile(path: string): Promise<void> {
     const normalizedPath = normalizePath(path)
     if (!normalizedPath) return
@@ -46,13 +70,14 @@ export function useActiveTemplate() {
     isLoadingState.value = true
     try {
       const loaded = await workspaceService.getFile(normalizedPath)
+      const resolved = normalizePath(loaded.path)
       upsertOpenFile({
-        path: normalizePath(loaded.path),
+        path: resolved,
         kind: inferKindFromExtension(loaded.path),
         content: loaded.content,
       })
-      editors.open(normalizedPath)
-      editors.markDirty(normalizedPath, false)
+      setBaseline(resolved, loaded.content)
+      editors.open(resolved)
     } finally {
       isLoadingState.value = false
     }
@@ -65,12 +90,20 @@ export function useActiveTemplate() {
   }): Promise<void> {
     const normalizedPath = normalizePath(payload.path)
     const saved = await workspaceService.saveFile(normalizedPath, payload.content, true)
+    const resolved = normalizePath(saved.path)
     upsertOpenFile({
-      path: normalizePath(saved.path),
+      path: resolved,
       kind: payload.kind ?? inferKindFromExtension(saved.path),
       content: saved.content,
     })
-    editors.markDirty(normalizedPath, false)
+    setBaseline(resolved, saved.content)
+  }
+
+  /** Saves the active file if it has unsaved edits. No-op otherwise. */
+  async function saveActiveFile(): Promise<void> {
+    const file = activeFile.value
+    if (!file || !isDirty(file.path)) return
+    await saveFile({ path: file.path, content: file.content })
   }
 
   async function loadFiles(paths?: string[]): Promise<void> {
@@ -84,7 +117,16 @@ export function useActiveTemplate() {
     const normalizedPath = normalizePath(path)
     await workspaceService.deleteNode(normalizedPath)
     filesState.value = filesState.value.filter((entry) => entry.path !== normalizedPath)
+    clearBaseline(normalizedPath)
     editors.close(normalizedPath)
+  }
+
+  /** Closes a tab and drops its state (any unsaved edits are discarded — confirm before calling). */
+  function closeFile(path: string): void {
+    const normalizedPath = normalizePath(path)
+    editors.close(normalizedPath)
+    clearBaseline(normalizedPath)
+    filesState.value = filesState.value.filter((entry) => entry.path !== normalizedPath)
   }
 
   function setFileContent(path: string, content: string): void {
@@ -98,7 +140,6 @@ export function useActiveTemplate() {
     const next = [...filesState.value]
     next[idx] = { ...existing, content }
     filesState.value = next
-    editors.markDirty(normalizedPath, true)
   }
 
   function getFile(path: string): TemplateFile | null {
@@ -112,16 +153,16 @@ export function useActiveTemplate() {
     activeFilePath,
     isLoading,
     openPaths: editors.openPaths,
-    dirtyMap: editors.dirtyMap,
+    hasUnsaved,
     openFile,
     saveFile,
+    saveActiveFile,
     loadFiles,
     removeFile,
     setFileContent,
     getFile,
     switchToFile: editors.switchTo,
-    closeFile: editors.close,
-    markDirty: editors.markDirty,
-    isDirty: editors.isDirty,
+    closeFile,
+    isDirty,
   }
 }

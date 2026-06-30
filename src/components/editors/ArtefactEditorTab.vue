@@ -17,7 +17,6 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import { useDebounceFn } from "@vueuse/core";
 import * as monaco from "monaco-editor";
 import { useMonacoEditor } from "@/composables/useMonacoEditor";
 import { useFileValidation } from "@/composables/useFileValidation";
@@ -26,7 +25,7 @@ import type { TemplateArtefact, FileValidationResult } from "@/types/template";
 
 const props = defineProps<{ artefact: TemplateArtefact }>();
 const emit = defineEmits<{
-  save: [artefact: TemplateArtefact];
+  change: [content: string];
   validationResult: [fileId: string, result: FileValidationResult];
 }>();
 
@@ -52,13 +51,11 @@ const { getValue, setValue, onDidChangeContent, getModel } = useMonacoEditor(
   { path: props.artefact.path ?? `${props.artefact.name}${props.artefact.extension}` },
 );
 
-const debouncedSave = useDebounceFn(() => {
-  emit("save", { ...props.artefact, content: getValue() });
-}, 1000);
-
 onDidChangeContent(() => {
   lineCount.value = getModel()?.getLineCount() ?? 1;
-  debouncedSave();
+  // Push live content up so dirty-state and render see unsaved edits. Saving is explicit (Ctrl+S);
+  // the parent's setValue() guard makes the resulting prop round-trip a no-op (no cursor reset).
+  emit("change", getValue());
 });
 
 // Track cursor position via Monaco editor events (set up after mount)

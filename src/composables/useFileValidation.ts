@@ -7,6 +7,10 @@ import type { FileValidationResult } from '@/types/template'
 
 const MARKER_OWNER = 'buelo-validate'
 
+// Extensions Monaco validates client-side (JSON natively, YAML via monaco-yaml + JSON Schemas).
+// For these we read the editor markers instead of calling the server validator.
+const MONACO_VALIDATED = new Set(['.json', '.yml', '.yaml'])
+
 export interface UseFileValidationReturn {
   isValidating: Ref<boolean>
   result: Ref<FileValidationResult | null>
@@ -23,30 +27,34 @@ export function useFileValidation(
   const isValidating = ref(false)
   const result = ref<FileValidationResult | null>(null)
 
-  const errorCount = computed(() => {
-    const ext = toValue(extension)
-    if (ext === '.json') {
-      // Use Monaco's own JSON markers
-      const model = toValue(monacoModel)
-      if (!model) return 0
-      return monaco.editor
-        .getModelMarkers({ owner: 'json' })
-        .filter((m) => m.resource.toString() === model.uri.toString() && m.severity === monaco.MarkerSeverity.Error)
-        .length
+  // Bumped whenever Monaco markers for this model change, so the marker-based counts below
+  // recompute reactively (getModelMarkers itself is not reactive).
+  const markersVersion = ref(0)
+  const markerListener = monaco.editor.onDidChangeMarkers((uris) => {
+    const model = toValue(monacoModel)
+    if (model && uris.some((u) => u.toString() === model.uri.toString())) {
+      markersVersion.value++
     }
+  })
+
+  function countMarkers(severity: monaco.MarkerSeverity): number {
+    // Touch markersVersion so this is reactive to marker changes.
+    void markersVersion.value
+    const model = toValue(monacoModel)
+    if (!model) return 0
+    return monaco.editor
+      .getModelMarkers({ resource: model.uri })
+      .filter((m) => m.severity === severity && m.owner !== MARKER_OWNER)
+      .length
+  }
+
+  const errorCount = computed(() => {
+    if (MONACO_VALIDATED.has(toValue(extension))) return countMarkers(monaco.MarkerSeverity.Error)
     return result.value?.errors.length ?? 0
   })
 
   const warningCount = computed(() => {
-    const ext = toValue(extension)
-    if (ext === '.json') {
-      const model = toValue(monacoModel)
-      if (!model) return 0
-      return monaco.editor
-        .getModelMarkers({ owner: 'json' })
-        .filter((m) => m.resource.toString() === model.uri.toString() && m.severity === monaco.MarkerSeverity.Warning)
-        .length
-    }
+    if (MONACO_VALIDATED.has(toValue(extension))) return countMarkers(monaco.MarkerSeverity.Warning)
     return result.value?.warnings.length ?? 0
   })
 
@@ -87,8 +95,8 @@ export function useFileValidation(
     const ext = toValue(extension)
     const text = toValue(content)
 
-    if (ext === '.json') {
-      // Monaco handles JSON natively — no network call needed
+    if (MONACO_VALIDATED.has(ext)) {
+      // Monaco handles JSON/YAML natively (markers) — no network call, no "no validator" noise.
       result.value = { valid: true, errors: [], warnings: [] }
       return
     }
@@ -116,6 +124,7 @@ export function useFileValidation(
 
   onUnmounted(() => {
     stopWatch()
+    markerListener.dispose()
     clearMarkers()
   })
 

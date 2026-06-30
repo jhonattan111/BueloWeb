@@ -30,7 +30,7 @@
         <button
           type="button"
           class="opacity-0 group-hover:opacity-100 rounded p-0.5 mr-1 hover:bg-muted-foreground/20"
-          @click.stop="closeFile(path)"
+          @click.stop="requestClose(path)"
         >
           ×
         </button>
@@ -112,7 +112,7 @@
         <ArtefactEditorTab
           :key="activeArtefact.path ?? activeArtefact.name"
           :artefact="activeArtefact"
-          @save="onSaveArtefact"
+          @change="onArtefactChange"
           @validation-result="onArtefactValidationResult"
         />
       </div>
@@ -131,13 +131,43 @@
     >
       {{ validationError }}
     </p>
+
+    <AlertDialog
+      :open="pendingClose !== null"
+      @update:open="(v) => { if (!v) pendingClose = null; }"
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+          <AlertDialogDescription>
+            "{{ pendingClose ? fileName(pendingClose) : "" }}" has unsaved
+            changes. Save before closing?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button variant="outline" @click="confirmCloseDiscard">
+            Don't save
+          </Button>
+          <Button @click="confirmCloseSave">Save</Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { useDebounceFn } from "@vueuse/core";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import TemplateEditor from "./TemplateEditor.vue";
 import JsonEditor from "./JsonEditor.vue";
 import ArtefactEditorTab from "./ArtefactEditorTab.vue";
@@ -173,7 +203,7 @@ const {
   switchToFile,
   closeFile,
   isDirty,
-  markDirty,
+  getFile: getOpenFile,
 } = useActiveTemplate();
 const { setValidationResult } = useWorkspaceTree();
 const projectValidation = inject<UseProjectValidation | null>(
@@ -223,38 +253,18 @@ watch(
   { immediate: true },
 );
 
-const debouncedSaveBuelo = useDebounceFn(async () => {
-  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".cs") return;
-  await saveFile({
-    path: activeFile.value.path,
-    content: templateCodeModel.value,
-  });
-}, 600);
-
-const debouncedSaveJson = useDebounceFn(async () => {
-  if (!activeFile.value || extensionOf(activeFile.value.path) !== ".json")
-    return;
-  await saveFile({
-    path: activeFile.value.path,
-    content: jsonDataModel.value,
-    kind: "data",
-  });
-}, 600);
-
+// Push live editor content into the open-file state (drives the dirty indicator and lets
+// Render use unsaved edits). Persisting is explicit — Ctrl+S, handled at the page level.
 watch(templateCodeModel, (value) => {
   const path = activeFile.value?.path;
   if (!path || extensionOf(path) !== ".cs") return;
   setFileContent(path, value);
-  markDirty(path, true);
-  debouncedSaveBuelo();
 });
 
 watch(jsonDataModel, (value) => {
   const path = activeFile.value?.path;
   if (!path || extensionOf(path) !== ".json") return;
   setFileContent(path, value);
-  markDirty(path, true);
-  debouncedSaveJson();
 });
 
 const { validationError } = useTemplateDiagnostics(
@@ -319,13 +329,39 @@ async function onRender(): Promise<void> {
   );
 }
 
-async function onSaveArtefact(artefact: TemplateArtefact): Promise<void> {
-  const path = artefact.path ?? `${artefact.name}${artefact.extension}`;
-  await saveFile({
-    path,
-    content: artefact.content,
-    kind: inferFileKind(path),
-  });
+function onArtefactChange(content: string): void {
+  const path = activeFile.value?.path;
+  if (!path) return;
+  setFileContent(path, content);
+}
+
+// ── Close with unsaved-changes guard ──────────────────────────────────────────
+const pendingClose = ref<string | null>(null);
+
+function requestClose(path: string): void {
+  if (isDirty(path)) {
+    pendingClose.value = path;
+  } else {
+    closeFile(path);
+  }
+}
+
+async function confirmCloseSave(): Promise<void> {
+  const path = pendingClose.value;
+  if (!path) return;
+  const file = getOpenFile(path);
+  if (file) {
+    await saveFile({ path, content: file.content, kind: inferFileKind(path) });
+  }
+  closeFile(path);
+  pendingClose.value = null;
+}
+
+function confirmCloseDiscard(): void {
+  const path = pendingClose.value;
+  if (!path) return;
+  closeFile(path);
+  pendingClose.value = null;
 }
 
 function onArtefactValidationResult(

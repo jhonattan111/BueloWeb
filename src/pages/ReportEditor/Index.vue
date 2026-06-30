@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, ref } from "vue";
+import { onBeforeUnmount, onMounted, provide, ref } from "vue";
 import { FolderOpen, LayoutTemplate } from "lucide-vue-next";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import WelcomeDialog from "@/components/onboarding/WelcomeDialog.vue";
@@ -104,7 +104,7 @@ import { useOnboarding } from "@/composables/useOnboarding";
 import { useTemplateStore } from "@/stores/templateStore";
 import type { FileNode } from "@/types/workspace";
 
-const { openFile } = useActiveTemplate();
+const { openFile, saveActiveFile, hasUnsaved } = useActiveTemplate();
 const { tree, selectNode, refresh } = useWorkspaceTree();
 const projectValidation = useProjectValidation();
 const templateStore = useTemplateStore();
@@ -125,6 +125,32 @@ templateStore.fetchTemplates();
 
 // First-run: offer the example showcase
 onMounted(maybeShow);
+
+// Explicit save (Ctrl/Cmd+S) — overrides the browser's "save page" dialog.
+function onGlobalKeydown(event: KeyboardEvent): void {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "s") {
+    event.preventDefault();
+    void saveActiveFile();
+  }
+}
+
+// Warn before leaving the page with unsaved edits.
+function onBeforeUnload(event: BeforeUnloadEvent): void {
+  if (hasUnsaved.value) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+}
+
+onMounted(() => {
+  window.addEventListener("keydown", onGlobalKeydown);
+  window.addEventListener("beforeunload", onBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onGlobalKeydown);
+  window.removeEventListener("beforeunload", onBeforeUnload);
+});
 
 async function onCreateExamples(): Promise<void> {
   const firstPath = await createExamples();
