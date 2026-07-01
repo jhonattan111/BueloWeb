@@ -7,7 +7,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { ProjectValidationResult } from '@/services/validateService'

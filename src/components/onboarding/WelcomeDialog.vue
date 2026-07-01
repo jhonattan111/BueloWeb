@@ -8,7 +8,7 @@ import {
   Layers,
   FileCode,
   Braces,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

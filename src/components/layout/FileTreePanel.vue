@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FolderPlus, Loader2, Plus, RefreshCw, Sparkles } from 'lucide-vue-next'
+import { FolderPlus, Loader2, Plus, RefreshCw, Sparkles } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {

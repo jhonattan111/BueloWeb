@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from 'vue'
-import { Download, FileSpreadsheet, Printer } from 'lucide-vue-next'
+import { Download, FileSpreadsheet, Printer } from '@lucide/vue'
 import { useReportStore } from '@/stores/reportStore'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'

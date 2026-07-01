@@ -209,7 +209,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,

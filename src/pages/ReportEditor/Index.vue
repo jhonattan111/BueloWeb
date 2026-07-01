@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
-import { FolderOpen, LayoutTemplate } from 'lucide-vue-next'
+import { FolderOpen, LayoutTemplate } from '@lucide/vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import WelcomeDialog from '@/components/onboarding/WelcomeDialog.vue'
 import FileTreePanel from '@/components/layout/FileTreePanel.vue'

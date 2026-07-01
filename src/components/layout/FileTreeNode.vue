@@ -11,7 +11,7 @@ import {
   FolderOpen,
   Layers,
   LayoutTemplate,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import type { FileNode } from '@/types/workspace'
 import type { FileValidationResult } from '@/types/template'
 

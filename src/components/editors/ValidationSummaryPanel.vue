@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AlertCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { AlertCircle, AlertTriangle, ChevronDown, ChevronUp } from '@lucide/vue'
 import type { FileValidationResult, ValidationDiagnostic } from '@/types/template'
 
 export interface FileProblemEntry {

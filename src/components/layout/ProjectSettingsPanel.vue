@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { ChevronDown, ChevronRight } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight } from '@lucide/vue'
 import { useReportSettings } from '@/composables/useReportSettings'
 
 const PAGE_SIZES = ['A4', 'A3', 'A5', 'Letter', 'Legal'] as const

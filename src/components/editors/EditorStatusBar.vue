@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AlertCircle, AlertTriangle, CheckCircle, Loader2 } from 'lucide-vue-next'
+import { AlertCircle, AlertTriangle, CheckCircle, Loader2 } from '@lucide/vue'
 
 const props = defineProps<{
   isValidating: boolean
