@@ -1,0 +1,67 @@
+name: E2E
+
+# Cross-stack end-to-end: Playwright drives the real app while the Vite dev server AND the API
+# (sibling BueloApi repo) run. This is the web+API integration the unit tests can't cover.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  e2e:
+    name: Playwright (web + API)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout web
+        uses: actions/checkout@v4
+        with:
+          path: BueloWeb
+
+      # The Playwright webServer starts the API from ../BueloApi/Buelo.Api (a sibling of BueloWeb).
+      - name: Checkout API (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: jhonattan111/BueloApi
+          ref: master
+          path: BueloApi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: BueloWeb/pnpm-lock.yaml
+
+      - name: Install web deps
+        working-directory: BueloWeb
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        working-directory: BueloWeb
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Pre-build the API so the webServer's `dotnet run` starts fast (Debug = the run default).
+      - name: Build API
+        working-directory: BueloApi
+        run: dotnet build Buelo.slnx
+
+      - name: Run E2E
+        working-directory: BueloWeb
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: BueloWeb/playwright-report
+          retention-days: 7
