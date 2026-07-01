@@ -35,6 +35,15 @@ export default defineConfig({
         'src/composables/useTemplateDiagnostics.ts',
         'src/components/editors/ArtefactEditorTab.vue',
       ],
+      // Floor, not a target: set a bit below the measured stmts 34.7% / branches 23% /
+      // functions 25.7% / lines 36.9% (2026-07-01) so real regressions fail CI without
+      // flaking on small fluctuations.
+      thresholds: {
+        statements: 30,
+        branches: 20,
+        functions: 22,
+        lines: 33,
+      },
     },
   },
 })
