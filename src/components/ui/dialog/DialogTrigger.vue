@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DialogTrigger } from "reka-ui";
+import { DialogTrigger } from 'reka-ui'
 </script>
 
 <template>

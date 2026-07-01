@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertDialogTrigger } from "reka-ui";
+import { AlertDialogTrigger } from 'reka-ui'
 </script>
 
 <template>

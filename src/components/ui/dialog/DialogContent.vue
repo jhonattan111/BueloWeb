@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue";
-import {
-  DialogClose,
-  DialogContent,
-  DialogOverlay,
-  DialogPortal,
-} from "reka-ui";
-import { cn } from "@/lib/utils";
+import type { HTMLAttributes } from 'vue'
+import { DialogClose, DialogContent, DialogOverlay, DialogPortal } from 'reka-ui'
+import { cn } from '@/lib/utils'
 
-const props = defineProps<{ class?: HTMLAttributes["class"] }>();
+const props = defineProps<{ class?: HTMLAttributes['class'] }>()
 </script>
 
 <template>

@@ -41,7 +41,14 @@ export async function validateFile(
       const text = await response.text().catch(() => '')
       return {
         valid: false,
-        errors: [{ message: text || `Server error: ${response.status}`, line: 1, column: 1, severity: 'error' }],
+        errors: [
+          {
+            message: text || `Server error: ${response.status}`,
+            line: 1,
+            column: 1,
+            severity: 'error',
+          },
+        ],
         warnings: [],
       }
     }

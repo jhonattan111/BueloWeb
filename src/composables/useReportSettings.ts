@@ -2,7 +2,10 @@ import { computed, ref, watch } from 'vue'
 import { useActiveTemplate } from '@/composables/useActiveTemplate'
 import { fetchTypeDeclarations, listJsonFiles } from '@/services/workspaceService'
 import { injectDataTypeDeclarations } from '@/lib/buelo-language/csharpTypeInjector'
-import { updateDataCompletions, type DataProperty } from '@/lib/buelo-language/csharpDataCompletions'
+import {
+  updateDataCompletions,
+  type DataProperty,
+} from '@/lib/buelo-language/csharpDataCompletions'
 
 export interface ReportSettingsState {
   pageSize: string
@@ -51,7 +54,9 @@ try {
 function persistSettings(): void {
   try {
     const obj: Record<string, ReportSettingsState> = {}
-    perFileSettings.value.forEach((v, k) => { obj[k] = v })
+    perFileSettings.value.forEach((v, k) => {
+      obj[k] = v
+    })
     localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
   } catch {
     // ignore
@@ -148,9 +153,10 @@ export function useReportSettings() {
   })
 
   const canEdit = computed(
-    () => Boolean(activeFile.value?.path?.toLowerCase().endsWith('.cs')) || isDeclarativeReport.value,
+    () =>
+      Boolean(activeFile.value?.path?.toLowerCase().endsWith('.cs')) || isDeclarativeReport.value,
   )
-  const activePath = computed(() => (canEdit.value ? activeFile.value?.path ?? '' : ''))
+  const activePath = computed(() => (canEdit.value ? (activeFile.value?.path ?? '') : ''))
 
   const invalidDataSource = computed(() => {
     const selected = settings.value.dataSourcePath?.trim()

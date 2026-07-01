@@ -8,8 +8,8 @@ import {
   Layers,
   FileCode,
   Braces,
-} from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
+} from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -17,58 +17,62 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 
-defineProps<{ open: boolean; isCreating?: boolean; error?: string | null }>();
+defineProps<{ open: boolean; isCreating?: boolean; error?: string | null }>()
 
 const emit = defineEmits<{
-  create: [];
-  dismiss: [];
-}>();
+  create: []
+  dismiss: []
+}>()
 
 const items = [
   {
     icon: Table2,
-    title: "invoice.report.yml",
-    desc: "Declarative invoice — items table with an aggregated total and currency/tax-id formatting.",
+    title: 'invoice.report.yml',
+    desc: 'Declarative invoice — items table with an aggregated total and currency/tax-id formatting.',
   },
   {
     icon: Users,
-    title: "employees.report.yml",
-    desc: "Grouped by department with per-group subtotals (groupBy + sum).",
+    title: 'employees.report.yml',
+    desc: 'Grouped by department with per-group subtotals (groupBy + sum).',
   },
   {
     icon: LayoutDashboard,
-    title: "dashboard.report.yml",
-    desc: "KPI cards in a row, plus markdown — showcases card / row / panel.",
+    title: 'dashboard.report.yml',
+    desc: 'KPI cards in a row, plus markdown — showcases card / row / panel.',
   },
   {
     icon: FileSpreadsheet,
-    title: "sales.report.yml",
-    desc: "Tabular report exported to Excel (.xlsx) — output format preset to Excel.",
+    title: 'sales.report.yml',
+    desc: 'Tabular report exported to Excel (.xlsx) — output format preset to Excel.',
   },
   {
     icon: Layers,
-    title: "statement.report.yml",
-    desc: "Imports an external layout (letterhead.component.yml) via import / use / with.",
+    title: 'statement.report.yml',
+    desc: 'Imports an external layout (letterhead.component.yml) via import / use / with.',
   },
   {
     icon: FileCode,
-    title: "letter.cs",
-    desc: "C# report (QuestPDF) — the full-power path.",
+    title: 'letter.cs',
+    desc: 'C# report (QuestPDF) — the full-power path.',
   },
   {
     icon: Braces,
-    title: "data + script",
-    desc: "JSON data for each report and a helper script (.csx).",
+    title: 'data + script',
+    desc: 'JSON data for each report and a helper script (.csx).',
   },
-];
+]
 </script>
 
 <template>
   <Dialog
     :open="open"
-    @update:open="(v: boolean) => { if (!v) emit('dismiss'); }"
+    @update:open="
+      (v: boolean) => {
+        if (!v) emit('dismiss')
+      }
+    "
   >
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
@@ -77,8 +81,8 @@ const items = [
           Welcome to Buelo
         </DialogTitle>
         <DialogDescription>
-          Want to start with a few example reports? They show off the product's
-          features and already render — just open one and click Render.
+          Want to start with a few example reports? They show off the product's features and already
+          render — just open one and click Render.
         </DialogDescription>
       </DialogHeader>
 
@@ -100,11 +104,9 @@ const items = [
       <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
 
       <DialogFooter>
-        <Button variant="outline" :disabled="isCreating" @click="emit('dismiss')">
-          Not now
-        </Button>
+        <Button variant="outline" :disabled="isCreating" @click="emit('dismiss')"> Not now </Button>
         <Button :disabled="isCreating" @click="emit('create')">
-          {{ isCreating ? "Creating…" : "Create examples" }}
+          {{ isCreating ? 'Creating…' : 'Create examples' }}
         </Button>
       </DialogFooter>
     </DialogContent>

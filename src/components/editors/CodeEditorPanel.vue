@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import ArtefactTabs from "./ArtefactTabs.vue";
+import ArtefactTabs from './ArtefactTabs.vue'
 
-const templateCodeModel = defineModel<string>("templateCode", { default: "" });
-const jsonDataModel = defineModel<string>("jsonData", { default: "" });
+const templateCodeModel = defineModel<string>('templateCode', { default: '' })
+const jsonDataModel = defineModel<string>('jsonData', { default: '' })
 </script>

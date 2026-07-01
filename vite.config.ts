@@ -15,7 +15,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'path-browserify': fileURLToPath(new URL('./src/lib/monaco/path-browserify.js', import.meta.url)),
+      'path-browserify': fileURLToPath(
+        new URL('./src/lib/monaco/path-browserify.js', import.meta.url),
+      ),
     },
   },
   optimizeDeps: {

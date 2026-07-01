@@ -8,10 +8,38 @@ const TREE = [
     extension: '',
     kind: 'folder',
     children: [
-      { path: 'examples/invoice.report.yml', name: 'invoice.report.yml', type: 'file', extension: '.yml', kind: 'report', children: [] },
-      { path: 'examples/corporate.styles.yml', name: 'corporate.styles.yml', type: 'file', extension: '.yml', kind: 'file', children: [] },
-      { path: 'examples/letterhead.component.yml', name: 'letterhead.component.yml', type: 'file', extension: '.yml', kind: 'file', children: [] },
-      { path: 'examples/data.json', name: 'data.json', type: 'file', extension: '.json', kind: 'data', children: [] },
+      {
+        path: 'examples/invoice.report.yml',
+        name: 'invoice.report.yml',
+        type: 'file',
+        extension: '.yml',
+        kind: 'report',
+        children: [],
+      },
+      {
+        path: 'examples/corporate.styles.yml',
+        name: 'corporate.styles.yml',
+        type: 'file',
+        extension: '.yml',
+        kind: 'file',
+        children: [],
+      },
+      {
+        path: 'examples/letterhead.component.yml',
+        name: 'letterhead.component.yml',
+        type: 'file',
+        extension: '.yml',
+        kind: 'file',
+        children: [],
+      },
+      {
+        path: 'examples/data.json',
+        name: 'data.json',
+        type: 'file',
+        extension: '.json',
+        kind: 'data',
+        children: [],
+      },
     ],
   },
 ]
@@ -26,7 +54,10 @@ describe('workspaceService.listModuleDefinitions', () => {
         return { ok: true, json: async () => TREE }
       }
       const path = new URL(u).searchParams.get('path')
-      return { ok: true, json: async () => ({ path, name: path, extension: '.yml', content: `content-of:${path}` }) }
+      return {
+        ok: true,
+        json: async () => ({ path, name: path, extension: '.yml', content: `content-of:${path}` }),
+      }
     })
     vi.stubGlobal('fetch', fetchMock)
 

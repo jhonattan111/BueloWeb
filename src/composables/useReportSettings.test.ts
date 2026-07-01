@@ -7,7 +7,14 @@ import { parseProjectBlock, presetFileSettings } from '@/composables/useReportSe
 
 describe('useReportSettings.parseProjectBlock', () => {
   it('parses a @project block into settings', () => {
-    const src = ['@project', '  pageSize: A3', '  outputFormat: excel', '  showHeader: false', '  dataSourcePath: data/x.json', ''].join('\n')
+    const src = [
+      '@project',
+      '  pageSize: A3',
+      '  outputFormat: excel',
+      '  showHeader: false',
+      '  dataSourcePath: data/x.json',
+      '',
+    ].join('\n')
     const s = parseProjectBlock(src)
     expect(s.pageSize).toBe('A3')
     expect(s.outputFormat).toBe('excel')

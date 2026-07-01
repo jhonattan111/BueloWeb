@@ -1,0 +1,12 @@
+dist
+coverage
+node_modules
+pnpm-lock.yaml
+# Vendored third-party ESM shim — keep verbatim.
+src/lib/monaco/path-browserify.js
+# Docs, workflows and YAML are kept as authored (out of Prettier's scope).
+**/*.md
+**/*.yaml
+**/*.yml
+.github
+docs

@@ -17,7 +17,11 @@ describe('validateService.validateFile', () => {
   })
 
   it('returns the backend result for a supported extension', async () => {
-    const result = { valid: false, errors: [{ message: 'bad', line: 2, column: 1, severity: 'error' }], warnings: [] }
+    const result = {
+      valid: false,
+      errors: [{ message: 'bad', line: 2, column: 1, severity: 'error' }],
+      warnings: [],
+    }
     fetchReturning({ ok: true, json: async () => result })
     expect(await validateFile('.cs', 'code')).toEqual(result)
   })
@@ -30,7 +34,12 @@ describe('validateService.validateFile', () => {
   })
 
   it('treats a network error as clean (no false validation errors)', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('network down') }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('network down')
+      }),
+    )
     expect(await validateFile('.cs', 'code')).toEqual({ valid: true, errors: [], warnings: [] })
   })
 })

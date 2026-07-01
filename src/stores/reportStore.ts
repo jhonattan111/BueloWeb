@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { renderReport, renderById, renderWorkspaceFile as renderWorkspaceFileApi, renderDeclarative } from '@/services/reportService'
+import {
+  renderReport,
+  renderById,
+  renderWorkspaceFile as renderWorkspaceFileApi,
+  renderDeclarative,
+} from '@/services/reportService'
 import { listModuleDefinitions } from '@/services/workspaceService'
 import type { TemplateMode } from '@/types/template'
 import type { ReportSettingsState } from '@/composables/useReportSettings'
@@ -17,9 +22,7 @@ export const useReportStore = defineStore('report', () => {
   const templateStore = useTemplateStore()
 
   /** True when the last render produced a PDF */
-  const isPdfResult = computed(() =>
-    resultContentType.value?.includes('pdf') ?? false,
-  )
+  const isPdfResult = computed(() => resultContentType.value?.includes('pdf') ?? false)
 
   /** Backwards-compat: PDF blob only (used by external consumers that haven't been updated) */
   const pdfBlob = computed(() => (isPdfResult.value ? resultBlob.value : null))
@@ -187,7 +190,11 @@ export const useReportStore = defineStore('report', () => {
       const modules = /(^|\n)\s*import\s*:/.test(definition)
         ? await listModuleDefinitions().catch(() => [])
         : undefined
-      const result = await renderDeclarative(definition, data, { format, fileName: baseName, modules })
+      const result = await renderDeclarative(definition, data, {
+        format,
+        fileName: baseName,
+        modules,
+      })
       resultBlob.value = result.blob
       resultContentType.value = result.contentType
       resultFileExtension.value = result.fileExtension

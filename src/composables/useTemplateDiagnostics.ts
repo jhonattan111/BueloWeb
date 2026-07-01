@@ -14,7 +14,12 @@ export function useTemplateDiagnostics(
   mode: MaybeRefOrGetter<TemplateMode | string | number | null | undefined>,
   monacoModel: MaybeRefOrGetter<monaco.editor.ITextModel | null>,
   ownerPath?: MaybeRefOrGetter<string>,
-): { isValidating: Ref<boolean>; hasErrors: Ref<boolean>; validationError: Ref<string | null>; validate: () => Promise<void> } {
+): {
+  isValidating: Ref<boolean>
+  hasErrors: Ref<boolean>
+  validationError: Ref<string | null>
+  validate: () => Promise<void>
+} {
   const isValidating = ref(false)
   const hasErrors = ref(false)
   const validationError = ref<string | null>(null)
@@ -96,15 +101,15 @@ interface ImportDiagnostic {
   endColumn: number
 }
 
-async function resolveImportDiagnostics(source: string, ownerPath?: string): Promise<ImportDiagnostic[]> {
+async function resolveImportDiagnostics(
+  source: string,
+  ownerPath?: string,
+): Promise<ImportDiagnostic[]> {
   const workspaceFiles = new Set((await listWorkspaceFilePaths()).map(normalizePath))
   const diagnostics: ImportDiagnostic[] = []
   const lines = source.split(/\r?\n/)
 
-  const patterns = [
-    /^\s*import\s+.+\s+from\s+"([^"]+)"/i,
-    /^\s*@data\s+from\s+"([^"]+)"/i,
-  ]
+  const patterns = [/^\s*import\s+.+\s+from\s+"([^"]+)"/i, /^\s*@data\s+from\s+"([^"]+)"/i]
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i]
@@ -146,7 +151,9 @@ function normalizePath(path: string | undefined): string {
   return (path ?? '').replace(/\\/g, '/').trim()
 }
 
-function normalizeMode(mode: TemplateMode | string | number | null | undefined): TemplateMode | null {
+function normalizeMode(
+  mode: TemplateMode | string | number | null | undefined,
+): TemplateMode | null {
   if (mode === null || mode === undefined) return null
   if (typeof mode === 'number') return null
 

@@ -17,10 +17,14 @@ describe('reportService.renderDeclarative', () => {
     const fetchMock = mockFetchOk()
     vi.stubGlobal('fetch', fetchMock)
 
-    await renderDeclarative('kind: report', { a: 1 }, {
-      format: 'pdf',
-      modules: ['kind: styles\nname: s'],
-    })
+    await renderDeclarative(
+      'kind: report',
+      { a: 1 },
+      {
+        format: 'pdf',
+        modules: ['kind: styles\nname: s'],
+      },
+    )
 
     expect(fetchMock).toHaveBeenCalledOnce()
     const call = fetchMock.mock.calls[0]

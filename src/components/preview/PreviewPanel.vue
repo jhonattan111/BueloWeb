@@ -1,41 +1,22 @@
 <template>
   <div class="relative flex flex-col h-full min-h-0 bg-muted/20">
     <!-- Header -->
-    <div
-      class="flex items-center justify-between px-3 h-10 shrink-0 border-b border-border"
-    >
-      <span
-        class="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+    <div class="flex items-center justify-between px-3 h-10 shrink-0 border-b border-border">
+      <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
         >Preview</span
       >
       <!-- Header action buttons (only when PDF is ready) -->
-      <div
-        v-if="objectUrl && store.isPdfResult"
-        class="flex items-center gap-1"
-      >
-        <Button
-          variant="ghost"
-          size="icon"
-          class="size-6"
-          title="Print"
-          @click="onPrint"
-        >
+      <div v-if="objectUrl && store.isPdfResult" class="flex items-center gap-1">
+        <Button variant="ghost" size="icon" class="size-6" title="Print" @click="onPrint">
           <Printer class="size-3.5" />
         </Button>
         <a :href="objectUrl" :download="downloadFilename">
-          <Button
-            variant="ghost"
-            size="icon"
-            class="size-6"
-            title="Download PDF"
-          >
+          <Button variant="ghost" size="icon" class="size-6" title="Download PDF">
             <Download class="size-3.5" />
           </Button>
         </a>
       </div>
-      <span v-else class="text-[11px] text-muted-foreground uppercase"
-        >Auto format</span
-      >
+      <span v-else class="text-[11px] text-muted-foreground uppercase">Auto format</span>
     </div>
 
     <!-- Body -->
@@ -51,10 +32,7 @@
       </div>
 
       <!-- Loading state -->
-      <div
-        v-else-if="store.isRendering"
-        class="absolute inset-0 flex items-center justify-center"
-      >
+      <div v-else-if="store.isRendering" class="absolute inset-0 flex items-center justify-center">
         <div class="flex flex-col items-center gap-2">
           <div
             class="size-6 rounded-full border-2 border-primary border-t-transparent animate-spin"
@@ -111,49 +89,49 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from "vue";
-import { Download, FileSpreadsheet, Printer } from "lucide-vue-next";
-import { useReportStore } from "@/stores/reportStore";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { downloadBlob } from "@/lib/utils";
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { Download, FileSpreadsheet, Printer } from 'lucide-vue-next'
+import { useReportStore } from '@/stores/reportStore'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { downloadBlob } from '@/lib/utils'
 
-const store = useReportStore();
-const objectUrl = ref<string | null>(null);
-const iframeRef = ref<HTMLIFrameElement | null>(null);
-const downloadFilename = computed(() => `report${store.resultFileExtension}`);
+const store = useReportStore()
+const objectUrl = ref<string | null>(null)
+const iframeRef = ref<HTMLIFrameElement | null>(null)
+const downloadFilename = computed(() => `report${store.resultFileExtension}`)
 
 watch(
   () => store.resultBlob,
   (blob) => {
     if (objectUrl.value) {
-      URL.revokeObjectURL(objectUrl.value);
-      objectUrl.value = null;
+      URL.revokeObjectURL(objectUrl.value)
+      objectUrl.value = null
     }
-    if (!blob) return;
+    if (!blob) return
 
     if (store.isPdfResult) {
-      objectUrl.value = URL.createObjectURL(blob);
+      objectUrl.value = URL.createObjectURL(blob)
     } else {
       // Non-PDF: trigger download automatically
-      downloadBlob(blob, downloadFilename.value);
+      downloadBlob(blob, downloadFilename.value)
     }
   },
-);
+)
 
 onUnmounted(() => {
   if (objectUrl.value) {
-    URL.revokeObjectURL(objectUrl.value);
+    URL.revokeObjectURL(objectUrl.value)
   }
-});
+})
 
 function downloadAgain(): void {
   if (store.resultBlob) {
-    downloadBlob(store.resultBlob, downloadFilename.value);
+    downloadBlob(store.resultBlob, downloadFilename.value)
   }
 }
 
 function onPrint(): void {
-  iframeRef.value?.contentWindow?.print();
+  iframeRef.value?.contentWindow?.print()
 }
 </script>

@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Input } from "@/components/ui/input";
+import { computed } from 'vue'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
-  modelValue: string;
-  label: string;
-}>();
+  modelValue: string
+  label: string
+}>()
 
 const emit = defineEmits<{
-  "update:modelValue": [value: string];
-}>();
+  'update:modelValue': [value: string]
+}>()
 
-const isValid = computed(() => /^#[0-9A-Fa-f]{6}$/.test(props.modelValue));
+const isValid = computed(() => /^#[0-9A-Fa-f]{6}$/.test(props.modelValue))
 
 function onColorInput(e: Event) {
-  emit("update:modelValue", (e.target as HTMLInputElement).value);
+  emit('update:modelValue', (e.target as HTMLInputElement).value)
 }
 
 function onTextInput(e: Event) {
-  emit("update:modelValue", (e.target as HTMLInputElement).value);
+  emit('update:modelValue', (e.target as HTMLInputElement).value)
 }
 </script>
 
@@ -41,8 +41,6 @@ function onTextInput(e: Event) {
         @input="onTextInput"
       />
     </div>
-    <p v-if="!isValid" class="text-xs text-destructive">
-      Must be a valid hex color (e.g. #FF0000)
-    </p>
+    <p v-if="!isValid" class="text-xs text-destructive">Must be a valid hex color (e.g. #FF0000)</p>
   </div>
 </template>

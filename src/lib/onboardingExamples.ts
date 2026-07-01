@@ -354,11 +354,22 @@ export interface OnboardingReportSettings {
  * the output format is set to Excel.
  */
 export const ONBOARDING_REPORT_SETTINGS: Record<string, OnboardingReportSettings> = {
-  [`${dir('invoice')}/invoice.report.yml`]: { dataSourcePath: `${dir('invoice')}/invoice.data.json` },
-  [`${dir('employees')}/employees.report.yml`]: { dataSourcePath: `${dir('employees')}/employees.data.json` },
-  [`${dir('dashboard')}/dashboard.report.yml`]: { dataSourcePath: `${dir('dashboard')}/dashboard.data.json` },
-  [`${dir('sales')}/sales.report.yml`]: { dataSourcePath: `${dir('sales')}/sales.data.json`, outputFormat: 'excel' },
-  [`${dir('statement')}/statement.report.yml`]: { dataSourcePath: `${dir('statement')}/statement.data.json` },
+  [`${dir('invoice')}/invoice.report.yml`]: {
+    dataSourcePath: `${dir('invoice')}/invoice.data.json`,
+  },
+  [`${dir('employees')}/employees.report.yml`]: {
+    dataSourcePath: `${dir('employees')}/employees.data.json`,
+  },
+  [`${dir('dashboard')}/dashboard.report.yml`]: {
+    dataSourcePath: `${dir('dashboard')}/dashboard.data.json`,
+  },
+  [`${dir('sales')}/sales.report.yml`]: {
+    dataSourcePath: `${dir('sales')}/sales.data.json`,
+    outputFormat: 'excel',
+  },
+  [`${dir('statement')}/statement.report.yml`]: {
+    dataSourcePath: `${dir('statement')}/statement.data.json`,
+  },
   [`${dir('letter')}/letter.cs`]: { dataSourcePath: `${dir('letter')}/letter.data.json` },
 }
 

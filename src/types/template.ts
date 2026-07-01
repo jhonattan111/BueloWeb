@@ -7,10 +7,7 @@ export interface TemplateArtefact {
   content: string
 }
 
-export type TemplateFileKind =
-  | 'data'
-  | 'helper'
-  | 'file'
+export type TemplateFileKind = 'data' | 'helper' | 'file'
 
 export interface TemplateFile {
   path: string

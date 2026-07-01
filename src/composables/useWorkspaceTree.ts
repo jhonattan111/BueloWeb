@@ -38,7 +38,12 @@ export function useWorkspaceTree(): {
   validationState: Map<string, FileValidationResult>
   refresh(): Promise<void>
   selectNode(node: FileNode | null): void
-  createFile(parentFolderPath: string | null, name: string, extension: string, content?: string): Promise<FileNode>
+  createFile(
+    parentFolderPath: string | null,
+    name: string,
+    extension: string,
+    content?: string,
+  ): Promise<FileNode>
   createFolder(parentFolderPath: string | null, name: string): Promise<FileNode>
   deleteNode(node: FileNode): Promise<void>
   renameNode(node: FileNode, newName: string): Promise<void>

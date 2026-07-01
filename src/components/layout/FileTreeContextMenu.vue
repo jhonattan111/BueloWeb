@@ -1,59 +1,59 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
-import type { FileNode } from "@/types/workspace";
+import { nextTick, ref, watch } from 'vue'
+import type { FileNode } from '@/types/workspace'
 
 const props = defineProps<{
-  node: FileNode | null;
-  x: number;
-  y: number;
-  visible: boolean;
-}>();
+  node: FileNode | null
+  x: number
+  y: number
+  visible: boolean
+}>()
 
 const emit = defineEmits<{
-  open: [node: FileNode];
-  rename: [node: FileNode];
-  delete: [node: FileNode];
-  newFile: [parentPath: string | null];
-  newFolder: [parentPath: string | null];
-  close: [];
-}>();
+  open: [node: FileNode]
+  rename: [node: FileNode]
+  delete: [node: FileNode]
+  newFile: [parentPath: string | null]
+  newFolder: [parentPath: string | null]
+  close: []
+}>()
 
-const menuRef = ref<HTMLElement | null>(null);
+const menuRef = ref<HTMLElement | null>(null)
 
 watch(
   () => props.visible,
   async (visible) => {
-    if (!visible) return;
-    await nextTick();
-    menuRef.value?.focus();
+    if (!visible) return
+    await nextTick()
+    menuRef.value?.focus()
   },
-);
+)
 
-const isFolder = () => props.node?.type === "folder";
+const isFolder = () => props.node?.type === 'folder'
 
 function openNode(): void {
-  if (props.node) emit("open", props.node);
-  emit("close");
+  if (props.node) emit('open', props.node)
+  emit('close')
 }
 
 function renameNode(): void {
-  if (props.node) emit("rename", props.node);
-  emit("close");
+  if (props.node) emit('rename', props.node)
+  emit('close')
 }
 
 function deleteNode(): void {
-  if (props.node) emit("delete", props.node);
-  emit("close");
+  if (props.node) emit('delete', props.node)
+  emit('close')
 }
 
 function createFile(): void {
-  emit("newFile", isFolder() ? (props.node?.path ?? null) : null);
-  emit("close");
+  emit('newFile', isFolder() ? (props.node?.path ?? null) : null)
+  emit('close')
 }
 
 function createFolder(): void {
-  emit("newFolder", isFolder() ? (props.node?.path ?? null) : null);
-  emit("close");
+  emit('newFolder', isFolder() ? (props.node?.path ?? null) : null)
+  emit('close')
 }
 </script>
 

@@ -48,8 +48,8 @@ export function useActiveTemplate() {
   const activeFilePath = editors.activePath
   const isLoading = computed(() => isLoadingState.value)
 
-  const activeFile = computed(() =>
-    filesState.value.find((entry) => entry.path === activeFilePath.value) ?? null,
+  const activeFile = computed(
+    () => filesState.value.find((entry) => entry.path === activeFilePath.value) ?? null,
   )
 
   /** A file has unsaved edits when its live content differs from the saved baseline. */

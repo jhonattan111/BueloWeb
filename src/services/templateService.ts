@@ -103,9 +103,12 @@ export async function upsertArtefact(
 }
 
 export async function deleteArtefact(templateId: string, name: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(name)}`, {
-    method: 'DELETE',
-  })
+  const response = await fetch(
+    `${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(name)}`,
+    {
+      method: 'DELETE',
+    },
+  )
   if (!response.ok) {
     throw new Error(await readApiError(response))
   }
@@ -130,9 +133,12 @@ export async function upsertFile(
 }
 
 export async function deleteFile(templateId: string, path: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(path)}`, {
-    method: 'DELETE',
-  })
+  const response = await fetch(
+    `${BASE_URL}/api/templates/${templateId}/files?path=${encodeURIComponent(path)}`,
+    {
+      method: 'DELETE',
+    },
+  )
 
   if (!response.ok) {
     throw new Error(await readApiError(response))

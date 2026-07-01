@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, watch } from 'vue'
 import {
   AlertCircle,
   AlertTriangle,
@@ -7,78 +7,67 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-} from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { ProjectValidationResult } from "@/services/validateService";
+} from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import type { ProjectValidationResult } from '@/services/validateService'
 
 const props = defineProps<{
-  result: ProjectValidationResult | null;
-  isValidating: boolean;
-  error: string | null;
-  open: boolean;
-}>();
+  result: ProjectValidationResult | null
+  isValidating: boolean
+  error: string | null
+  open: boolean
+}>()
 
 const emit = defineEmits<{
-  close: [];
-  openFile: [path: string];
-}>();
+  close: []
+  openFile: [path: string]
+}>()
 
-const expanded = reactive<Record<string, boolean>>({});
+const expanded = reactive<Record<string, boolean>>({})
 
 watch(
   () => props.result,
   (next) => {
     for (const key of Object.keys(expanded)) {
-      delete expanded[key];
+      delete expanded[key]
     }
 
-    if (!next) return;
+    if (!next) return
 
     for (const file of next.files) {
-      expanded[file.path] = file.result.errors.length > 0;
+      expanded[file.path] = file.result.errors.length > 0
     }
   },
   { immediate: true },
-);
+)
 
-const fileCount = computed(() => props.result?.files.length ?? 0);
-const totalErrors = computed(() => props.result?.totalErrors ?? 0);
-const totalWarnings = computed(() => props.result?.totalWarnings ?? 0);
+const fileCount = computed(() => props.result?.files.length ?? 0)
+const totalErrors = computed(() => props.result?.totalErrors ?? 0)
+const totalWarnings = computed(() => props.result?.totalWarnings ?? 0)
 
 function toggle(path: string): void {
-  expanded[path] = !expanded[path];
+  expanded[path] = !expanded[path]
 }
 
 function closePanel(): void {
-  emit("close");
+  emit('close')
 }
 
 function openFile(path: string): void {
-  emit("openFile", path);
+  emit('openFile', path)
 }
 </script>
 
 <template>
   <Teleport to="body">
-    <div
-      v-if="open"
-      class="fixed inset-0 z-50 flex items-end bg-black/30"
-      @click.self="closePanel"
-    >
+    <div v-if="open" class="fixed inset-0 z-50 flex items-end bg-black/30" @click.self="closePanel">
       <section
         class="w-full max-h-[60vh] overflow-hidden border-t border-border bg-background shadow-xl"
       >
-        <header
-          class="flex items-center justify-between px-4 py-2 border-b border-border"
-        >
+        <header class="flex items-center justify-between px-4 py-2 border-b border-border">
           <h3 class="text-sm font-semibold">Validation Results</h3>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Close"
-            @click="closePanel"
-          >
+          <Button variant="ghost" size="icon-sm" aria-label="Close" @click="closePanel">
             <X class="size-4" />
           </Button>
         </header>
@@ -113,11 +102,7 @@ function openFile(path: string): void {
           </Alert>
 
           <div v-else-if="props.result" class="divide-y divide-border">
-            <article
-              v-for="file in props.result.files"
-              :key="file.path"
-              class="px-4 py-2"
-            >
+            <article v-for="file in props.result.files" :key="file.path" class="px-4 py-2">
               <button
                 type="button"
                 class="w-full flex items-center justify-between gap-3 text-left"
@@ -132,15 +117,10 @@ function openFile(path: string): void {
                     v-else-if="file.result.warnings.length"
                     class="size-3.5 text-yellow-500 shrink-0"
                   />
-                  <CheckCircle2
-                    v-else
-                    class="size-3.5 text-green-600 shrink-0"
-                  />
+                  <CheckCircle2 v-else class="size-3.5 text-green-600 shrink-0" />
                   <span class="truncate text-xs">{{ file.path }}</span>
                 </span>
-                <span
-                  class="flex items-center gap-2 shrink-0 text-[11px] text-muted-foreground"
-                >
+                <span class="flex items-center gap-2 shrink-0 text-[11px] text-muted-foreground">
                   <span>{{ file.result.errors.length }} errors</span>
                   <span>{{ file.result.warnings.length }} warnings</span>
                   <ChevronDown v-if="expanded[file.path]" class="size-3.5" />
@@ -150,10 +130,7 @@ function openFile(path: string): void {
 
               <div v-if="expanded[file.path]" class="mt-2 space-y-1 pl-6">
                 <button
-                  v-for="(diag, idx) in [
-                    ...file.result.errors,
-                    ...file.result.warnings,
-                  ]"
+                  v-for="(diag, idx) in [...file.result.errors, ...file.result.warnings]"
                   :key="`${file.path}-${idx}`"
                   type="button"
                   class="block w-full rounded px-2 py-1 text-left text-xs hover:bg-muted"
@@ -163,10 +140,7 @@ function openFile(path: string): void {
                   <span>{{ diag.message }}</span>
                 </button>
                 <p
-                  v-if="
-                    file.result.errors.length === 0 &&
-                    file.result.warnings.length === 0
-                  "
+                  v-if="file.result.errors.length === 0 && file.result.warnings.length === 0"
                   class="text-xs text-muted-foreground"
                 >
                   No issues.

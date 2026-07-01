@@ -29,7 +29,11 @@ const settings: ReportSettingsState = {
   outputFormat: 'pdf',
 }
 
-const fakeResult = { blob: new Blob(['%PDF']), contentType: 'application/pdf', fileExtension: '.pdf' }
+const fakeResult = {
+  blob: new Blob(['%PDF']),
+  contentType: 'application/pdf',
+  fileExtension: '.pdf',
+}
 
 describe('reportStore.renderDeclarativeWithSettings', () => {
   beforeEach(() => {
@@ -42,7 +46,11 @@ describe('reportStore.renderDeclarativeWithSettings', () => {
     vi.mocked(reportService.renderDeclarative).mockResolvedValue(fakeResult)
 
     const store = useReportStore()
-    await store.renderDeclarativeWithSettings('kind: report\nimport:\n  - styles: s', '{}', settings)
+    await store.renderDeclarativeWithSettings(
+      'kind: report\nimport:\n  - styles: s',
+      '{}',
+      settings,
+    )
 
     expect(workspaceService.listModuleDefinitions).toHaveBeenCalledOnce()
     const call = vi.mocked(reportService.renderDeclarative).mock.calls[0]

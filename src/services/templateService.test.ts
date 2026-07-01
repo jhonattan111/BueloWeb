@@ -4,7 +4,10 @@ describe('templateService', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('listTemplates returns the array', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [{ id: '1', name: 'a' }] })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => [{ id: '1', name: 'a' }] })),
+    )
     expect(await listTemplates()).toEqual([{ id: '1', name: 'a' }])
   })
 
@@ -18,7 +21,12 @@ describe('templateService', () => {
   it('surfaces a parsed API error message ({error}) on failure', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => ({ ok: false, status: 400, statusText: 'Bad', text: async () => '{"error":"nope"}' })),
+      vi.fn(async () => ({
+        ok: false,
+        status: 400,
+        statusText: 'Bad',
+        text: async () => '{"error":"nope"}',
+      })),
     )
     await expect(deleteTemplate('1')).rejects.toThrow('nope')
   })

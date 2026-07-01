@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { ChevronDown, ChevronRight } from "lucide-vue-next";
-import { useReportSettings } from "@/composables/useReportSettings";
+import { computed, onMounted, ref, watch } from 'vue'
+import { ChevronDown, ChevronRight } from 'lucide-vue-next'
+import { useReportSettings } from '@/composables/useReportSettings'
 
-const PAGE_SIZES = ["A4", "A3", "A5", "Letter", "Legal"] as const;
-const ORIENTATIONS = ["Portrait", "Landscape"] as const;
+const PAGE_SIZES = ['A4', 'A3', 'A5', 'Letter', 'Legal'] as const
+const ORIENTATIONS = ['Portrait', 'Landscape'] as const
 
-const isOpen = ref(false);
+const isOpen = ref(false)
 
 const {
   settings,
@@ -16,23 +16,23 @@ const {
   invalidDataSource,
   saveError,
   refreshJsonFiles,
-} = useReportSettings();
+} = useReportSettings()
 
 onMounted(() => {
-  refreshJsonFiles();
-});
+  refreshJsonFiles()
+})
 
 // Refresh the JSON list whenever the panel opens, so the data source <select> has
 // the matching <option> for the saved value (otherwise it renders blank).
 watch(isOpen, (open) => {
-  if (open) refreshJsonFiles();
-});
+  if (open) refreshJsonFiles()
+})
 
 const dataSourceError = computed(() => {
-  if (!settings.value.dataSourcePath) return null;
-  if (!invalidDataSource.value) return null;
-  return "Selected JSON file does not exist in workspace.";
-});
+  if (!settings.value.dataSourcePath) return null
+  if (!invalidDataSource.value) return null
+  return 'Selected JSON file does not exist in workspace.'
+})
 </script>
 
 <template>
@@ -56,9 +56,7 @@ const dataSourceError = computed(() => {
         <!-- Output + data source apply to both C# templates and declarative reports -->
         <div class="grid grid-cols-2 gap-2">
           <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground"
-              >Output Format</label
-            >
+            <label class="text-[11px] text-muted-foreground">Output Format</label>
             <select
               v-model="settings.outputFormat"
               class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
@@ -69,9 +67,7 @@ const dataSourceError = computed(() => {
           </div>
 
           <div class="space-y-1">
-            <label class="text-[11px] text-muted-foreground"
-              >Data source (.json)</label
-            >
+            <label class="text-[11px] text-muted-foreground">Data source (.json)</label>
             <select
               v-model="settings.dataSourcePath"
               class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
@@ -79,19 +75,12 @@ const dataSourceError = computed(() => {
             >
               <option value="">None</option>
               <option
-                v-if="
-                  settings.dataSourcePath &&
-                  !jsonFiles.includes(settings.dataSourcePath)
-                "
+                v-if="settings.dataSourcePath && !jsonFiles.includes(settings.dataSourcePath)"
                 :value="settings.dataSourcePath"
               >
                 {{ settings.dataSourcePath }}
               </option>
-              <option
-                v-for="jsonPath in jsonFiles"
-                :key="jsonPath"
-                :value="jsonPath"
-              >
+              <option v-for="jsonPath in jsonFiles" :key="jsonPath" :value="jsonPath">
                 {{ jsonPath }}
               </option>
             </select>
@@ -122,18 +111,12 @@ const dataSourceError = computed(() => {
             </div>
 
             <div class="space-y-1">
-              <label class="text-[11px] text-muted-foreground"
-                >Orientation</label
-              >
+              <label class="text-[11px] text-muted-foreground">Orientation</label>
               <select
                 v-model="settings.orientation"
                 class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
               >
-                <option
-                  v-for="orientation in ORIENTATIONS"
-                  :key="orientation"
-                  :value="orientation"
-                >
+                <option v-for="orientation in ORIENTATIONS" :key="orientation" :value="orientation">
                   {{ orientation }}
                 </option>
               </select>
@@ -210,15 +193,11 @@ const dataSourceError = computed(() => {
           </div>
 
           <div class="flex items-center gap-4">
-            <label
-              class="inline-flex items-center gap-2 text-xs text-muted-foreground"
-            >
+            <label class="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <input v-model="settings.showHeader" type="checkbox" />
               Show Header
             </label>
-            <label
-              class="inline-flex items-center gap-2 text-xs text-muted-foreground"
-            >
+            <label class="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <input v-model="settings.showFooter" type="checkbox" />
               Show Footer
             </label>

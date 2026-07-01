@@ -1,52 +1,47 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle,
-  Loader2,
-} from "lucide-vue-next";
+import { computed } from 'vue'
+import { AlertCircle, AlertTriangle, CheckCircle, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps<{
-  isValidating: boolean;
-  errorCount: number;
-  warningCount: number;
-  extension: string;
-  language: string;
-  lineCount: number;
-  cursorLine: number;
-  cursorColumn: number;
-}>();
+  isValidating: boolean
+  errorCount: number
+  warningCount: number
+  extension: string
+  language: string
+  lineCount: number
+  cursorLine: number
+  cursorColumn: number
+}>()
 
 const emit = defineEmits<{
-  (e: "goToFirstError"): void;
-}>();
+  (e: 'goToFirstError'): void
+}>()
 
 const statusLabel = computed(() => {
-  if (props.isValidating) return "Validating…";
+  if (props.isValidating) return 'Validating…'
   if (props.errorCount > 0) {
     const w =
       props.warningCount > 0
-        ? `, ${props.warningCount} warning${props.warningCount !== 1 ? "s" : ""}`
-        : "";
-    return `${props.errorCount} error${props.errorCount !== 1 ? "s" : ""}${w}`;
+        ? `, ${props.warningCount} warning${props.warningCount !== 1 ? 's' : ''}`
+        : ''
+    return `${props.errorCount} error${props.errorCount !== 1 ? 's' : ''}${w}`
   }
   if (props.warningCount > 0) {
-    return `${props.warningCount} warning${props.warningCount !== 1 ? "s" : ""}`;
+    return `${props.warningCount} warning${props.warningCount !== 1 ? 's' : ''}`
   }
-  return "No problems";
-});
+  return 'No problems'
+})
 
 const statusColor = computed(() => {
-  if (props.isValidating) return "text-muted-foreground";
-  if (props.errorCount > 0) return "text-destructive";
-  if (props.warningCount > 0) return "text-yellow-500";
-  return "text-green-500";
-});
+  if (props.isValidating) return 'text-muted-foreground'
+  if (props.errorCount > 0) return 'text-destructive'
+  if (props.warningCount > 0) return 'text-yellow-500'
+  return 'text-green-500'
+})
 
 function handleStatusClick() {
   if (props.errorCount > 0 || props.warningCount > 0) {
-    emit("goToFirstError");
+    emit('goToFirstError')
   }
 }
 </script>
@@ -61,9 +56,7 @@ function handleStatusClick() {
       :class="[
         'flex items-center gap-1',
         statusColor,
-        errorCount > 0 || warningCount > 0
-          ? 'cursor-pointer hover:underline'
-          : 'cursor-default',
+        errorCount > 0 || warningCount > 0 ? 'cursor-pointer hover:underline' : 'cursor-default',
       ]"
       @click="handleStatusClick"
     >
@@ -76,9 +69,7 @@ function handleStatusClick() {
 
     <!-- Right: language + cursor position -->
     <div class="flex items-center gap-3 text-muted-foreground">
-      <span class="uppercase tracking-wide">{{
-        language || extension.replace(".", "")
-      }}</span>
+      <span class="uppercase tracking-wide">{{ language || extension.replace('.', '') }}</span>
       <span>Ln {{ cursorLine }}, Col {{ cursorColumn }}</span>
     </div>
   </div>

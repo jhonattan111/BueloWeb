@@ -1,9 +1,9 @@
 import * as monaco from 'monaco-editor'
 
 export interface DataProperty {
-  name: string       // camelCase JSON key (as written in JSON)
+  name: string // camelCase JSON key (as written in JSON)
   csharpName: string // PascalCase inferred C# name
-  type: string       // inferred C# type string (e.g. "string", "int", "EmployeesItem[]")
+  type: string // inferred C# type string (e.g. "string", "int", "EmployeesItem[]")
 }
 
 let _currentProperties: DataProperty[] = []

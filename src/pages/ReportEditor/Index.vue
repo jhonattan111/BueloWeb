@@ -21,10 +21,7 @@
         </div>
 
         <!-- Explorer tab -->
-        <div
-          v-show="activeSidebarTab === 'explorer'"
-          class="flex flex-col flex-1 min-h-0"
-        >
+        <div v-show="activeSidebarTab === 'explorer'" class="flex flex-col flex-1 min-h-0">
           <FileTreePanel
             class="flex-1 min-h-0"
             :creating-examples="isCreatingExamples"
@@ -35,19 +32,13 @@
         </div>
 
         <!-- Templates tab -->
-        <SidebarTemplates
-          v-show="activeSidebarTab === 'templates'"
-          class="flex-1 min-h-0"
-        />
+        <SidebarTemplates v-show="activeSidebarTab === 'templates'" class="flex-1 min-h-0" />
       </div>
     </template>
 
     <template #editor>
       <div class="relative h-full min-h-0">
-        <CodeEditorPanel
-          v-model:templateCode="templateCode"
-          v-model:jsonData="jsonData"
-        />
+        <CodeEditorPanel v-model:templateCode="templateCode" v-model:jsonData="jsonData" />
         <ProjectValidationPanel
           :result="projectValidation.result.value"
           :is-validating="projectValidation.isValidating.value"
@@ -60,9 +51,7 @@
     </template>
 
     <template #sidebar-right>
-      <div
-        class="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_minmax(180px,34%)]"
-      >
+      <div class="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_minmax(180px,34%)]">
         <div class="min-h-0 overflow-hidden border-b border-border">
           <PreviewPanel class="h-full min-h-0" />
         </div>
@@ -83,32 +72,28 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, provide, ref } from "vue";
-import { FolderOpen, LayoutTemplate } from "lucide-vue-next";
-import AppLayout from "@/components/layout/AppLayout.vue";
-import WelcomeDialog from "@/components/onboarding/WelcomeDialog.vue";
-import FileTreePanel from "@/components/layout/FileTreePanel.vue";
-import SidebarTemplates from "@/components/layout/SidebarTemplates.vue";
-import ProjectSettingsPanel from "@/components/layout/ProjectSettingsPanel.vue";
-import FilePropertiesPanel from "@/components/layout/FilePropertiesPanel.vue";
-import CodeEditorPanel from "@/components/editors/CodeEditorPanel.vue";
-import ProjectValidationPanel from "@/components/editors/ProjectValidationPanel.vue";
-import PreviewPanel from "@/components/preview/PreviewPanel.vue";
-import { useActiveTemplate } from "@/composables/useActiveTemplate";
-import {
-  PROJECT_VALIDATION_KEY,
-  useProjectValidation,
-} from "@/composables/useProjectValidation";
-import { useWorkspaceTree } from "@/composables/useWorkspaceTree";
-import { useOnboarding } from "@/composables/useOnboarding";
-import { useTemplateStore } from "@/stores/templateStore";
-import type { FileNode } from "@/types/workspace";
+import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { FolderOpen, LayoutTemplate } from 'lucide-vue-next'
+import AppLayout from '@/components/layout/AppLayout.vue'
+import WelcomeDialog from '@/components/onboarding/WelcomeDialog.vue'
+import FileTreePanel from '@/components/layout/FileTreePanel.vue'
+import SidebarTemplates from '@/components/layout/SidebarTemplates.vue'
+import ProjectSettingsPanel from '@/components/layout/ProjectSettingsPanel.vue'
+import FilePropertiesPanel from '@/components/layout/FilePropertiesPanel.vue'
+import CodeEditorPanel from '@/components/editors/CodeEditorPanel.vue'
+import ProjectValidationPanel from '@/components/editors/ProjectValidationPanel.vue'
+import PreviewPanel from '@/components/preview/PreviewPanel.vue'
+import { useActiveTemplate } from '@/composables/useActiveTemplate'
+import { PROJECT_VALIDATION_KEY, useProjectValidation } from '@/composables/useProjectValidation'
+import { useWorkspaceTree } from '@/composables/useWorkspaceTree'
+import { useOnboarding } from '@/composables/useOnboarding'
+import { useTemplateStore } from '@/stores/templateStore'
+import type { FileNode } from '@/types/workspace'
 
-const { openFile, saveActiveFile, saveAllFiles, hasUnsaved } =
-  useActiveTemplate();
-const { tree, selectNode, refresh } = useWorkspaceTree();
-const projectValidation = useProjectValidation();
-const templateStore = useTemplateStore();
+const { openFile, saveActiveFile, saveAllFiles, hasUnsaved } = useActiveTemplate()
+const { tree, selectNode, refresh } = useWorkspaceTree()
+const projectValidation = useProjectValidation()
+const templateStore = useTemplateStore()
 
 const {
   showWelcome,
@@ -117,128 +102,128 @@ const {
   maybeShow,
   dismiss: dismissWelcome,
   createExamples,
-} = useOnboarding();
+} = useOnboarding()
 
-provide(PROJECT_VALIDATION_KEY, projectValidation);
+provide(PROJECT_VALIDATION_KEY, projectValidation)
 
 // Load templates on mount
-templateStore.fetchTemplates();
+templateStore.fetchTemplates()
 
 // First-run: offer the example showcase
-onMounted(maybeShow);
+onMounted(maybeShow)
 
 // Explicit save. Ctrl/Cmd+S saves the active file (overrides the browser's "save page"
 // dialog); the VS-style chord Ctrl/Cmd+K then S saves all open files.
-let awaitingSaveChord = false;
-let saveChordTimer: ReturnType<typeof setTimeout> | undefined;
+let awaitingSaveChord = false
+let saveChordTimer: ReturnType<typeof setTimeout> | undefined
 
 function cancelSaveChord(): void {
-  awaitingSaveChord = false;
+  awaitingSaveChord = false
   if (saveChordTimer !== undefined) {
-    clearTimeout(saveChordTimer);
-    saveChordTimer = undefined;
+    clearTimeout(saveChordTimer)
+    saveChordTimer = undefined
   }
 }
 
 function onGlobalKeydown(event: KeyboardEvent): void {
-  const mod = event.ctrlKey || event.metaKey;
-  const key = event.key.toLowerCase();
+  const mod = event.ctrlKey || event.metaKey
+  const key = event.key.toLowerCase()
 
   // Ctrl/Cmd+K arms the chord prefix (VS Code style).
-  if (mod && !event.altKey && key === "k") {
-    event.preventDefault();
-    awaitingSaveChord = true;
-    if (saveChordTimer !== undefined) clearTimeout(saveChordTimer);
-    saveChordTimer = setTimeout(cancelSaveChord, 1500);
-    return;
+  if (mod && !event.altKey && key === 'k') {
+    event.preventDefault()
+    awaitingSaveChord = true
+    if (saveChordTimer !== undefined) clearTimeout(saveChordTimer)
+    saveChordTimer = setTimeout(cancelSaveChord, 1500)
+    return
   }
 
   // Chord completion: (Ctrl/Cmd+K) then S → Save all.
-  if (awaitingSaveChord && key === "s") {
-    event.preventDefault();
-    cancelSaveChord();
-    void saveAllFiles();
-    return;
+  if (awaitingSaveChord && key === 's') {
+    event.preventDefault()
+    cancelSaveChord()
+    void saveAllFiles()
+    return
   }
 
   // Any other key cancels a pending chord.
-  if (awaitingSaveChord) cancelSaveChord();
+  if (awaitingSaveChord) cancelSaveChord()
 
   // Plain Ctrl/Cmd+S → save the active file.
-  if (mod && !event.altKey && key === "s") {
-    event.preventDefault();
-    void saveActiveFile();
+  if (mod && !event.altKey && key === 's') {
+    event.preventDefault()
+    void saveActiveFile()
   }
 }
 
 // Warn before leaving the page with unsaved edits.
 function onBeforeUnload(event: BeforeUnloadEvent): void {
   if (hasUnsaved.value) {
-    event.preventDefault();
-    event.returnValue = "";
+    event.preventDefault()
+    event.returnValue = ''
   }
 }
 
 onMounted(() => {
-  window.addEventListener("keydown", onGlobalKeydown);
-  window.addEventListener("beforeunload", onBeforeUnload);
-});
+  window.addEventListener('keydown', onGlobalKeydown)
+  window.addEventListener('beforeunload', onBeforeUnload)
+})
 
 onBeforeUnmount(() => {
-  window.removeEventListener("keydown", onGlobalKeydown);
-  window.removeEventListener("beforeunload", onBeforeUnload);
-  cancelSaveChord();
-});
+  window.removeEventListener('keydown', onGlobalKeydown)
+  window.removeEventListener('beforeunload', onBeforeUnload)
+  cancelSaveChord()
+})
 
 async function onCreateExamples(): Promise<void> {
-  const firstPath = await createExamples();
-  await refresh();
-  if (!firstPath) return;
-  const node = findNodeByPath(firstPath, tree.value);
-  if (node) await onOpenFile(node);
+  const firstPath = await createExamples()
+  await refresh()
+  if (!firstPath) return
+  const node = findNodeByPath(firstPath, tree.value)
+  if (node) await onOpenFile(node)
 }
 
-const templateCode = ref("");
-const jsonData = ref("");
+const templateCode = ref('')
+const jsonData = ref('')
 
 // ── Sidebar tabs ──────────────────────────────────────────────────────────────
-type SidebarTabId = "explorer" | "templates";
-const activeSidebarTab = ref<SidebarTabId>("explorer");
+type SidebarTabId = 'explorer' | 'templates'
+const activeSidebarTab = ref<SidebarTabId>('explorer')
 const sidebarTabs = [
-  { id: "explorer" as const, label: "Explorer", icon: FolderOpen },
-  { id: "templates" as const, label: "Templates", icon: LayoutTemplate },
-];
+  { id: 'explorer' as const, label: 'Explorer', icon: FolderOpen },
+  { id: 'templates' as const, label: 'Templates', icon: LayoutTemplate },
+]
 
 async function onOpenFile(node: FileNode): Promise<void> {
-  if (node.type !== "file") return;
-  selectNode(node);
-  await openFile(node.path);
+  if (node.type !== 'file') return
+  selectNode(node)
+  await openFile(node.path)
 }
 
 async function onOpenValidationFile(path: string): Promise<void> {
-  const node = findNodeByPath(path, tree.value);
-  if (!node || node.type !== "file") return;
-  selectNode(node);
-  await openFile(node.path);
+  const node = findNodeByPath(path, tree.value)
+  if (!node || node.type !== 'file') return
+  selectNode(node)
+  await openFile(node.path)
 }
 
 function findNodeByPath(path: string, nodes: FileNode[]): FileNode | null {
-  const normalized = normalizePath(path);
+  const normalized = normalizePath(path)
   for (const node of nodes) {
     if (normalizePath(node.path) === normalized) {
-      return node;
+      return node
     }
 
     if (node.children?.length) {
-      const nested = findNodeByPath(path, node.children);
-      if (nested) return nested;
+      const nested = findNodeByPath(path, node.children)
+      if (nested) return nested
     }
   }
 
-  return null;
+  return null
 }
 
 function normalizePath(path: string | undefined): string {
-  return (path ?? "").replace(/\\/g, "/").trim();
+  return (path ?? '').replace(/\\/g, '/').trim()
 }
 </script>

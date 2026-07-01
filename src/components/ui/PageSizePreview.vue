@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 interface PageSettings {
-  pageSize: "A4" | "A3" | "A5" | "Letter" | "Legal";
-  marginHorizontal: number;
-  marginVertical: number;
-  backgroundColor: string;
-  defaultTextColor: string;
-  defaultFontSize: number;
-  showHeader: boolean;
-  showFooter: boolean;
-  watermarkText: string | null;
+  pageSize: 'A4' | 'A3' | 'A5' | 'Letter' | 'Legal'
+  marginHorizontal: number
+  marginVertical: number
+  backgroundColor: string
+  defaultTextColor: string
+  defaultFontSize: number
+  showHeader: boolean
+  showFooter: boolean
+  watermarkText: string | null
 }
 
 const props = defineProps<{
-  settings: PageSettings;
-}>();
+  settings: PageSettings
+}>()
 
 // Aspect ratios (width / height)
 const PAGE_RATIOS: Record<string, number> = {
@@ -24,19 +24,19 @@ const PAGE_RATIOS: Record<string, number> = {
   A5: 1 / Math.SQRT2,
   Letter: 8.5 / 11,
   Legal: 8.5 / 14,
-};
+}
 
-const BASE_WIDTH = 96; // px
+const BASE_WIDTH = 96 // px
 
-const width = computed(() => BASE_WIDTH);
+const width = computed(() => BASE_WIDTH)
 const height = computed(() => {
-  const ratio = PAGE_RATIOS[props.settings.pageSize] ?? 1 / Math.SQRT2;
-  return Math.round(BASE_WIDTH / ratio);
-});
+  const ratio = PAGE_RATIOS[props.settings.pageSize] ?? 1 / Math.SQRT2
+  return Math.round(BASE_WIDTH / ratio)
+})
 
 const previewFontSize = computed(() =>
   Math.max(6, Math.round(props.settings.defaultFontSize / 2.5)),
-);
+)
 </script>
 
 <template>

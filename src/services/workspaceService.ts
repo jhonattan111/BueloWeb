@@ -1,8 +1,4 @@
-import type {
-  FileNode,
-  WorkspaceApiNode,
-  WorkspaceFileRecord,
-} from '@/types/workspace'
+import type { FileNode, WorkspaceApiNode, WorkspaceFileRecord } from '@/types/workspace'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
@@ -99,7 +95,11 @@ export async function renameNode(path: string, newName: string, overwrite = fals
   }
 }
 
-export async function moveNode(path: string, destinationPath: string, overwrite = false): Promise<void> {
+export async function moveNode(
+  path: string,
+  destinationPath: string,
+  overwrite = false,
+): Promise<void> {
   const response = await fetch(`${BASE_URL}/api/workspace/files/move`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

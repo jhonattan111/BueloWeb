@@ -54,9 +54,7 @@
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="$emit('update:open', false)"
-          >Cancel</Button
-        >
+        <Button variant="outline" @click="$emit('update:open', false)">Cancel</Button>
         <Button :disabled="isConfirmDisabled" @click="confirm">Add</Button>
       </DialogFooter>
     </DialogContent>
@@ -64,9 +62,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { computed, ref, watch } from 'vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -74,121 +72,116 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import type { TemplateFileKind } from "@/types/template";
+} from '@/components/ui/dialog'
+import type { TemplateFileKind } from '@/types/template'
 
 type FileTypeOption = {
-  label: string;
-  kind: TemplateFileKind;
-  extension: string;
-  requiresName: boolean;
-  fixedPath?: string;
-  defaultContent: string;
-};
+  label: string
+  kind: TemplateFileKind
+  extension: string
+  requiresName: boolean
+  fixedPath?: string
+  defaultContent: string
+}
 
 const FILE_TYPES: FileTypeOption[] = [
   {
-    label: "Data File (.data.json)",
-    kind: "data",
-    extension: ".data.json",
+    label: 'Data File (.data.json)',
+    kind: 'data',
+    extension: '.data.json',
     requiresName: true,
-    defaultContent: "{}\n",
+    defaultContent: '{}\n',
   },
   {
-    label: "Helper (.helpers.cs)",
-    kind: "helper",
-    extension: ".helpers.cs",
+    label: 'Helper (.helpers.cs)',
+    kind: 'helper',
+    extension: '.helpers.cs',
     requiresName: true,
-    defaultContent: "public static string Example(string value) => value;\n",
+    defaultContent: 'public static string Example(string value) => value;\n',
   },
   {
-    label: "C# File (.cs)",
-    kind: "file",
-    extension: ".cs",
+    label: 'C# File (.cs)',
+    kind: 'file',
+    extension: '.cs',
     requiresName: true,
-    defaultContent: "// Add custom C# code\n",
+    defaultContent: '// Add custom C# code\n',
   },
-] as const;
+] as const
 
-const props = defineProps<{ open: boolean }>();
+const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
-  "update:open": [value: boolean];
+  'update:open': [value: boolean]
   add: [
     payload: {
-      path: string;
-      content: string;
-      kind: TemplateFileKind;
+      path: string
+      content: string
+      kind: TemplateFileKind
     },
-  ];
-}>();
+  ]
+}>()
 
-const name = ref("");
-const directory = ref("");
-const selectedTypeKind = ref<TemplateFileKind>(FILE_TYPES[0].kind);
+const name = ref('')
+const directory = ref('')
+const selectedTypeKind = ref<TemplateFileKind>(FILE_TYPES[0].kind)
 
 const selectedType = computed(
-  () =>
-    FILE_TYPES.find((t) => t.kind === selectedTypeKind.value) ?? FILE_TYPES[0],
-);
+  () => FILE_TYPES.find((t) => t.kind === selectedTypeKind.value) ?? FILE_TYPES[0],
+)
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
-const DIR_RE = /^[a-z0-9][a-z0-9\/-]*$/;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/
+const DIR_RE = /^[a-z0-9][a-z0-9\/-]*$/
 
 const nameError = computed(() => {
-  if (!selectedType.value.requiresName) return null;
-  if (!name.value) return null;
-  return SLUG_RE.test(name.value)
-    ? null
-    : "Only lowercase letters, digits, and hyphens allowed.";
-});
+  if (!selectedType.value.requiresName) return null
+  if (!name.value) return null
+  return SLUG_RE.test(name.value) ? null : 'Only lowercase letters, digits, and hyphens allowed.'
+})
 
 const directoryError = computed(() => {
-  if (!directory.value) return null;
-  return DIR_RE.test(directory.value)
-    ? null
-    : "Use lowercase letters, digits, hyphens and / only.";
-});
+  if (!directory.value) return null
+  return DIR_RE.test(directory.value) ? null : 'Use lowercase letters, digits, hyphens and / only.'
+})
 
-const preview = computed(() => resolvePath() ?? "…");
+const preview = computed(() => resolvePath() ?? '…')
 
 const isConfirmDisabled = computed(() => {
-  if (directoryError.value || nameError.value) return true;
-  if (selectedType.value.requiresName && !name.value) return true;
-  return resolvePath() === null;
-});
+  if (directoryError.value || nameError.value) return true
+  if (selectedType.value.requiresName && !name.value) return true
+  return resolvePath() === null
+})
 
 // Reset on open
 watch(
   () => props.open,
   (v) => {
     if (v) {
-      name.value = "";
-      directory.value = "";
-      selectedTypeKind.value = FILE_TYPES[0].kind;
+      name.value = ''
+      directory.value = ''
+      selectedTypeKind.value = FILE_TYPES[0].kind
     }
   },
-);
+)
 
 function confirm() {
-  const path = resolvePath();
-  if (!path || isConfirmDisabled.value) return;
+  const path = resolvePath()
+  if (!path || isConfirmDisabled.value) return
 
-  emit("add", {
+  emit('add', {
     path,
     content: selectedType.value.defaultContent,
     kind: selectedType.value.kind,
-  });
-  emit("update:open", false);
+  })
+  emit('update:open', false)
 }
 
 function resolvePath(): string | null {
-  if (!name.value) return null;
+  if (!name.value) return null
 
   const dir = directory.value
     .trim()
-    .replaceAll("\\", "/")
-    .replace(/^\/+|\/+$/g, "");
-  const fileName = `${name.value}${selectedType.value.extension}`;
-  return dir ? `${dir}/${fileName}` : fileName;
+    .replaceAll('\\', '/')
+    .replace(/^\/+|\/+$/g, '')
+  const fileName = `${name.value}${selectedType.value.extension}`
+  return dir ? `${dir}/${fileName}` : fileName
 }
 </script>

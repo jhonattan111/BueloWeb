@@ -54,11 +54,14 @@ export async function renderReport(
     ...(options?.formatHints ? { FormatHints: options.formatHints } : {}),
   }
 
-  const response = await fetch(`${BASE_URL}/api/report/render?format=${encodeURIComponent(format)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const response = await fetch(
+    `${BASE_URL}/api/report/render?format=${encodeURIComponent(format)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+  )
 
   if (!response.ok) {
     const message = await readApiError(response)
@@ -66,7 +69,8 @@ export async function renderReport(
   }
 
   const blob = await response.blob()
-  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const contentType =
+    response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)
   return { blob, contentType, fileExtension }
 }
@@ -84,19 +88,23 @@ export async function renderById(
   const params = new URLSearchParams({ format })
   if (options?.version !== undefined) params.set('version', String(options.version))
 
-  const body = options?.formatHints ? JSON.stringify({ FormatHints: options.formatHints }) : undefined
+  const body = options?.formatHints
+    ? JSON.stringify({ FormatHints: options.formatHints })
+    : undefined
   const headers: Record<string, string> = body ? { 'Content-Type': 'application/json' } : {}
 
-  const response = await fetch(
-    `${BASE_URL}/api/report/render/${templateId}?${params.toString()}`,
-    { method: 'POST', headers, body },
-  )
+  const response = await fetch(`${BASE_URL}/api/report/render/${templateId}?${params.toString()}`, {
+    method: 'POST',
+    headers,
+    body,
+  })
   if (!response.ok) {
     const message = await readApiError(response)
     throw new Error(message || `Request failed: ${response.status}`)
   }
   const blob = await response.blob()
-  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const contentType =
+    response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)
   return { blob, contentType, fileExtension }
 }
@@ -128,7 +136,8 @@ export async function renderWorkspaceFile(
   }
 
   const blob = await response.blob()
-  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const contentType =
+    response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)
   return { blob, contentType, fileExtension }
 }
@@ -169,7 +178,8 @@ export async function renderDeclarative(
   }
 
   const blob = await response.blob()
-  const contentType = response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
+  const contentType =
+    response.headers.get('Content-Type') ?? blob.type ?? 'application/octet-stream'
   const fileExtension = contentTypeToExtension(contentType)
   return { blob, contentType, fileExtension }
 }

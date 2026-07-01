@@ -44,8 +44,7 @@ export function useFileValidation(
     if (!model) return 0
     return monaco.editor
       .getModelMarkers({ resource: model.uri })
-      .filter((m) => m.severity === severity && m.owner !== MARKER_OWNER)
-      .length
+      .filter((m) => m.severity === severity && m.owner !== MARKER_OWNER).length
   }
 
   const errorCount = computed(() => {
@@ -116,11 +115,9 @@ export function useFileValidation(
   const debouncedValidate = useDebounceFn(runValidation, 1200)
 
   // Re-validate when content or extension changes
-  const stopWatch = watch(
-    [toRef(content), toRef(extension)] as const,
-    () => debouncedValidate(),
-    { immediate: true },
-  )
+  const stopWatch = watch([toRef(content), toRef(extension)] as const, () => debouncedValidate(), {
+    immediate: true,
+  })
 
   onUnmounted(() => {
     stopWatch()

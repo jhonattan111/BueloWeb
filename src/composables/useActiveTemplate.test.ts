@@ -19,7 +19,7 @@ function record(path: string, content: string): WorkspaceFileRecord {
 
 describe('useActiveTemplate — dirty state derived from a saved baseline', () => {
   // Composable state is a module singleton; reset modules per test for isolation.
-  let useActiveTemplate: typeof import('@/composables/useActiveTemplate')['useActiveTemplate']
+  let useActiveTemplate: (typeof import('@/composables/useActiveTemplate'))['useActiveTemplate']
   let ws: typeof import('@/services/workspaceService')
 
   beforeEach(async () => {
@@ -31,7 +31,9 @@ describe('useActiveTemplate — dirty state derived from a saved baseline', () =
   it('clean after open, dirty after edit, clean again when edited back or saved', async () => {
     const path = 'examples/a.report.yml'
     vi.mocked(ws.getFile).mockResolvedValue(record(path, 'original'))
-    vi.mocked(ws.saveFile).mockImplementation(async (p: string, content: string) => record(p, content))
+    vi.mocked(ws.saveFile).mockImplementation(async (p: string, content: string) =>
+      record(p, content),
+    )
 
     const api = useActiveTemplate()
     await api.openFile(path)
@@ -68,7 +70,9 @@ describe('useActiveTemplate — dirty state derived from a saved baseline', () =
 
   it('saveAllFiles persists only the dirty tabs and clears their dirty state', async () => {
     vi.mocked(ws.getFile).mockImplementation(async (p: string) => record(p, 'base'))
-    vi.mocked(ws.saveFile).mockImplementation(async (p: string, content: string) => record(p, content))
+    vi.mocked(ws.saveFile).mockImplementation(async (p: string, content: string) =>
+      record(p, content),
+    )
 
     const api = useActiveTemplate()
     await api.openFile('a.report.yml')
