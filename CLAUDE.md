@@ -11,9 +11,9 @@ Guide for AI agents (Claude Code) in this repository. It is the **canonical docu
 ## Stack
 
 - **Vue 3.5** — Composition API, **always** `<script setup lang="ts">`
-- **TypeScript** + **Vite 6**
+- **TypeScript** + **Vite 7**
 - **Pinia 3** (state) · **Vue Router 5** (one route: `/`)
-- **Monaco Editor** via `vite-plugin-monaco-editor` (patched): `csharp` mode (templates) **and** `yaml` (declarative definitions, via `monaco-yaml` + API JSON Schemas)
+- **Monaco Editor** with **native `?worker` workers** (`src/lib/monaco/workerSetup.ts`; the abandoned `vite-plugin-monaco-editor` was dropped): `csharp` mode (templates) **and** `yaml` (declarative definitions, via `monaco-yaml` + API JSON Schemas)
 - **Tailwind CSS v4** (`@tailwindcss/vite`) + **shadcn-vue** / **reka-ui** (`components/ui/`)
 - `@vueuse/core`, `lucide-vue-next`
 - Package manager: **pnpm** (workspace) · alias `@` → `src`
@@ -86,8 +86,8 @@ components/
 - Shared state → Pinia store; reusable logic → composable in `composables/` (`MaybeRefOrGetter` input when it makes sense).
 - HTTP calls only via `services/` (`fetch`, no axios). API errors are read by `readApiError`.
 - Monaco: `csharp` mode (templates) and `yaml` (declarative definitions). The `lib/buelo-language/` folder is the **types/autocomplete layer**, not a custom language — the `.buelo` DSL was removed, don't reintroduce it.
-- **Declarative YAML:** `lib/buelo-language/yamlSchemaSetup.ts` configures `monaco-yaml` with the JSON Schemas served by the API (`GET api/schemas/{kind}`, in `services/schemaService.ts`), associated by the `*.<kind>.yml` name convention (e.g., `invoice.report.yml`). `yaml` worker registered in `vite.config.ts` (`customWorkers`).
-- **Packages:** `vite`/`@vitejs/plugin-vue` pinned to major 6/5 — vite 7/8 break the patched `vite-plugin-monaco-editor@1.1.0`. `lucide-vue-next` is deprecated (migrate to `@lucide/vue`).
+- **Declarative YAML:** `lib/buelo-language/yamlSchemaSetup.ts` configures `monaco-yaml` with the JSON Schemas served by the API (`GET api/schemas/{kind}`, in `services/schemaService.ts`), associated by the `*.<kind>.yml` name convention (e.g., `invoice.report.yml`). Monaco workers (editor/json/yaml) are wired in `src/lib/monaco/workerSetup.ts` via native Vite `?worker` imports (imported first in `main.ts`).
+- **Monaco / Vite pins:** `vite` is on **major 7** with **native `?worker`** workers (no more `vite-plugin-monaco-editor`). `monaco-editor` stays pinned to **0.54.x** — 0.55 breaks `monaco-yaml` (its `monaco-worker-manager` still calls monaco's removed `createWebWorker`). `path-browserify` is aliased to a vendored ESM shim (`src/lib/monaco/path-browserify.js`) so monaco-yaml's worker doesn't hit the CJS `module is not defined` wall in Vite dev. `lucide-vue-next` is deprecated (migrate to `@lucide/vue`).
 - Imports use the `@/...` alias.
 
 ## Product mental model

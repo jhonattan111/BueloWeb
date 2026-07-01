@@ -1,3 +1,6 @@
+// Must run before any Monaco editor/model is created — wires the native web workers.
+import '@/lib/monaco/workerSetup'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
