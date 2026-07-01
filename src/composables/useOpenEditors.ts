@@ -31,6 +31,26 @@ export function useOpenEditors() {
     activePathState.value = normalized
   }
 
+  /** Moves an open tab so it sits immediately before the target tab (drag-to-reorder). */
+  function reorder(fromPath: string, toPath: string): void {
+    const from = normalizePath(fromPath)
+    const to = normalizePath(toPath)
+    if (from === to) return
+
+    const paths = [...openPathsState.value]
+    const fromIndex = paths.indexOf(from)
+    if (fromIndex === -1) return
+
+    paths.splice(fromIndex, 1)
+    const toIndex = paths.indexOf(to)
+    if (toIndex === -1) {
+      paths.push(from)
+    } else {
+      paths.splice(toIndex, 0, from)
+    }
+    openPathsState.value = paths
+  }
+
   function close(path: string): void {
     const normalized = normalizePath(path)
     const index = openPathsState.value.indexOf(normalized)
@@ -71,6 +91,7 @@ export function useOpenEditors() {
     dirtyMap: computed(() => dirtyMapState.value),
     open,
     switchTo,
+    reorder,
     close,
     markDirty,
     isDirty,

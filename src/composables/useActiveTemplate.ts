@@ -106,6 +106,17 @@ export function useActiveTemplate() {
     await saveFile({ path: file.path, content: file.content })
   }
 
+  /** Saves every open file that has unsaved edits (VS-style "Save all"). */
+  async function saveAllFiles(): Promise<void> {
+    const dirtyPaths = editors.openPaths.value.filter((path) => isDirty(path))
+    for (const path of dirtyPaths) {
+      const file = filesState.value.find((entry) => entry.path === path)
+      if (file) {
+        await saveFile({ path: file.path, content: file.content })
+      }
+    }
+  }
+
   async function loadFiles(paths?: string[]): Promise<void> {
     if (!paths?.length) return
     for (const path of paths) {
@@ -157,11 +168,13 @@ export function useActiveTemplate() {
     openFile,
     saveFile,
     saveActiveFile,
+    saveAllFiles,
     loadFiles,
     removeFile,
     setFileContent,
     getFile,
     switchToFile: editors.switchTo,
+    reorderTabs: editors.reorder,
     closeFile,
     isDirty,
   }

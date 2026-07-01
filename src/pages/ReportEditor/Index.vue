@@ -104,7 +104,8 @@ import { useOnboarding } from "@/composables/useOnboarding";
 import { useTemplateStore } from "@/stores/templateStore";
 import type { FileNode } from "@/types/workspace";
 
-const { openFile, saveActiveFile, hasUnsaved } = useActiveTemplate();
+const { openFile, saveActiveFile, saveAllFiles, hasUnsaved } =
+  useActiveTemplate();
 const { tree, selectNode, refresh } = useWorkspaceTree();
 const projectValidation = useProjectValidation();
 const templateStore = useTemplateStore();
@@ -126,9 +127,45 @@ templateStore.fetchTemplates();
 // First-run: offer the example showcase
 onMounted(maybeShow);
 
-// Explicit save (Ctrl/Cmd+S) — overrides the browser's "save page" dialog.
+// Explicit save. Ctrl/Cmd+S saves the active file (overrides the browser's "save page"
+// dialog); the VS-style chord Ctrl/Cmd+K then S saves all open files.
+let awaitingSaveChord = false;
+let saveChordTimer: ReturnType<typeof setTimeout> | undefined;
+
+function cancelSaveChord(): void {
+  awaitingSaveChord = false;
+  if (saveChordTimer !== undefined) {
+    clearTimeout(saveChordTimer);
+    saveChordTimer = undefined;
+  }
+}
+
 function onGlobalKeydown(event: KeyboardEvent): void {
-  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "s") {
+  const mod = event.ctrlKey || event.metaKey;
+  const key = event.key.toLowerCase();
+
+  // Ctrl/Cmd+K arms the chord prefix (VS Code style).
+  if (mod && !event.altKey && key === "k") {
+    event.preventDefault();
+    awaitingSaveChord = true;
+    if (saveChordTimer !== undefined) clearTimeout(saveChordTimer);
+    saveChordTimer = setTimeout(cancelSaveChord, 1500);
+    return;
+  }
+
+  // Chord completion: (Ctrl/Cmd+K) then S → Save all.
+  if (awaitingSaveChord && key === "s") {
+    event.preventDefault();
+    cancelSaveChord();
+    void saveAllFiles();
+    return;
+  }
+
+  // Any other key cancels a pending chord.
+  if (awaitingSaveChord) cancelSaveChord();
+
+  // Plain Ctrl/Cmd+S → save the active file.
+  if (mod && !event.altKey && key === "s") {
     event.preventDefault();
     void saveActiveFile();
   }
@@ -150,6 +187,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onGlobalKeydown);
   window.removeEventListener("beforeunload", onBeforeUnload);
+  cancelSaveChord();
 });
 
 async function onCreateExamples(): Promise<void> {

@@ -65,4 +65,46 @@ describe('useActiveTemplate — dirty state derived from a saved baseline', () =
     expect(api.getFile(path)).toBeNull()
     expect(api.openPaths.value).not.toContain(path)
   })
+
+  it('saveAllFiles persists only the dirty tabs and clears their dirty state', async () => {
+    vi.mocked(ws.getFile).mockImplementation(async (p: string) => record(p, 'base'))
+    vi.mocked(ws.saveFile).mockImplementation(async (p: string, content: string) => record(p, content))
+
+    const api = useActiveTemplate()
+    await api.openFile('a.report.yml')
+    await api.openFile('b.report.yml')
+    await api.openFile('c.report.yml')
+
+    // Only a and c have unsaved edits.
+    api.setFileContent('a.report.yml', 'edited-a')
+    api.setFileContent('c.report.yml', 'edited-c')
+    expect(api.hasUnsaved.value).toBe(true)
+
+    vi.mocked(ws.saveFile).mockClear()
+    await api.saveAllFiles()
+
+    expect(ws.saveFile).toHaveBeenCalledTimes(2)
+    const savedPaths = vi.mocked(ws.saveFile).mock.calls.map((call) => call[0])
+    expect(savedPaths).toEqual(expect.arrayContaining(['a.report.yml', 'c.report.yml']))
+    expect(savedPaths).not.toContain('b.report.yml')
+    expect(api.hasUnsaved.value).toBe(false)
+  })
+
+  it('reorderTabs moves a tab to sit immediately before the target', async () => {
+    vi.mocked(ws.getFile).mockImplementation(async (p: string) => record(p, 'x'))
+
+    const api = useActiveTemplate()
+    await api.openFile('a.yml')
+    await api.openFile('b.yml')
+    await api.openFile('c.yml')
+    expect(api.openPaths.value).toEqual(['a.yml', 'b.yml', 'c.yml'])
+
+    // Drop 'a' onto 'c' → 'a' lands just before 'c'.
+    api.reorderTabs('a.yml', 'c.yml')
+    expect(api.openPaths.value).toEqual(['b.yml', 'a.yml', 'c.yml'])
+
+    // Dropping onto itself is a no-op.
+    api.reorderTabs('a.yml', 'a.yml')
+    expect(api.openPaths.value).toEqual(['b.yml', 'a.yml', 'c.yml'])
+  })
 })

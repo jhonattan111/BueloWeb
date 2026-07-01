@@ -8,13 +8,23 @@
       <div
         v-for="path in openPaths"
         :key="path"
-        class="group inline-flex items-center rounded border text-xs"
-        :class="
+        draggable="true"
+        class="group inline-flex items-center rounded border text-xs transition-opacity"
+        :class="[
           activeFilePath === path
             ? 'bg-accent text-accent-foreground border-border'
-            : 'bg-background/60 text-muted-foreground border-transparent hover:bg-muted'
-        "
+            : 'bg-background/60 text-muted-foreground border-transparent hover:bg-muted',
+          dragOverPath === path && draggingPath !== path
+            ? 'ring-1 ring-primary'
+            : '',
+          draggingPath === path ? 'opacity-50' : '',
+        ]"
         @mousedown.middle.prevent="requestClose(path)"
+        @dragstart="onDragStart(path, $event)"
+        @dragover.prevent="onDragOver(path)"
+        @dragleave="onDragLeave(path)"
+        @drop.prevent="onDrop(path)"
+        @dragend="onDragEnd"
       >
         <button
           type="button"
@@ -42,6 +52,50 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
+
+      <!-- Open-editors overflow menu (VS-style): jump to any tab, Save all. -->
+      <div v-if="openPaths.length" ref="overflowMenuRef" class="relative">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded size-6 text-muted-foreground hover:bg-muted hover:text-foreground"
+          title="Open editors"
+          @click="overflowOpen = !overflowOpen"
+        >
+          <span class="text-sm leading-none">⌄</span>
+        </button>
+
+        <div
+          v-if="overflowOpen"
+          class="absolute right-0 top-7 z-20 w-64 rounded-md border border-border bg-popover text-popover-foreground shadow-md py-1 text-xs"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent"
+            :disabled="!hasUnsaved"
+            @click="onSaveAll"
+          >
+            <span>Save all</span>
+            <span class="text-[10px] text-muted-foreground">Ctrl+K S</span>
+          </button>
+          <div class="my-1 border-t border-border" />
+          <div class="max-h-64 overflow-y-auto">
+            <button
+              v-for="path in openPaths"
+              :key="path"
+              type="button"
+              class="flex w-full items-center gap-1.5 px-3 py-1.5 text-left hover:bg-muted"
+              :class="activeFilePath === path ? 'text-foreground font-medium' : 'text-muted-foreground'"
+              @click="onOverflowSelect(path)"
+            >
+              <span
+                class="inline-block size-1.5 shrink-0 rounded-full"
+                :class="isDirty(path) ? 'bg-amber-500' : 'bg-transparent'"
+              />
+              <span class="truncate" :title="path">{{ fileName(path) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <span
         v-if="diagnosticState === 'validating'"
@@ -164,6 +218,7 @@
 
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
+import { onClickOutside } from "@vueuse/core";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -204,9 +259,12 @@ const {
   activeFile,
   activeFilePath,
   openPaths,
+  hasUnsaved,
   saveFile,
+  saveAllFiles,
   setFileContent,
   switchToFile,
+  reorderTabs,
   closeFile,
   isDirty,
   getFile: getOpenFile,
@@ -368,6 +426,58 @@ function confirmCloseDiscard(): void {
   if (!path) return;
   closeFile(path);
   pendingClose.value = null;
+}
+
+// ── Drag-to-reorder tabs ──────────────────────────────────────────────────────
+const draggingPath = ref<string | null>(null);
+const dragOverPath = ref<string | null>(null);
+
+function onDragStart(path: string, event: DragEvent): void {
+  draggingPath.value = path;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    // Firefox requires data to be set for the drag to initiate.
+    event.dataTransfer.setData("text/plain", path);
+  }
+}
+
+function onDragOver(path: string): void {
+  if (draggingPath.value && draggingPath.value !== path) {
+    dragOverPath.value = path;
+  }
+}
+
+function onDragLeave(path: string): void {
+  if (dragOverPath.value === path) dragOverPath.value = null;
+}
+
+function onDrop(path: string): void {
+  if (draggingPath.value && draggingPath.value !== path) {
+    reorderTabs(draggingPath.value, path);
+  }
+  onDragEnd();
+}
+
+function onDragEnd(): void {
+  draggingPath.value = null;
+  dragOverPath.value = null;
+}
+
+// ── Open-editors overflow menu ────────────────────────────────────────────────
+const overflowOpen = ref(false);
+const overflowMenuRef = ref<HTMLElement | null>(null);
+onClickOutside(overflowMenuRef, () => {
+  overflowOpen.value = false;
+});
+
+function onOverflowSelect(path: string): void {
+  switchToFile(path);
+  overflowOpen.value = false;
+}
+
+async function onSaveAll(): Promise<void> {
+  overflowOpen.value = false;
+  await saveAllFiles();
 }
 
 function onArtefactValidationResult(
