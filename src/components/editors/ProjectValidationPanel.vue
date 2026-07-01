@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  X,
-  ChevronDown,
-  ChevronRight,
-} from '@lucide/vue'
+import { AlertCircle, AlertTriangle, CheckCircle2, X, ChevronDown, ChevronRight } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { ProjectValidationResult } from '@/services/validateService'
