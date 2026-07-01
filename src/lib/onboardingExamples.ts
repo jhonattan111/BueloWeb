@@ -3,13 +3,13 @@
 // The content below was verified rendering against the API (render-declarative / render).
 
 export interface OnboardingFile {
-  /** Workspace path, e.g. `examples/invoice.report.yml`. */
+  /** Workspace path, e.g. `examples/invoice/invoice.report.yml`. */
   path: string
   content: string
 }
 
 const INVOICE_REPORT = `# Invoice report - header, items table with aggregated total, currency/tax-id formatting.
-# In Report Settings, pick "examples/invoice.data.json" as the Data source, then click Render.
+# In Report Settings, pick "examples/invoice/invoice.data.json" as the Data source, then click Render.
 kind: report
 name: invoice
 meta:
@@ -60,7 +60,7 @@ const INVOICE_DATA = `{
 `
 
 const EMPLOYEES_REPORT = `# Employees report - grouped by department with a per-group subtotal (groupBy + sum).
-# In Report Settings, pick "examples/employees.data.json" as the Data source, then click Render.
+# In Report Settings, pick "examples/employees/employees.data.json" as the Data source, then click Render.
 kind: report
 name: employees
 meta:
@@ -95,7 +95,7 @@ const EMPLOYEES_DATA = `{
 `
 
 const DASHBOARD_REPORT = `# Dashboard report - card/panel KPI tiles in a row, plus markdown and a divider.
-# In Report Settings, pick "examples/dashboard.data.json" as the Data source, then click Render.
+# In Report Settings, pick "examples/dashboard/dashboard.data.json" as the Data source, then click Render.
 kind: report
 name: dashboard
 meta:
@@ -142,7 +142,7 @@ const DASHBOARD_DATA = `{
 `
 
 const LETTER_CS = `// C# report (QuestPDF) - the full-power "escape hatch" of Buelo.
-// In Report Settings, pick "examples/letter.data.json" as the Data source, then click Render.
+// In Report Settings, pick "examples/letter/letter.data.json" as the Data source, then click Render.
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -258,7 +258,7 @@ body:
 const STATEMENT_REPORT = `# Modular report - IMPORTS an external layout (letterhead.component.yml) and injects its
 # content into the component's slot. Shows import: + use: + with: (reuse a header/layout
 # across reports). When you Render, the editor sends the workspace's module files along.
-# In Report Settings, pick "examples/statement.data.json" as the Data source, then click Render.
+# In Report Settings, pick "examples/statement/statement.data.json" as the Data source, then click Render.
 kind: report
 name: statement
 meta:
@@ -294,26 +294,54 @@ const STATEMENT_DATA = `{
 }
 `
 
-/** Folder where the examples are created. */
+/** Root folder for the showcase. Each report gets its own subfolder under here. */
 export const ONBOARDING_FOLDER = 'examples'
 
-/** All showcase files (reports + data + module + script). */
+/** `examples/<name>` — one subfolder per report keeps the tree tidy (report + its data colocated). */
+function dir(name: string): string {
+  return `${ONBOARDING_FOLDER}/${name}`
+}
+
+/**
+ * All showcase files — one folder per report (`examples/<name>/`), with each report's data (and,
+ * for `statement`, its imported `letterhead` component) colocated so the tree reads as one report
+ * per folder. Module imports still resolve across folders (the render collects every `*.<kind>.yml`
+ * in the workspace, not just the report's folder — see workspaceService.listModuleDefinitions).
+ */
 export const ONBOARDING_FILES: OnboardingFile[] = [
-  { path: `${ONBOARDING_FOLDER}/invoice.report.yml`, content: INVOICE_REPORT },
-  { path: `${ONBOARDING_FOLDER}/invoice.data.json`, content: INVOICE_DATA },
-  { path: `${ONBOARDING_FOLDER}/employees.report.yml`, content: EMPLOYEES_REPORT },
-  { path: `${ONBOARDING_FOLDER}/employees.data.json`, content: EMPLOYEES_DATA },
-  { path: `${ONBOARDING_FOLDER}/dashboard.report.yml`, content: DASHBOARD_REPORT },
-  { path: `${ONBOARDING_FOLDER}/dashboard.data.json`, content: DASHBOARD_DATA },
-  { path: `${ONBOARDING_FOLDER}/sales.report.yml`, content: SALES_REPORT },
-  { path: `${ONBOARDING_FOLDER}/sales.data.json`, content: SALES_DATA },
-  { path: `${ONBOARDING_FOLDER}/letterhead.component.yml`, content: LETTERHEAD_COMPONENT },
-  { path: `${ONBOARDING_FOLDER}/statement.report.yml`, content: STATEMENT_REPORT },
-  { path: `${ONBOARDING_FOLDER}/statement.data.json`, content: STATEMENT_DATA },
-  { path: `${ONBOARDING_FOLDER}/letter.cs`, content: LETTER_CS },
-  { path: `${ONBOARDING_FOLDER}/letter.data.json`, content: LETTER_DATA },
-  { path: `${ONBOARDING_FOLDER}/helpers.csx`, content: HELPERS_CSX },
+  { path: `${dir('invoice')}/invoice.report.yml`, content: INVOICE_REPORT },
+  { path: `${dir('invoice')}/invoice.data.json`, content: INVOICE_DATA },
+  { path: `${dir('employees')}/employees.report.yml`, content: EMPLOYEES_REPORT },
+  { path: `${dir('employees')}/employees.data.json`, content: EMPLOYEES_DATA },
+  { path: `${dir('dashboard')}/dashboard.report.yml`, content: DASHBOARD_REPORT },
+  { path: `${dir('dashboard')}/dashboard.data.json`, content: DASHBOARD_DATA },
+  { path: `${dir('sales')}/sales.report.yml`, content: SALES_REPORT },
+  { path: `${dir('sales')}/sales.data.json`, content: SALES_DATA },
+  { path: `${dir('statement')}/statement.report.yml`, content: STATEMENT_REPORT },
+  { path: `${dir('statement')}/statement.data.json`, content: STATEMENT_DATA },
+  { path: `${dir('statement')}/letterhead.component.yml`, content: LETTERHEAD_COMPONENT },
+  { path: `${dir('letter')}/letter.cs`, content: LETTER_CS },
+  { path: `${dir('letter')}/letter.data.json`, content: LETTER_DATA },
+  { path: `${dir('letter')}/helpers.csx`, content: HELPERS_CSX },
 ]
+
+/**
+ * Every folder the showcase files live in, parents first (`examples`, then `examples/invoice`, …),
+ * so they can be created in order before writing the files.
+ */
+export const ONBOARDING_FOLDERS: string[] = (() => {
+  const folders = new Set<string>()
+  for (const file of ONBOARDING_FILES) {
+    const parts = file.path.split('/')
+    parts.pop() // drop the filename
+    let acc = ''
+    for (const part of parts) {
+      acc = acc ? `${acc}/${part}` : part
+      folders.add(acc)
+    }
+  }
+  return [...folders].sort((a, b) => a.split('/').length - b.split('/').length)
+})()
 
 export interface OnboardingReportSettings {
   dataSourcePath: string
@@ -326,13 +354,13 @@ export interface OnboardingReportSettings {
  * the output format is set to Excel.
  */
 export const ONBOARDING_REPORT_SETTINGS: Record<string, OnboardingReportSettings> = {
-  [`${ONBOARDING_FOLDER}/invoice.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/invoice.data.json` },
-  [`${ONBOARDING_FOLDER}/employees.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/employees.data.json` },
-  [`${ONBOARDING_FOLDER}/dashboard.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/dashboard.data.json` },
-  [`${ONBOARDING_FOLDER}/sales.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/sales.data.json`, outputFormat: 'excel' },
-  [`${ONBOARDING_FOLDER}/statement.report.yml`]: { dataSourcePath: `${ONBOARDING_FOLDER}/statement.data.json` },
-  [`${ONBOARDING_FOLDER}/letter.cs`]: { dataSourcePath: `${ONBOARDING_FOLDER}/letter.data.json` },
+  [`${dir('invoice')}/invoice.report.yml`]: { dataSourcePath: `${dir('invoice')}/invoice.data.json` },
+  [`${dir('employees')}/employees.report.yml`]: { dataSourcePath: `${dir('employees')}/employees.data.json` },
+  [`${dir('dashboard')}/dashboard.report.yml`]: { dataSourcePath: `${dir('dashboard')}/dashboard.data.json` },
+  [`${dir('sales')}/sales.report.yml`]: { dataSourcePath: `${dir('sales')}/sales.data.json`, outputFormat: 'excel' },
+  [`${dir('statement')}/statement.report.yml`]: { dataSourcePath: `${dir('statement')}/statement.data.json` },
+  [`${dir('letter')}/letter.cs`]: { dataSourcePath: `${dir('letter')}/letter.data.json` },
 }
 
 /** Report opened automatically after creating the examples. */
-export const ONBOARDING_OPEN_FIRST = `${ONBOARDING_FOLDER}/invoice.report.yml`
+export const ONBOARDING_OPEN_FIRST = `${dir('invoice')}/invoice.report.yml`

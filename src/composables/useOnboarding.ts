@@ -3,7 +3,7 @@ import { createFile, createFolder } from '@/services/workspaceService'
 import { presetFileSettings } from '@/composables/useReportSettings'
 import {
   ONBOARDING_FILES,
-  ONBOARDING_FOLDER,
+  ONBOARDING_FOLDERS,
   ONBOARDING_OPEN_FIRST,
   ONBOARDING_REPORT_SETTINGS,
 } from '@/lib/onboardingExamples'
@@ -53,10 +53,13 @@ export function useOnboarding() {
     isCreating.value = true
     error.value = null
     try {
-      try {
-        await createFolder(ONBOARDING_FOLDER)
-      } catch {
-        // folder may already exist — fine
+      // Create the showcase folders (root first, then each report's subfolder).
+      for (const folder of ONBOARDING_FOLDERS) {
+        try {
+          await createFolder(folder)
+        } catch {
+          // folder may already exist — fine
+        }
       }
       for (const file of ONBOARDING_FILES) {
         await createFile(file.path, file.content, true)
