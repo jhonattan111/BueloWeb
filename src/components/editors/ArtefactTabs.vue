@@ -61,7 +61,7 @@
           title="Open editors"
           @click="overflowOpen = !overflowOpen"
         >
-          <span class="text-sm leading-none">⌄</span>
+          <ChevronDown class="size-4" />
         </button>
 
         <div
@@ -219,6 +219,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
 import { onClickOutside } from "@vueuse/core";
+import { ChevronDown } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
