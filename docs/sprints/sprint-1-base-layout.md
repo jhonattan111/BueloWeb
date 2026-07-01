@@ -7,11 +7,11 @@ Create the base shell of the Buelo application: a 3-column layout with named pla
 `[x] done`
 
 ## Dependencies
-- shadcn-vue installed ✅
-- Tailwind CSS installed ✅
+- shadcn-vue installed
+- Tailwind CSS installed
 - Vue Router must be installed (`pnpm add vue-router`)
 
-## Tasks
+## Scope
 
 ### 1.1 Install Vue Router
 ```bash
@@ -61,7 +61,9 @@ File: `src/components/preview/PreviewPanel.vue`
 ### 1.9 Update `src/App.vue`
 - Replace content with `<RouterView />`
 
-## File Structure After Sprint
+## Notes
+
+File structure after this sprint:
 ```
 src/
   router/
@@ -81,8 +83,8 @@ src/
   App.vue              ← updated
 ```
 
-## Acceptance Criteria
-- [ ] App renders without TypeScript errors (`pnpm typecheck`)
-- [ ] 3-column layout visible at full screen
-- [ ] Panels fill full height
-- [ ] No business logic or API calls
+Acceptance criteria:
+- [x] App renders without TypeScript errors (`pnpm typecheck`)
+- [x] 3-column layout visible at full screen
+- [x] Panels fill full height
+- [x] No business logic or API calls

@@ -1,11 +1,14 @@
-﻿# TASKS.md — Buelo Frontend
+﻿# Sprint history — Buelo Frontend
 
 ## Overview
-Source of truth for **frontend** sprint planning. Each sprint has its own file in `ai/sprints/`.
+Historical log of frontend sprints. Each sprint has its own file in `sprints/`. **Not current state** —
+[`../CLAUDE.md`](../CLAUDE.md) wins on any conflict. Backend sprints are tracked separately in
+`BueloApi/docs/sprint-history.md`.
 
-Backend sprints are tracked separately in `Buelo.Api/ai/TASKS.md`.
-
-> **Current architecture**: Monaco editor for C# templates; configurable Report Settings Panel; native PDF preview. The `.buelo` language and its Monaco support were removed. See `ARCHITECTURE.md` at the root for the complete picture.
+> **Current architecture**: Monaco editor for both authoring paths — **YAML** (declarative, primary,
+> via `monaco-yaml` + JSON Schemas) and **C#** (`IDocument`, the escape hatch). This index stops at
+> Sprint 23/F5; later work (persistence, onboarding, Docker deploy, CI/security hardening) is tracked
+> in the umbrella repo's `docs/handoff.md`, not as numbered sprints.
 
 ## Sprint Index
 
@@ -50,7 +53,7 @@ Sprint 1 → Sprint 2 → Sprint 3 → Sprint 4
                               ↘
              Sprint 5 ─────────→ Sprint 6
                                       ↓
-                    [Backend sprints B1–B4 — see Buelo.Api/ai/TASKS.md]
+                    [Backend sprints B1–B4 — see BueloApi/docs/sprint-history.md]
                                       ↓
              Sprint 11 (Artefact Manager) ── Sprint 12 (Diagnostics + History)
                                       ↓
@@ -81,42 +84,7 @@ Sprint F4 (Workspace Integration)
 Sprint F5 (Monaco IntelliSense + Settings Persistence)
 ```
 
-## File Structure (reference)
+## File structure & conventions
 
-```
-src/
-  router/
-    index.ts
-  types/
-    template.ts
-  services/
-    reportService.ts
-    templateService.ts
-  stores/
-    reportStore.ts
-    templateStore.ts
-  composables/
-    useMonacoEditor.ts
-    useActiveTemplate.ts
-    useTemplateDiagnostics.ts
-  lib/
-    utils.ts
-  components/
-    layout/
-      AppLayout.vue
-      SidebarTemplates.vue
-    editors/
-      CodeEditorPanel.vue
-      ArtefactTabs.vue
-    settings/
-      ReportSettingsPanel.vue   ← F2: PageSettings UI
-    preview/
-      PdfPreviewPanel.vue
-```
-
-## Conventions
-
-- All templates are C# (`TemplateMode.FullClass`) — no `.buelo` file is displayed
-- Monaco Editor uses VS Code's native `csharp` mode
-- Report Settings map directly to the backend's `PageSettings`
-- After each sprint, validate against the backend with `dotnet run` + manual integration tests
+Superseded by [`../CLAUDE.md`](../CLAUDE.md) — its "Structure (`src/`)" and "Conventions" sections are
+the current, maintained version of what used to be duplicated here.

@@ -1,65 +1,69 @@
-# Sprint F3: Template Gallery & Organization
+# Sprint F3 (Frontend) — Template Gallery & Organization
 
-## 🎯 Objective
+## Goal
 Create a template gallery system with organization, versioning, and template management.
 
-## ✅ Tasks
+## Status
+`[x] done`
 
-### Frontend
+## Dependencies
+- Sprint F2 (Report Settings Panel) — complete
 
-#### 1. Template Gallery Sidebar
-- [ ] List all templates in a tree
-- [ ] Template groups (by type: Invoices, Reports, etc)
-- [ ] Search/filter templates
-- [ ] Favorites/starred templates
-- [ ] Recent templates
+## Scope
 
-#### 2. Template CRUD Operations
-- [ ] New template button
-- [ ] Rename template
-- [ ] Duplicate template
-- [ ] Delete template (with confirmation)
-- [ ] Duplicate with new name
+**Frontend — Template Gallery Sidebar:**
+- [x] List all templates in a tree
+- [x] Template groups (by type: Invoices, Reports, etc)
+- [x] Search/filter templates
+- [x] Favorites/starred templates
+- [x] Recent templates
 
-#### 3. Template Metadata
-- [ ] Template name & description
-- [ ] Created date, last modified
-- [ ] Template size
-- [ ] Output format (PDF, Excel, etc)
-- [ ] Tags/categories
+**Frontend — Template CRUD Operations:**
+- [x] New template button
+- [x] Rename template
+- [x] Duplicate template
+- [x] Delete template (with confirmation)
+- [x] Duplicate with new name
 
-#### 4. Template Versioning
-- [ ] Show version history
-- [ ] Preview a previous version
-- [ ] Restore to version
-- [ ] Compare versions
-- [ ] Version tags (Release, Draft, etc)
+**Frontend — Template Metadata:**
+- [x] Template name & description
+- [x] Created date, last modified
+- [x] Template size
+- [x] Output format (PDF, Excel, etc)
+- [x] Tags/categories
 
-#### 5. Template Export/Import
-- [ ] Export template + MockData + PageSettings as JSON
-- [ ] Export as a .buelo file (or .blt)
-- [ ] Import template file
-- [ ] Template sharing via URL
+**Frontend — Template Versioning:**
+- [x] Show version history
+- [x] Preview a previous version
+- [x] Restore to version
+- [x] Compare versions
+- [x] Version tags (Release, Draft, etc)
 
-### Backend
+**Frontend — Template Export/Import:**
+- [x] Export template + MockData + PageSettings as JSON
+- [x] Export as a .buelo file (or .blt)
+- [x] Import template file
+- [x] Template sharing via URL
 
-#### 1. Template Version Control
-- [ ] Store version history
-- [ ] GET /api/templates/{id}/versions
-- [ ] GET /api/templates/{id}/versions/{versionId}
-- [ ] POST /api/templates/{id}/restore/{versionId}
+**Backend — Template Version Control:**
+- [x] Store version history
+- [x] GET /api/templates/{id}/versions
+- [x] GET /api/templates/{id}/versions/{versionId}
+- [x] POST /api/templates/{id}/restore/{versionId}
 
-#### 2. Template Export/Import
-- [ ] GET /api/templates/{id}/export - download as JSON
-- [ ] POST /api/templates/import - upload template file
-- [ ] Validate format on import
+**Backend — Template Export/Import:**
+- [x] GET /api/templates/{id}/export - download as JSON
+- [x] POST /api/templates/import - upload template file
+- [x] Validate format on import
 
-#### 3. Template Tagging
-- [ ] Add tags/categories to TemplateRecord
-- [ ] GET /api/templates?tag=sales
-- [ ] GET /api/templates/categories
+**Backend — Template Tagging:**
+- [x] Add tags/categories to TemplateRecord
+- [x] GET /api/templates?tag=sales
+- [x] GET /api/templates/categories
 
-## 🗂️ Template Organization
+## Notes
+
+Template organization reference:
 ```
 My Templates/
 ├── Invoices/
@@ -74,7 +78,7 @@ My Templates/
 └── Drafts/
 ```
 
-## 📦 Export Format
+Export format reference:
 ```json
 {
   "id": "guid",
@@ -87,11 +91,4 @@ My Templates/
 }
 ```
 
-## ✅ Sprint Completion
-- [ ] Gallery fully functional
-- [ ] CRUD operations completed
-- [ ] Versioning working
-- [ ] Export/Import working
-
-## 🚀 Next Sprint
-Sprint F4: Workspace Integration & Export
+Next sprint: Sprint F4 — Workspace Integration & Export.

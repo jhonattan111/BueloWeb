@@ -4,25 +4,22 @@
 Expose multiple output formats in the preview panel. Users can select **PDF** or **Excel** before rendering. PDF continues as an iframe preview. Excel shows a "download only" message with an automatic download. The format selector respects the project's `defaultOutputFormat` setting. Format-specific hints (e.g., Excel sheet name) are configurable in a collapsible settings panel.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
-- Sprint 17 backend complete ✅ (`?format=pdf|excel` query param on render endpoints; `GET /api/report/formats`)
-- Sprint 15 frontend complete ✅ (`projectStore` with `defaultOutputFormat`)
-- Sprint 14 frontend complete ✅ (`.buelo` DSL mode aware render)
+- Sprint 17 backend complete (`?format=pdf|excel` query param on render endpoints; `GET /api/report/formats`)
+- Sprint 15 frontend complete (`projectStore` with `defaultOutputFormat`)
+- Sprint 14 frontend complete (`.buelo` DSL mode aware render)
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `POST /api/report/render?format=pdf` → `Content-Type: application/pdf`
 - `POST /api/report/render?format=excel` → `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - `GET /api/report/formats` → `[{ format, contentType, fileExtension }]`
 - Excel format requires `mode: BueloDsl`; Sections mode renders PDF only
 - `POST /api/report/render/{id}?format=excel` for saved templates
 
----
-
-## Tasks
+## Scope
 
 ### FE-17.1 — `reportService.ts` updates
 

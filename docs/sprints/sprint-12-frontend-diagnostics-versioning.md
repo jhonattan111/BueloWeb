@@ -7,21 +7,18 @@ Connect the editor to the backend validate endpoint for real-time error squiggle
 `[x] done`
 
 ## Dependencies
-- Sprint 9 backend complete (validate + version endpoints available) ✅
-- Sprint 11 frontend complete ✅
+- Sprint 9 backend complete (validate + version endpoints available)
+- Sprint 11 frontend complete
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `POST /api/report/validate` returns `{ valid, errors: [{ message, line, column }] }`
 - `GET /api/templates/{id}/versions` returns `[{ version, savedAt, savedBy }]`
 - `GET /api/templates/{id}/versions/{n}` returns full snapshot
 - `POST /api/templates/{id}/versions/{n}/restore` restores snapshot → creates new version
 - `POST /api/report/render/{id}?version=N` renders historical snapshot
 
----
-
-## Tasks
+## Scope
 
 ### 12.1 — `templateService.ts` additions
 
@@ -119,14 +116,12 @@ Add to the editor toolbar:
 - `[History]` button — toggles `VersionHistoryPanel`
 - Diagnostic status icon: green check (valid) / red X (errors) / grey dash (not yet validated)
 
----
-
 ## Acceptance Criteria
-- [ ] Errors from `/api/report/validate` appear as red squiggles in the Monaco editor within 2s of stopping typing
-- [ ] Squiggles clear when template becomes valid
-- [ ] Diagnostics only activate for `Sections` and `Partial` modes
-- [ ] Version history panel opens and lists all saved versions
-- [ ] Clicking a version shows its template content in read-only preview
-- [ ] Restore overwrites active editor content and reloads artefact tabs
-- [ ] "Render version" renders the historical snapshot in the PDF preview panel
-- [ ] Manual Validate button works independently of the debounce
+- [x] Errors from `/api/report/validate` appear as red squiggles in the Monaco editor within 2s of stopping typing
+- [x] Squiggles clear when template becomes valid
+- [x] Diagnostics only activate for `Sections` and `Partial` modes
+- [x] Version history panel opens and lists all saved versions
+- [x] Clicking a version shows its template content in read-only preview
+- [x] Restore overwrites active editor content and reloads artefact tabs
+- [x] "Render version" renders the historical snapshot in the PDF preview panel
+- [x] Manual Validate button works independently of the debounce

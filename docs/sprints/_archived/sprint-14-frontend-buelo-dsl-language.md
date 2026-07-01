@@ -4,16 +4,19 @@
 Register a completely redesigned `buelo` Monaco language that reflects the new YAML-like component DSL introduced in backend Sprint 14. Replace the previous C#-flavored tokenizer with a component-aware language: syntax highlighting for all layout and content components, full IntelliSense for component properties, style values, import syntax, and template expressions. The language must be extensible as new components are added.
 
 ## Status
-`[ ] pending`
+`[x] archived — DSL era, removed`
 
 ## Dependencies
-- Sprint 14 backend complete ✅ (`.buelo` DSL spec finalized)
-- Sprint 13 frontend complete ✅ (file tree opens `.buelo` files with `language: 'buelo'`)
-- Existing Monaco setup from Sprint 10 ✅
+- Sprint 14 backend complete (`.buelo` DSL spec finalized)
+- Sprint 13 frontend complete (file tree opens `.buelo` files with `language: 'buelo'`)
+- Existing Monaco setup from Sprint 10
 
----
+## Notes
+This sprint's component-aware `.buelo` DSL language work was later removed when the product moved
+away from the custom DSL in favor of C# `IDocument` templates. Content below is kept as the
+historical record of what the removed system used to do.
 
-## Tasks
+## Scope
 
 ### FE-14.1 — Update `spec.ts` — Language specification
 

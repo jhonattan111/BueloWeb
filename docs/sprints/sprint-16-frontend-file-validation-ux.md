@@ -4,25 +4,22 @@
 Show real-time validation diagnostics for every file type in the workspace. Each editor tab displays inline Monaco squiggles based on its file extension. `.buelo` and `.cs`/`.csx` files validate against the backend. `.json` files use Monaco's built-in JSON validation (no network request). A status bar at the bottom of each editor shows the error/warning count and severity level.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
-- Sprint 16 backend complete ✅ (`POST /api/validate` endpoint with per-extension routing)
-- Sprint 13 frontend complete ✅ (file tree + editor routing per extension)
-- Sprint 14 frontend complete ✅ (`.buelo` Monaco language registered)
-- Sprint 12 frontend complete ✅ (`useTemplateDiagnostics` pattern established)
+- Sprint 16 backend complete (`POST /api/validate` endpoint with per-extension routing)
+- Sprint 13 frontend complete (file tree + editor routing per extension)
+- Sprint 14 frontend complete (`.buelo` Monaco language registered)
+- Sprint 12 frontend complete (`useTemplateDiagnostics` pattern established)
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `POST /api/validate` body: `{ extension: string, content: string }`
 - Response: `{ valid: boolean, errors: ValidationDiagnostic[], warnings: ValidationDiagnostic[] }`
 - `ValidationDiagnostic`: `{ message, line, column, severity: 'error'|'warning'|'info' }`
 - Endpoint always returns 200, even when content has errors
 
----
-
-## Tasks
+## Scope
 
 ### FE-16.1 — Update `src/types/template.ts`
 

@@ -10,13 +10,11 @@ chosen once when creating a new `.buelo` report — not when downloading.
 `[x] done`
 
 ## Dependencies
-- Sprint 18 backend complete ✅ (`@project` directive parseable; `TemplateRecord.OutputFormat` available)
-- Sprint 17 frontend complete ✅ (format-aware render pipeline in `reportStore`)
-- Sprint 15 frontend complete ✅ (`projectService`, `projectStore` exist and can be removed)
+- Sprint 18 backend complete (`@project` directive parseable; `TemplateRecord.OutputFormat` available)
+- Sprint 17 frontend complete (format-aware render pipeline in `reportStore`)
+- Sprint 15 frontend complete (`projectService`, `projectStore` exist and can be removed)
 
----
-
-## Tasks
+## Scope
 
 ### FE-18.1 — Remove `/project` route and `ProjectEditor` page
 

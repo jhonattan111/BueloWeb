@@ -9,12 +9,10 @@ unchanged; this sprint only changes the manual trigger and the results panel.
 `[x] done`
 
 ## Dependencies
-- Sprint 19 backend complete ✅ (`POST /api/validate/project` available)
-- Sprint 16 frontend complete ✅ (`ValidationSummaryPanel`, `useFileValidation`)
+- Sprint 19 backend complete (`POST /api/validate/project` available)
+- Sprint 16 frontend complete (`ValidationSummaryPanel`, `useFileValidation`)
 
----
-
-## Tasks
+## Scope
 
 ### FE-19.1 — Add `validateProject()` to `validateService.ts`
 

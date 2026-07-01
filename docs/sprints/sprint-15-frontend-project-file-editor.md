@@ -4,24 +4,21 @@
 Provide a dedicated visual editor for the `project.bueloproject` file. Opening the project file from the file tree shows a settings panel (not a code editor) with forms for global page settings, global mock data, and project metadata. Settings persist to the backend `/api/project` endpoint and cascade as defaults for all templates.
 
 ## Status
-`[ ] pending`
+`[x] done`
 
 ## Dependencies
-- Sprint 15 backend complete ✅ (`/api/project` GET/PUT/PATCH endpoints available)
-- Sprint 13 frontend complete ✅ (file tree opens `.bueloproject` node → routes to this editor)
+- Sprint 15 backend complete (`/api/project` GET/PUT/PATCH endpoints available)
+- Sprint 13 frontend complete (file tree opens `.bueloproject` node → routes to this editor)
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `GET /api/project` → `BueloProject` object
 - `PUT /api/project` → full replace
 - `PATCH /api/project/page-settings` → partial page settings update
 - `PATCH /api/project/mock-data` → partial mock data update
 - `GET /api/project/reset` → returns factory defaults
 
----
-
-## Tasks
+## Scope
 
 ### FE-15.1 — `projectService.ts`
 

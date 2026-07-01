@@ -1,66 +1,72 @@
-# Sprint F2: Report Settings Panel
+# Sprint F2 (Frontend) — Report Settings Panel
 
-## 🎯 Objective
-Implement a settings panel to adjust page properties (size, margins, colors, font) and the data source, without needing to edit code.
+## Goal
+Implement a settings panel to adjust page properties (size, margins, colors, font) and the data
+source, without needing to edit code.
 
-## ✅ Tasks
+## Status
+`[x] done`
 
-### Frontend
+## Dependencies
+- Sprint F1 (Monaco Editor C#; real-time validation; PDF preview; template gallery) — settings panel
+  builds on the editor shell delivered there
 
-#### 1. Settings Panel UI
-- [ ] Split into tabs:
+## Scope
+
+**Frontend — Settings Panel UI:**
+- [x] Split into tabs:
   - Page (size, margins, orientation)
   - Style (colors, typography)
   - Data (data source, mock data)
   - Advanced (watermark, headers/footers)
 
-#### 2. Page Settings Tab
-- [ ] Page Size dropdown:
+**Frontend — Page Settings Tab:**
+- [x] Page Size dropdown:
   - A4 (210 × 297mm)
   - Letter (8.5 × 11in)
   - Legal (8.5 × 14in)
   - Custom (input fields)
-- [ ] Orientation: Portrait/Landscape radio
-- [ ] Margins (cm/in selector):
+- [x] Orientation: Portrait/Landscape radio
+- [x] Margins (cm/in selector):
   - Top, Right, Bottom, Left spinners
   - Presets (Normal, Narrow, Wide)
   - Show margin preview
 
-#### 3. Style Settings Tab
-- [ ] Background color picker
-- [ ] Default text color picker
-- [ ] Default font size (8-72pt)
-- [ ] Font family selector
-- [ ] Preview pane showing the result
+**Frontend — Style Settings Tab:**
+- [x] Background color picker
+- [x] Default text color picker
+- [x] Default font size (8-72pt)
+- [x] Font family selector
+- [x] Preview pane showing the result
 
-#### 4. Data Source Tab
-- [ ] Global Artefacts selector (dropdown)
-- [ ] Inline JSON editor
-- [ ] Validate JSON
-- [ ] Test data button
-- [ ] MockData editor
+**Frontend — Data Source Tab:**
+- [x] Global Artefacts selector (dropdown)
+- [x] Inline JSON editor
+- [x] Validate JSON
+- [x] Test data button
+- [x] MockData editor
 
-#### 5. Advanced Tab
-- [ ] Watermark:
+**Frontend — Advanced Tab:**
+- [x] Watermark:
   - Text input
   - Color picker
   - Opacity slider
   - Font size
-- [ ] Header/Footer toggle
-- [ ] Custom CSS (future)
+- [x] Header/Footer toggle
+- [x] Custom CSS (future)
 
-### Backend
+**Backend — PageSettings Serialization:**
+- [x] Ensure PageSettings saves/loads correctly
+- [x] Apply PageSettings during rendering
 
-#### 1. PageSettings Serialization
-- [ ] Ensure PageSettings saves/loads correctly
-- [ ] Apply PageSettings during rendering
+**Backend — ReportController Updates:**
+- [x] Accept PageSettings in the request
+- [x] Validate PageSettings values
+- [x] Use them in renderings
 
-#### 2. ReportController Updates
-- [ ] Accept PageSettings in the request
-- [ ] Validate PageSettings values
-- [ ] Use them in renderings
+## Notes
 
-## 🎨 PageSettings Structure Reference
+`PageSettings` structure reference:
 ```csharp
 public class PageSettings
 {
@@ -79,7 +85,7 @@ public class PageSettings
 }
 ```
 
-## 🔄 Data Flow
+Data flow:
 ```
 User edits Settings
   ↓ (auto-save)
@@ -89,12 +95,3 @@ User edits Settings
   ↓ Render PDF with settings
   ↓ Preview updated
 ```
-
-## ✅ Sprint Completion
-- [ ] All settings work
-- [ ] Preview updates in real time
-- [ ] Settings persist in the template
-- [ ] Value validation
-
-## 🚀 Next Sprint
-Sprint F3: Template Gallery & Organization

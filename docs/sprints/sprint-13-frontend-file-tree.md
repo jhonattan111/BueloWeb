@@ -7,13 +7,12 @@ Replace the flat template list sidebar with a **VSCode-style file tree** that sh
 `[x] done`
 
 ## Dependencies
-- Sprint 13 backend complete ✅ (global artefact store + `/api/artefacts` endpoints)
-- Sprint 15 backend complete ✅ (`/api/project` endpoint)
-- Sprint 12 frontend complete ✅
+- Sprint 13 backend complete (global artefact store + `/api/artefacts` endpoints)
+- Sprint 15 backend complete (`/api/project` endpoint)
+- Sprint 12 frontend complete
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `GET /api/artefacts` — list global artefacts (name, extension, description, tags)
 - `GET /api/artefacts/{id}` — get global artefact with content
 - `POST /api/artefacts` — create global artefact
@@ -22,9 +21,7 @@ Replace the flat template list sidebar with a **VSCode-style file tree** that sh
 - `GET /api/project` — get project settings
 - `GET /api/templates` — existing endpoint (returns templates)
 
----
-
-## Tasks
+## Scope
 
 ### FE-13.1 — File tree data model
 
@@ -181,8 +178,6 @@ File: `src/components/layout/AppLayout.vue`
 - Replace `<SidebarTemplates>` with `<FileTreePanel>`
 - Pass `@open-file` event handler to wire file selection to editor
 - Keep existing sidebar width / resize handle
-
----
 
 ## Final file structure additions
 

@@ -7,20 +7,17 @@ Expose the multi-artefact model in the UI. Each template can now have associated
 `[x] done`
 
 ## Dependencies
-- Sprint 8 backend complete (artefact endpoints available) ✅
-- Sprint 10 frontend complete ✅
+- Sprint 8 backend complete (artefact endpoints available)
+- Sprint 10 frontend complete
 
----
-
-## Compatibility Notes from Backend Changes
+## Notes
+Compatibility notes from backend changes at the time:
 - `TemplateRecord` now has `artefacts: TemplateArtefact[]`
 - New endpoints: `GET/PUT/DELETE /api/templates/{id}/artefacts/{name}`
 - `GET /api/templates/{id}/export` → `.zip`
 - `POST /api/templates/import` → multipart
 
----
-
-## Tasks
+## Scope
 
 ### 11.1 — Update `src/types/template.ts`
 
@@ -113,14 +110,12 @@ Import:
 
 Replace the single Monaco editor with `ArtefactTabs`. The JSON data panel (mock data) remains only if no `.data.json` artefact is attached — otherwise the artefact tab replaces it.
 
----
-
 ## Acceptance Criteria
-- [ ] Active template shows tabs: Template + one tab per artefact
-- [ ] Adding an artefact via dialog creates it in the backend and opens the new tab
-- [ ] Closing an artefact tab (×) shows confirm dialog before deleting
-- [ ] Content changes in artefact tabs auto-save (debounced)
-- [ ] `.json` artefacts use JSON Monaco language; `.cs` artefacts use csharp
-- [ ] Export downloads a `.zip` containing all artefacts
-- [ ] Import from `.zip` creates template + artefacts, navigates to it
-- [ ] Mock data panel is hidden when a `.data.json` artefact is present
+- [x] Active template shows tabs: Template + one tab per artefact
+- [x] Adding an artefact via dialog creates it in the backend and opens the new tab
+- [x] Closing an artefact tab (×) shows confirm dialog before deleting
+- [x] Content changes in artefact tabs auto-save (debounced)
+- [x] `.json` artefacts use JSON Monaco language; `.cs` artefacts use csharp
+- [x] Export downloads a `.zip` containing all artefacts
+- [x] Import from `.zip` creates template + artefacts, navigates to it
+- [x] Mock data panel is hidden when a `.data.json` artefact is present

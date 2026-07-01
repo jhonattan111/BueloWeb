@@ -1,58 +1,63 @@
-# Sprint F1: Report Editor & Template Management
+# Sprint F1 (Frontend) — Report Editor & Template Management
 
-## 🎯 Objective
+## Goal
 Create a report editor interface with support for C# templates, real-time preview, and template management.
 
-## ✅ Tasks
+## Status
+`[x] done`
 
-### Frontend
+## Dependencies
+- None
 
-#### 1. Report Editor Layout
-- [ ] 3-pane layout: Editor | Preview | Settings
-- [ ] Resizable panels with drag dividers
-- [ ] Monaco Editor with C# syntax highlighting
-- [ ] Toolbar with actions: Save, Validate, Preview, Export
+## Scope
 
-#### 2. Monaco Editor Setup
-- [ ] Configure for the C# language
-- [ ] Syntax highlighting for QuestPDF
-- [ ] Basic IntelliSense (autocomplete)
+**Report Editor Layout:**
+- [x] 3-pane layout: Editor | Preview | Settings
+- [x] Resizable panels with drag dividers
+- [x] Monaco Editor with C# syntax highlighting
+- [x] Toolbar with actions: Save, Validate, Preview, Export
+
+**Monaco Editor Setup:**
+- [x] Configure for the C# language
+- [x] Syntax highlighting for QuestPDF
+- [x] Basic IntelliSense (autocomplete)
 - [ ] Go-to-definition (future)
-- [ ] Theme selector (light/dark)
+- [x] Theme selector (light/dark)
 
-#### 3. Template Validation
-- [ ] Real-time validation on keystroke
-- [ ] Show errors in a problems panel
-- [ ] Line number highlighting for errors
-- [ ] Disable preview if template is invalid
+**Template Validation:**
+- [x] Real-time validation on keystroke
+- [x] Show errors in a problems panel
+- [x] Line number highlighting for errors
+- [x] Disable preview if template is invalid
 
-#### 4. Live Preview
-- [ ] Embed PDF viewer (pdfjs)
-- [ ] Update preview when clicking "Preview"
-- [ ] Show loading state
-- [ ] Rendering error handling
+**Live Preview:**
+- [x] Embed PDF viewer (pdfjs)
+- [x] Update preview when clicking "Preview"
+- [x] Show loading state
+- [x] Rendering error handling
 
-#### 5. Template Gallery
-- [ ] List existing templates
-- [ ] New template from a template
-- [ ] Rename/Delete
-- [ ] Duplicate template
-- [ ] Share template URL
+**Template Gallery:**
+- [x] List existing templates
+- [x] New template from a template
+- [x] Rename/Delete
+- [x] Duplicate template
+- [x] Share template URL
 
-### Backend
+**Backend — Template API:**
+- [x] GET /api/templates - list all
+- [x] GET /api/templates/{id} - get one
+- [x] POST /api/templates - create
+- [x] PUT /api/templates/{id} - update
+- [x] DELETE /api/templates/{id} - delete
 
-#### 1. Template API
-- [ ] GET /api/templates - list all
-- [ ] GET /api/templates/{id} - get one
-- [ ] POST /api/templates - create
-- [ ] PUT /api/templates/{id} - update
-- [ ] DELETE /api/templates/{id} - delete
+**Backend — Validation Endpoint:**
+- [x] POST /api/report/validate - already exists
+- [x] Return a list of errors
 
-#### 2. Validation Endpoint
-- [ ] POST /api/report/validate - already exists
-- [ ] Return a list of errors
+## Notes
 
-## 📋 Template Structure (Example)
+Template structure example used as the reference shape for authored templates:
+
 ```csharp
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -86,5 +91,4 @@ public class SalesReportDocument : IDocument
 }
 ```
 
-## 🚀 Next Sprint
-Sprint F2: Report Settings Panel (configuration UI)
+Next sprint at the time: Sprint F2 (Report Settings Panel — configuration UI).

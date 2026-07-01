@@ -96,4 +96,5 @@ Templates = C# `IDocument` classes (compiled by the API with Roslyn). The fronte
 
 ## History
 
-`docs/` keeps the index and sprint history (`.buelo` DSL era → C#/QuestPDF era) — reference, not current state.
+[`docs/README.md`](docs/README.md) indexes the sprint log (`docs/sprint-history.md` + `docs/sprints/`)
+— **historical reference only**, not current state; this file wins on any conflict.

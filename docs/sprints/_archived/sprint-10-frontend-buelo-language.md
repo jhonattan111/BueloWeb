@@ -1,24 +1,22 @@
-# Sprint 10 — Frontend: Buelo Language (Monaco DSL + Autocomplete)
+# Sprint 10 (Frontend) — Buelo Language (Monaco DSL + Autocomplete)
 
 ## Goal
 Register the `buelo` language in Monaco Editor with syntax highlighting, snippet-based autocompletion for all DSL directives, and hover documentation. Replace all `language: 'csharp'` usages in template editors with `language: 'buelo'`.
 
 ## Status
-`[x] done`
+`[x] archived — DSL era, removed`
 
 ## Dependencies
-- Sprint 6 complete ✅
-- Sprint 7 backend complete (validate endpoint available) ✅
+- Sprint 6 complete
+- Sprint 7 backend complete (validate endpoint available)
 - Monaco Editor already installed via `vite-plugin-monaco-editor`
 
----
+## Notes
+- New `/api/report/validate` endpoint available for live diagnostics at the time of this sprint.
+- This sprint's `.buelo` DSL language work was later removed when the product moved away from the
+  custom DSL. Content below is kept as the historical record of what the removed system used to do.
 
-## Compatibility Notes from Backend Changes
-- New `/api/report/validate` endpoint available for live diagnostics
-
----
-
-## Tasks
+## Scope
 
 ### 10.1 — Create `src/lib/buelo-language/` module
 
@@ -115,8 +113,8 @@ Files to update:
 ---
 
 ## Acceptance Criteria
-- [ ] `buelo` language registered; `@import`, `@data`, `@settings`, `@schema`, `@helper` highlighted as directives
-- [ ] Typing `@` in a Sections editor opens autocomplete with all directives
-- [ ] `@import ... from "` autocomplete shows only `Partial` templates from the backend
-- [ ] Hovering `data` shows type `dynamic` + description
-- [ ] JSON data editors are unaffected (still use `language: 'json'`)
+- [x] `buelo` language registered; `@import`, `@data`, `@settings`, `@schema`, `@helper` highlighted as directives
+- [x] Typing `@` in a Sections editor opens autocomplete with all directives
+- [x] `@import ... from "` autocomplete shows only `Partial` templates from the backend
+- [x] Hovering `data` shows type `dynamic` + description
+- [x] JSON data editors are unaffected (still use `language: 'json'`)
