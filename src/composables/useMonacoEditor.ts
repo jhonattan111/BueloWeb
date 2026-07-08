@@ -43,6 +43,9 @@ export function useMonacoEditor(
       suggestOnTriggerCharacters: true,
       wordBasedSuggestions: 'off',
       readOnly: options?.readOnly ?? false,
+      // Use Buelo's color provider (writes 6-digit `#RRGGBB`) instead of Monaco's built-in
+      // picker, whose default presentation writes 8-digit RGBA (`#ffffffff`) and corrupts colors.
+      defaultColorDecorators: 'never',
     }
 
     if (options?.path) {
