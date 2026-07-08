@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout web
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: BueloWeb
 
       # The Playwright webServer starts the API from ../BueloApi/Buelo.Api (a sibling of BueloWeb).
       - name: Checkout API (sibling)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: jhonattan111/BueloApi
           ref: master
