@@ -5,11 +5,14 @@ export const BUELO_LANGUAGE_ID = 'csharp'
 import { registerDataCompletionProvider } from './csharpDataCompletions'
 import { configureBueloYamlSchemas } from './yamlSchemaSetup'
 import { registerBueloColorProvider } from '@/lib/monaco/colorProvider'
+import { fixYamlTokenizer } from '@/lib/monaco/yamlTokensFix'
 
 export function registerBueloLanguage(): void {
   registerDataCompletionProvider()
   // Inline color swatches that write canonical 6-digit `#RRGGBB` (not Monaco's default RGBA).
   registerBueloColorProvider()
+  // Corrects YAML syntax highlighting for flow-mapping values that contain a colon.
+  fixYamlTokenizer()
   // Bind the declarative YAML schemas (best-effort; needs the API running to fetch them).
   void configureBueloYamlSchemas()
 }
